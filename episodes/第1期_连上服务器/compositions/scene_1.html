@@ -1,0 +1,53 @@
+<!doctype html><html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=1920,height=1080">
+<title>连上服务器 +环境长什么样</title>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000;}
+.slide{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+.sl{width:100%;height:100%;display:flex;flex-direction:column;padding:50px 80px;position:relative;background:#ffffff;}
+.sl::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom,#00d4a4,#00b48a);}
+.badge{font-size:11px;color:#00d4a4;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+h1{font-size:64px;font-weight:700;color:#0a0a0a;line-height:1.1;margin-bottom:12px;}
+h2{font-size:46px;font-weight:700;color:#0a0a0a;line-height:1.1;margin-bottom:18px;}
+h2 .hl{color:#00d4a4;}
+.pr{position:absolute;bottom:18px;right:28px;font-size:13px;color:#888888;}
+.cmd-box{background:#1c1c1e;border-radius:6px;padding:14px 18px;font-family:monospace;font-size:15px;line-height:1.6;color:#e0e0e0;margin:10px 0;}
+.cmd-out{color:#888;}.cmd-in{color:#00d4a4;}
+.card{background:#fafafa;border:1px solid #e5e5e5;border-radius:8px;padding:16px 18px;margin-bottom:10px;}
+.card-title{font-size:16px;font-weight:600;color:#0a0a0a;margin-bottom:3px;}
+.card-body{font-size:14px;color:#5a5a5c;line-height:1.5;}
+.tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;background:#f7f7f7;color:#888888;border:1px solid #e5e5e5;margin:2px;font-weight:500;}
+.tag-g{background:#e8faf4;color:#0d9373;border-color:#b8ead9;font-family:monospace;}
+.tip{background:#fef9e7;border:1px solid #f5e6c0;border-radius:6px;padding:10px 14px;margin:6px 0;font-size:13px;color:#b8860b;line-height:1.4;}
+.out-box{background:#1c1c1e;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:13px;line-height:1.5;color:#888;margin:8px 0;}
+</style>
+</head><body>
+<section class="slide" id="slide-1" data-composition-id="s1" data-width="1920" data-height="1080">
+    <div class="sl">
+      <div class="badge">第1期 / 10 · 昇腾模型部署及调优</div>
+      <h1>连上服务器 +<br>环境长什么样</h1>
+      <p style="font-size:19px;color:#5a5a5c;line-height:1.5;margin-bottom:30px;">从SSH连上你的第一台服务器开始<br>看硬件、找环境、跑你的第一个Python</p>
+      <div style="display:flex;gap:8px;margin-bottom:36px;flex-wrap:wrap;">
+        <span class="tag tag-g">ssh user@ip</span><span class="tag">ls / cd / pwd</span>
+        <span class="tag tag-g">nvidia-smi</span><span class="tag tag-g">npu-smi info</span>
+        <span class="tag">python3 --version</span>
+      </div>
+      <div style="display:flex;gap:40px;padding-top:24px;border-top:1px solid #e5e5e5;">
+        <div style="font-size:13px;color:#888;">本期产出<span style="display:block;color:#0a0a0a;font-size:15px;margin-top:3px;font-weight:600;">✅ 连上服务器 · 看到显卡 · 跑通Python</span></div>
+        <div style="font-size:13px;color:#888;">难度<span style="display:block;color:#0a0a0a;font-size:15px;margin-top:3px;font-weight:600;">⭐ 纯小白起步</span></div>
+      </div>
+    </div></section>
+<script>
+(function(){
+  var tl = gsap.timeline({paused:true});
+  tl.from(".sl>*",{opacity:0,y:8,duration:0.25,stagger:0.04});
+  window.__timelines = window.__timelines || {};
+  window.__timelines["s1"] = tl;
+  window.__hf = window.__hf || {};
+  window.__hf["s1"] = {"duration":6.00,"seek":function(t){var tl=window.__timelines&&window.__timelines["s1"];if(tl)tl.seek(t);}};
+  if(top===self)tl.progress(1);
+})();
+</script>
+</body></html>

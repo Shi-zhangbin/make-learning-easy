@@ -1,0 +1,39 @@
+--- P1 封面 (6s) ---
+你好，欢迎来到「昇腾模型部署及调优」系列。我是老周，这是第一期。
+
+--- P2 目标 (14s) ---
+这一期我们要做三件事：连上服务器、看硬件状态、跑通Python。每件事你都会亲自动手。
+
+--- P3 准备 (10s) ---
+开始前确认三样东西：你的MacBook、服务器IP和账号、密码或密钥。找运维要。
+
+--- P4 终端 (10s) ---
+第一步，打开终端。Mac按Cmd加空格搜Terminal。Windows建议装Windows Terminal。
+
+--- P5 SSH (18s) ---
+终端输入ssh空格用户名at IP。第一次连会提示确认，输yes。然后输入密码，屏幕上不会显示，正常。连上后提示符变了，说明成功了。
+
+--- P6 VS Code (18s) ---
+更推荐用VS Code。装Remote-SSH插件。F1输Connect to Host，添加你的服务器。左下角绿色区域点它，选你的服务器，连上了。按Ctrl加反引号打开集成终端。
+
+--- P7 周围 (16s) ---
+连上后先用几个命令看看周围。pwd看目录，ls看文件，whoami看用户，uname看系统。这几个命令以后天天用。
+
+--- P8 GPU (20s) ---
+看GPU输入nvidia-smi。看这几项：GPU型号、显存用量、利用率。比如Tesla T4、3240M斜杠15G、0%空闲。截图保存，这是你的第一个产出。
+
+--- P9 NPU (18s) ---
+看昇腾输入npu-smi info。看NPU编号、型号、Health状态是否OK。和nvidia-smi格式很像。截图保存。
+
+--- P10 Python (16s) ---
+输python3杠杠version看Python版本。pip3杠杠version看pip。然后pip3 install torch torchvision装PyTorch。
+
+--- P11 脚本 (16s) ---
+建一个hello.py，把代码贴进去——import torch，print版本号和Hello昇腾。python3 hello.py跑。看到输出了，你的第一个脚本跑通了。
+
+--- P12 总结 (20s) ---
+这一期你做到了三件事。会用SSH和VS Code连远程服务器，看到了GPU和NPU硬件状态，跑了第一个Python脚本。三件事做完，环境就绪。截图发我。
+
+--- P13 预告 (14s) ---
+下一期用PyTorch加载ResNet50模型，做一次完整的图片分类推理。还会对比CPU和GPU的速度差距。下期见。
+

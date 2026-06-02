@@ -1,0 +1,340 @@
+<!doctype html><html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=1920,height=1080">
+<title>第1期 · 连上服务器 + 环境长什么样</title>
+<style>*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000;}
+.deck{position:relative;width:1920px;height:1080px;margin:0 auto;overflow:hidden;}
+.slide{position:absolute;top:0;left:0;width:1920px;height:1080px;opacity:0;z-index:1;transition:opacity 0.3s;pointer-events:none;}
+.slide.active{opacity:1;z-index:2;pointer-events:auto;}
+.sl{width:100%;height:100%;display:flex;flex-direction:column;padding:50px 80px;position:relative;background:#ffffff;}
+.sl::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom,#00d4a4,#00b48a);}
+.badge{font-size:11px;color:#00d4a4;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+h1{font-size:64px;font-weight:700;color:#0a0a0a;line-height:1.1;margin-bottom:12px;}
+h2{font-size:46px;font-weight:700;color:#0a0a0a;line-height:1.1;margin-bottom:18px;}
+h2 .hl{color:#00d4a4;}
+.pr{position:absolute;bottom:18px;right:28px;font-size:13px;color:#888888;}
+.cmd-box{background:#1c1c1e;border-radius:6px;padding:14px 18px;font-family:'Geist Mono','SF Mono','Courier New',monospace;font-size:15px;line-height:1.6;color:#e0e0e0;margin:10px 0;}
+.cmd-out{color:#888;}.cmd-in{color:#00d4a4;}
+.card{background:#fafafa;border:1px solid #e5e5e5;border-radius:8px;padding:16px 18px;margin-bottom:10px;}
+.card-title{font-size:16px;font-weight:600;color:#0a0a0a;margin-bottom:3px;}
+.card-body{font-size:14px;color:#5a5a5c;line-height:1.5;}
+.tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:12px;background:#f7f7f7;color:#888888;border:1px solid #e5e5e5;margin:2px;font-weight:500;}
+.tag-g{background:#e8faf4;color:#0d9373;border-color:#b8ead9;font-family:monospace;}
+.tip{background:#fef9e7;border:1px solid #f5e6c0;border-radius:6px;padding:10px 14px;margin:6px 0;font-size:13px;color:#b8860b;line-height:1.4;}
+.out-box{background:#1c1c1e;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:13px;line-height:1.5;color:#888;margin:8px 0;}
+.nav{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:12px;align-items:center;}
+.nav button{padding:7px 18px;border:1px solid #e5e5e5;border-radius:6px;background:rgba(255,255,255,0.95);font-size:13px;cursor:pointer;color:#0a0a0a;font-family:Inter,sans-serif;}
+.nav button:hover{background:#f7f7f7;}
+.nav span{font-size:13px;color:#888888;min-width:60px;text-align:center;}
+</style>
+</head><body>
+<div class="deck">
+
+    <section class="slide" id="slide-1">
+    <div class="sl">
+      <div class="badge">第1期 / 10 · 昇腾模型部署及调优</div>
+      <h1>连上服务器 +<br>环境长什么样</h1>
+      <p style="font-size:19px;color:#5a5a5c;line-height:1.5;margin-bottom:30px;">从SSH连上你的第一台服务器开始<br>看硬件、找环境、跑你的第一个Python</p>
+      <div style="display:flex;gap:8px;margin-bottom:36px;flex-wrap:wrap;">
+        <span class="tag tag-g">ssh user@ip</span><span class="tag">ls / cd / pwd</span>
+        <span class="tag tag-g">nvidia-smi</span><span class="tag tag-g">npu-smi info</span>
+        <span class="tag">python3 --version</span>
+      </div>
+      <div style="display:flex;gap:40px;padding-top:24px;border-top:1px solid #e5e5e5;">
+        <div style="font-size:13px;color:#888;">本期产出<span style="display:block;color:#0a0a0a;font-size:15px;margin-top:3px;font-weight:600;">✅ 连上服务器 · 看到显卡 · 跑通Python</span></div>
+        <div style="font-size:13px;color:#888;">难度<span style="display:block;color:#0a0a0a;font-size:15px;margin-top:3px;font-weight:600;">⭐ 纯小白起步</span></div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-2">
+    <div class="sl">
+      <div class="badge">本期目标</div>
+      <h2>你准备好了吗？这期你会有 <span class="hl">3个核心产出</span></h2>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;max-width:1400px;">
+        <div class="card" style="display:flex;gap:12px;align-items:flex-start;border-left:3px solid #00d4a4;">
+          <div style="font-size:24px;margin-top:2px;">🔌</div>
+          <div><div class="card-title">能连上服务器</div><div class="card-body">会用SSH命令连到远程机器，知道终端长什么样</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:12px;align-items:flex-start;border-left:3px solid #00d4a4;">
+          <div style="font-size:24px;margin-top:2px;">🖥️</div>
+          <div><div class="card-title">能看到硬件状态</div><div class="card-body">nvidia-smi和npu-smi info命令，知道你的机器有几张卡</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:12px;align-items:flex-start;border-left:3px solid #00d4a4;">
+          <div style="font-size:24px;margin-top:2px;">🐍</div>
+          <div><div class="card-title">能跑Python</div><div class="card-body">找到Python环境，pip安装包，跑通第一个脚本</div></div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-3">
+    <div class="sl">
+      <div class="badge">准备工作</div>
+      <h2>开始之前，确认你有这些</h2>
+      <div style="display:flex;gap:20px;flex:1;align-items:center;">
+        <div class="card" style="flex:1;text-align:center;padding:28px;"><div style="font-size:36px;margin-bottom:8px;">💻</div><div class="card-title">你的MacBook</div><div class="card-body">终端(Terminal)已经装好了<br>按 Cmd+空格 搜 Terminal</div></div>
+        <div style="font-size:28px;color:#d0d0d0;">→</div>
+        <div class="card" style="flex:1;text-align:center;padding:28px;"><div style="font-size:36px;margin-bottom:8px;">🌐</div><div class="card-title">服务器IP+账号</div><div class="card-body">公司给你的服务器地址<br>用户名和密码/密钥文件</div></div>
+        <div style="font-size:28px;color:#d0d0d0;">→</div>
+        <div class="card" style="flex:1;text-align:center;padding:28px;background:#e8faf4;border-color:#b8ead9;"><div style="font-size:36px;margin-bottom:8px;">🚀</div><div class="card-title" style="color:#0d9373;">准备就绪</div><div class="card-body">看完这期你就能<br>自己连上去操作了</div></div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-4">
+    <div class="sl">
+      <div class="badge">STEP 1 / 7</div>
+      <h2>打开终端（Terminal）</h2>
+      <div style="display:flex;gap:24px;flex:1;padding:8px 0;">
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+          <div class="card" style="border-left:3px solid #00d4a4;"><div class="card-title">🍎 Mac用户</div><div class="card-body">Cmd+空格 → 输入"Terminal" → 回车<br>或者从 启动台 → 其他 → 终端</div></div>
+          <div class="card"><div class="card-title">🪟 Windows用户</div><div class="card-body">建议安装 Windows Terminal（微软商店免费）<br>或者用 PowerShell 也可以</div></div>
+        </div>
+        <div class="card" style="flex:1;background:#1c1c1e;border-color:#333;padding:14px 16px;">
+          <div style="color:#888;font-size:12px;margin-bottom:6px;">终端窗口长这样 →</div>
+          <div style="font-family:monospace;font-size:14px;line-height:1.6;color:#e0e0e0;">
+            <span style="color:#888;">Last login: Mon Jun 2 09:00:00</span><br>
+            shizhangbin@MacBook-Pro ~ % <span style="color:#00d4a4;">_</span>
+          </div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-5">
+    <div class="sl">
+      <div class="badge">备选方案 · 不推荐</div>
+      <h2>终端SSH连接（如果你没有VS Code）</h2>
+      <div class="card" style="margin-bottom:10px;"><div class="card-title">基本命令</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;border-radius:3px;">ssh 用户名@服务器IP地址</span> 然后回车</div></div>
+      <div class="cmd-box">
+        <span style="color:#888;"># 假设用户名是 ubuntu，IP是 192.168.1.100</span><br>
+        <span style="color:#888;">shizhangbin@MacBook-Pro ~ %</span> ssh ubuntu@192.168.1.100<br>
+        <br>
+        <span style="color:#888;"># 第一次连接会看到这个，输入 yes</span><br>
+        The authenticity of host ... can't be established.<br>
+        Are you sure you want to continue connecting? <span style="color:#00d4a4;">yes</span><br>
+        <br>
+        <span style="color:#888;"># 输入密码（输的时候不显示，正常）</span><br>
+        ubuntu@192.168.1.100's password: <span style="color:#00d4a4;">********</span><br>
+        <br>
+        <span style="color:#888;"># 连接成功！提示符变了</span><br>
+        ubuntu@ascend-server:~$ <span style="color:#00d4a4;">_</span>
+      </div>
+      <div class="tip">💡 <strong>连不上？</strong> ①IP对不对 ②用户名对不对 ③公司VPN连了没 ④服务器开机了没 ⑤问运维要开通权限</div>
+    </div></section>
+
+    
+    <section class="slide" id="slide-6">
+    <div class="sl">
+      <div class="badge">STEP 2 / 7 · ✅ 推荐方式</div>
+      <h2>用VS Code Remote-SSH连接</h2>
+      <div style="display:flex;gap:20px;flex:1;padding:6px 0;">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <div class="card" style="border-left:3px solid #00d4a4;">
+            <div class="card-title">① 安装Remote-SSH插件</div>
+            <div class="card-body">VS Code左侧扩展栏 → 搜 <strong>"Remote - SSH"</strong> → 安装（微软官方，蓝色图标）</div>
+          </div>
+          <div class="card">
+            <div class="card-title">② 添加SSH目标</div>
+            <div class="card-body">F1（Cmd+Shift+P）→ 输入 <strong>Remote-SSH: Connect to Host</strong> → 选 <strong>Add New SSH Host</strong><br>
+            输入：<span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">ssh ubuntu@192.168.1.100</span> → 回车 → 选择SSH配置文件保存</div>
+          </div>
+          <div class="card">
+            <div class="card-title">③ 连接！</div>
+            <div class="card-body">点左下角绿色区域 <strong>→ Connect to Host → 选你的服务器</strong><br>
+            输入密码 → 新窗口打开 → 你已经连上远程服务器了！</div>
+          </div>
+          <div class="card" style="background:#e8faf4;border-color:#b8ead9;">
+            <div style="font-size:14px;color:#0d9373;font-weight:500;">💡 连上后点"打开文件夹"就能看到服务器上的文件，像在本地一样编辑</div>
+          </div>
+        </div>
+        <div class="card" style="flex:1;background:#1c1c1e;border-color:#333;padding:14px 16px;display:flex;flex-direction:column;justify-content:center;">
+          <div style="color:#888;font-size:12px;margin-bottom:8px;">VS Code连上后的样子 →</div>
+          <div style="font-family:monospace;font-size:13px;line-height:1.5;color:#e0e0e0;">
+            <span style="color:#00d4a4;">⚡ REMOTE SSH</span><br>
+            ┌──────────────────────────<br>
+            │ 📁 <span style="color:#82aaff;">ascend-server</span><br>
+            │  ├── 📂 home<br>
+            │  │   └── 📂 ubuntu<br>
+            │  │       ├── hello.py<br>
+            │  │       ├── train.py<br>
+            │  │       └── 📂 models<br>
+            │  └── 📂 data<br>
+            └──────────────────────────<br>
+            <span style="color:#888;">左下角绿色条: SSH: ascend-server</span>
+          </div>
+        </div>
+      </div>
+    </div></section>
+
+<section class="slide" id="slide-6">
+    <div class="sl">
+      <div class="badge">STEP 3 / 7</div>
+      <h2>连上后第一件事：看看周围</h2>
+      <div class="card" style="background:#e8faf4;border-color:#b8ead9;padding:10px 14px;margin-bottom:8px;"><div style="font-size:14px;color:#0d9373;">💡 VS Code连上后，按 <strong>Ctrl+`</strong>（反引号）打开集成终端，后面的命令都在这里执行</div></div>
+      <div style="display:flex;gap:20px;flex:1;">
+        <div style="flex:1;">
+          <div class="card" style="margin-bottom:8px;"><div class="card-title">📂 我在哪？</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">pwd</span> → 显示当前目录路径</div></div>
+          <div class="card" style="margin-bottom:8px;"><div class="card-title">📋 有什么文件？</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">ls -la</span> → 列出所有文件和文件夹</div></div>
+          <div class="card" style="margin-bottom:8px;"><div class="card-title">👤 我是谁？</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">whoami</span> → 显示当前用户名</div></div>
+          <div class="card"><div class="card-title">ℹ️ 什么系统？</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">uname -a</span> → 显示系统信息</div></div>
+        </div>
+        <div class="card" style="flex:1;background:#1c1c1e;border-color:#333;padding:14px 16px;">
+          <div style="font-family:monospace;font-size:14px;line-height:1.7;color:#e0e0e0;">
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">pwd</span><br>
+            <span style="color:#888;">/home/ubuntu</span><br><br>
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">ls -la</span><br>
+            <span style="color:#888;">total 48<br>drwxr-xr-x 7 ubuntu ubuntu 4096 ...<br>-rw-r--r-- 1 ubuntu ubuntu 220 ... .bash_logout</span><br><br>
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">whoami</span><br>
+            <span style="color:#888;">ubuntu</span>
+          </div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-7">
+    <div class="sl">
+      <div class="badge">STEP 4 / 7 · NVIDIA机器</div>
+      <h2>看GPU状态：nvidia-smi</h2>
+      <div class="card" style="background:#e8faf4;border-color:#b8ead9;padding:10px 14px;margin-bottom:8px;"><div style="font-size:14px;color:#0d9373;">💡 在VS Code集成终端（<strong>Ctrl+`</strong>）里直接输入命令</div></div>
+      <div class="card" style="margin-bottom:8px;"><div class="card-title">一条命令看到所有GPU信息</div><div class="card-body">输入 <span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">nvidia-smi</span> 然后回车</div></div>
+      <div style="display:flex;gap:16px;flex:1;">
+        <div class="card" style="flex:1;background:#1c1c1e;border-color:#333;padding:12px 14px;">
+          <div style="font-family:monospace;font-size:12px;line-height:1.5;color:#e0e0e0;">
+            ubuntu@gpu-server:~$ <span style="color:#00d4a4;">nvidia-smi</span><br><br>
+            <span style="color:#888;">+-----------------------------------------------------------------------------+<br>| NVIDIA-SMI 545.23.08    Driver Version: 545.23.08    CUDA: 12.3            |<br>+-------------------------------+----------------------+----------------------+<br>| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |<br>| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |<br>+-------------------------------+----------------------+----------------------+</span><br>
+            <span style="color:#00d4a4;">|   0  Tesla T4            Off  | 00000000:00:1E.0 Off |                  Off |<br>| 59%   62°C    P0    70W / 70W|   3242MiB / 15360MiB |      0%      Default |</span><br>
+            <span style="color:#888;">+-------------------------------+----------------------+----------------------+</span>
+          </div>
+        </div>
+        <div style="flex:0.6;">
+          <div class="card" style="margin-bottom:6px;border-left:3px solid #00d4a4;">
+            <div class="card-title">🔍 怎么看</div>
+            <div class="card-body"><strong>GPU 0 Tesla T4</strong> → 显卡型号<br><strong>70W / 70W</strong> → 功耗（满负载）<br><strong>3242MiB / 15360MiB</strong> → 已用/总共显存<br><strong>0%</strong> → GPU利用率（空闲）</div>
+          </div>
+          <div class="card" style="background:#e8faf4;border-color:#b8ead9;"><div style="font-size:14px;color:#0d9373;font-weight:500;">📌 截图保存！这是你的第1个产出物</div></div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-8">
+    <div class="sl">
+      <div class="badge">STEP 5 / 7 · 昇腾机器</div>
+      <h2>看NPU状态：npu-smi info</h2>
+      <div class="card" style="margin-bottom:8px;"><div class="card-title">昇腾也有类似的命令</div><div class="card-body">输入 <span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">npu-smi info</span> 查看NPU芯片状态</div></div>
+      <div style="display:flex;gap:16px;flex:1;">
+        <div class="card" style="flex:1;background:#1c1c1e;border-color:#333;padding:12px 14px;">
+          <div style="font-family:monospace;font-size:12px;line-height:1.5;color:#e0e0e0;">
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">npu-smi info</span><br><br>
+            <span style="color:#888;">+--------------------------------------------------------------------------------------------+<br>| npu-smi 24.1.rc1                 Version: 24.1.rc1                                       |<br>+-------------------------------+----------------------+----------------------+<br>| NPU     Name                  | Health          | Power                 |<br>| Fan     Temp     Temp(Tctl)   | Bus-Id           | Chip-Phys             |<br>+-------------------------------+----------------------+----------------------+</span><br>
+            <span style="color:#00d4a4;">| 0       310P3                 | OK              | 75.2W                 |<br>| N/A      55°C     61°C        | 0000:B1:00.0     | 0                     |</span><br>
+            <span style="color:#888;">+-------------------------------+----------------------+----------------------+</span>
+          </div>
+        </div>
+        <div style="flex:0.6;">
+          <div class="card" style="margin-bottom:6px;border-left:3px solid #00d4a4;">
+            <div class="card-title">🔍 怎么看</div>
+            <div class="card-body"><strong>NPU 0 310P3</strong> → 芯片型号<br><strong>Health: OK</strong> → 芯片状态正常<br><strong>75.2W</strong> → 当前功耗<br><strong>55°C</strong> → 温度</div>
+          </div>
+          <div class="card" style="background:#e8faf4;border-color:#b8ead9;"><div style="font-size:14px;color:#0d9373;font-weight:500;">📌 截图保存！第2个产出物</div></div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-9">
+    <div class="sl">
+      <div class="badge">STEP 6 / 7</div>
+      <h2>找到Python环境</h2>
+      <div style="display:flex;gap:20px;flex:1;">
+        <div style="flex:1;">
+          <div class="card" style="margin-bottom:8px;"><div class="card-title">Python版本检查</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">python3 --version</span> → Python 3.10.x<br><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">which python3</span> → /usr/bin/python3</div></div>
+          <div class="card" style="margin-bottom:8px;"><div class="card-title">pip包管理器</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">pip3 install torch torchvision</span> → 装PyTorch</div></div>
+          <div class="card"><div class="card-title">conda环境（如果有）</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">conda env list</span> → 查看已有环境</div></div>
+        </div>
+        <div class="card" style="flex:1;background:#1c1c1e;border-color:#333;padding:14px 16px;">
+          <div style="font-family:monospace;font-size:14px;line-height:1.7;color:#e0e0e0;padding:4px 0;">
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">python3 --version</span><br>
+            <span style="color:#888;">Python 3.10.12</span><br><br>
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">which python3</span><br>
+            <span style="color:#888;">/usr/bin/python3</span><br><br>
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">pip3 --version</span><br>
+            <span style="color:#888;">pip 23.0.1 from /usr/lib/python3/dist-packages (python 3.10)</span>
+          </div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-10">
+    <div class="sl">
+      <div class="badge">STEP 7 / 7 · 里程碑</div>
+      <h2>跑你的第一个Python脚本</h2>
+      <div style="display:flex;gap:20px;flex:1;padding:4px 0;">
+        <div style="flex:1;">
+          <div class="card" style="margin-bottom:8px;border-left:3px solid #00d4a4;"><div class="card-title">📝 创建脚本文件</div><div class="card-body"><span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">nano hello.py</span> 或 <span style="font-family:monospace;background:#f5f5f5;padding:2px 6px;">cat > hello.py</span></div></div>
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-title">🐍 脚本内容</div>
+            <div style="font-family:monospace;background:#1c1c1e;color:#e0e0e0;padding:10px;border-radius:4px;margin-top:6px;font-size:14px;line-height:1.5;">
+              <span style="color:#888;"># 你的第一个Python脚本</span><br>
+              <span style="color:#c792ea;">import</span> torch<br>
+              <span style="color:#82aaff;">print</span>(<span style="color:#c3e88d;">"PyTorch版本:"</span>, torch.__version__)<br>
+              <span style="color:#82aaff;">print</span>(<span style="color:#c3e88d;">"Hello 昇腾!"</span>)
+            </div>
+          </div>
+        </div>
+        <div class="card" style="flex:1;background:#1c1c1e;border-color:#333;padding:14px 16px;">
+          <div style="font-family:monospace;font-size:13px;line-height:1.6;color:#e0e0e0;">
+            ubuntu@ascend-server:~$ <span style="color:#00d4a4;">python3 hello.py</span><br><br>
+            <span style="color:#888;">PyTorch版本: 2.1.0</span><br>
+            Hello 昇腾!<br><br>
+            <span style="color:#888;">✅ 你的第一个脚本跑通了！</span>
+          </div>
+        </div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-11">
+    <div class="sl">
+      <div class="badge">本期总结</div>
+      <h2>🎉 你做到了！现在你手里有这些</h2>
+      <div style="display:flex;gap:20px;flex:1;align-items:center;">
+        <div class="card" style="flex:1;text-align:center;padding:22px;border-left:3px solid #00d4a4;"><div style="font-size:32px;margin-bottom:6px;">🔌</div><div class="card-title">SSH连接能力</div><div class="card-body">你能自己连上远程服务器了</div></div>
+        <div class="card" style="flex:1;text-align:center;padding:22px;"><div style="font-size:32px;margin-bottom:6px;">📸</div><div class="card-title">硬件截图</div><div class="card-body">nvidia-smi + npu-smi 截图</div></div>
+        <div class="card" style="flex:1;text-align:center;padding:22px;"><div style="font-size:32px;margin-bottom:6px;">🐍</div><div class="card-title">能跑Python</div><div class="card-body">装了PyTorch，跑了第一个脚本</div></div>
+        <div class="card" style="flex:1;text-align:center;padding:22px;background:#e8faf4;border-color:#b8ead9;"><div style="font-size:32px;margin-bottom:6px;">✅</div><div class="card-title" style="color:#0d9373;">环境就绪</div><div class="card-body">第2期可以直接开始了</div></div>
+      </div>
+    </div></section>
+
+    <section class="slide" id="slide-12">
+    <div class="sl">
+      <div class="badge">第2期预告</div>
+      <h2>下一期：<span class="hl">PyTorch基础：加载模型 + 跑推理</span></h2>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;max-width:1400px;gap:12px;">
+        <div class="card" style="display:flex;gap:12px;align-items:flex-start;"><div style="font-size:22px;margin-top:2px;">🎯</div><div><div class="card-title">下载ResNet50预训练模型</div><div class="card-body">torch内置的经典模型，直接就能用，不需要自己训练</div></div></div>
+        <div class="card" style="display:flex;gap:12px;align-items:flex-start;"><div style="font-size:22px;margin-top:2px;">🖼️</div><div><div class="card-title">图片预处理 + 推理</div><div class="card-body">读图、resize、归一化、模型推理、看分类结果</div></div></div>
+        <div class="card" style="display:flex;gap:12px;align-items:flex-start;"><div style="font-size:22px;margin-top:2px;">⏱️</div><div><div class="card-title">CPU vs GPU 速度对比</div><div class="card-body">同样的模型在不同硬件上跑，亲眼看到差距</div></div></div>
+        <div style="padding-top:10px;border-top:1px solid #e5e5e5;margin-top:6px;">
+          <div class="card-title" style="font-size:13px;">📌 本期作业：把 nvidia-smi 和 npu-smi info 的截图发给我</div>
+        </div>
+      </div>
+    </div></section>
+
+</div>
+<div class="nav">
+  <button onclick="prevSlide()">← 上一页</button>
+  <span id="page-indicator">1 / 13</span>
+  <button onclick="nextSlide()">下一页 →</button>
+</div>
+<script>
+var current=1,total=13;
+function showSlide(n){
+  document.querySelectorAll('.slide').forEach(s=>s.classList.remove('active'));
+  document.getElementById('slide-'+n).classList.add('active');
+  document.getElementById('page-indicator').textContent=n+' / '+total;
+  current=n;
+}
+function nextSlide(){if(current<total)showSlide(current+1);}
+function prevSlide(){if(current>1)showSlide(current-1);}
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){e.preventDefault();nextSlide();}
+  if(e.key==='ArrowLeft'){e.preventDefault();prevSlide();}
+});
+showSlide(1);
+</script>
+</body></html>
