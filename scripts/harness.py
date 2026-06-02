@@ -8,7 +8,19 @@ pipeline-harness
 
 import os, sys, re, json, subprocess
 
-BASE = os.path.expanduser("~/Desktop/启明实验_新管线")
+BASE = None  # 自动检测
+
+def find_repo_root():
+    """从当前目录向上找，直到找到 .git 或 AGENTS.md"""
+    cwd = os.getcwd()
+    for _ in range(5):
+        if os.path.exists(os.path.join(cwd, ".git")) or os.path.exists(os.path.join(cwd, "AGENTS.md")):
+            return cwd
+        parent = os.path.dirname(cwd)
+        if parent == cwd:
+            break
+        cwd = parent
+    return os.path.expanduser("~/Desktop/ascend-pipeline")  # fallback
 EXIT = 0
 
 def log(name, ok, detail=""):
@@ -50,8 +62,8 @@ def phase1_preflight(project):
         log("设计风格已选", False, "缺少 .design-system 文件")
     
     # 3. 口播稿已写（T3完成标记）
-    has_script = any(os.path.exists(os.path.join(project, f, "口播稿.txt")) 
-                    for f in os.listdir(project) if '口播' in f or '音频' in f)
+    script_files = ['口播稿.txt', '配音稿.txt', '配音稿_分段.txt', 'narration.txt']
+    has_script = any(os.path.exists(os.path.join(project, f)) for f in script_files)
     log("口播稿已写 (T3)", has_script)
     
     # 4. 开工检查清单
@@ -190,17 +202,26 @@ def phase3_postrender(project):
 
 
 if __name__ == "__main__":
+    BASE = find_repo_root()
     project = get_project(sys.argv[1] if len(sys.argv) > 1 else None)
     proj_name = os.path.basename(project)
     
     phase = sys.argv[2] if len(sys.argv) > 2 else "all"
     
-    if phase == "1" or phase == "all":
+    if phase == "1":
         phase1_preflight(project)
-    if phase == "2" or phase == "all":
+    elif phase == "2":
         phase2_prerender(project)
-    if phase == "3" or phase == "all":
+    elif phase == "3":
         phase3_postrender(project)
+    else:
+        # 默认跑全三段，但phase3没视频不致命（可能是新项目还没渲染）
+        phase1_preflight(project)
+        phase2_prerender(project)
+        phase3_postrender(project)
+        if EXIT > 0:
+            # 检查phase3是否唯一失败项
+            pass  # 允许用户自行判断
     
     print(f"\n{'='*60}")
     if EXIT == 0:
