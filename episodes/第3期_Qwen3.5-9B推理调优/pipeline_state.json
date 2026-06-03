@@ -1,0 +1,60 @@
+{
+  "episode": "第3期_Qwen3.5-9B推理调优",
+  "topic": "Qwen3.5-9B推理调优",
+  "design_style": "mintlify",
+  "steps": {
+    "created": {
+      "status": "done",
+      "detail": "项目创建",
+      "ts": "2026-06-03T16:22:16"
+    },
+    "T0": {
+      "status": "done",
+      "detail": "选题研究报告已产出",
+      "ts": "2026-06-03T16:35:00"
+    },
+    "T1": {
+      "status": "done",
+      "detail": "知识点大纲已产出",
+      "ts": "2026-06-03T16:45:00"
+    },
+    "T3": {
+      "status": "done",
+      "detail": "口播稿 6192字",
+      "ts": "2026-06-03T16:55:00"
+    },
+    "TTS": {
+      "status": "done",
+      "detail": "配音 1054秒",
+      "ts": "2026-06-03T17:05:00"
+    },
+    "T2": {
+      "status": "done",
+      "detail": "PPT大纲 37页",
+      "ts": "2026-06-03T17:15:00"
+    },
+    "T4": {
+      "status": "done",
+      "detail": "vLLM logo下载",
+      "ts": "2026-06-03T17:20:00"
+    },
+    "T5": {
+      "status": "done",
+      "detail": "18张AI配图已嵌入(18/37页)",
+      "ts": "2026-06-03T18:07:41.959816"
+    },
+    "T6": {
+      "status": "done",
+      "detail": "37页composition+index.html(18页含图)",
+      "ts": "2026-06-03T17:25:00"
+    },
+    "T7": {
+      "status": "partial",
+      "detail": "第一版已渲染(无配图), 等待配图嵌入后重渲染",
+      "ts": "2026-06-03T17:30:00"
+    }
+  },
+  "current_step": "T6",
+  "created_at": "2026-06-03T16:22:16",
+  "updated_at": "2026-06-03T18:07:41.959896"
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: sans-serif; overflow: hidden; }
+[data-composition-id="s2"] {
+  width: 1920px; height: 1080px; position: relative; overflow: hidden;
+  background: #ffffff; display: flex; flex-direction: column; padding: 60px 80px;
+}
+.s2-badge {
+  display: inline-block; background: #00BFA5; color: #fff; font-size: 17px;
+  padding: 4px 14px; border-radius: 20px; align-self: flex-start; margin-bottom: 12px;
+}
+.s2-h2 { font-size: 54px; font-weight: 700; color: #1a1a2e; margin-bottom: 36px; }
+.s2-flow { display: flex; gap: 40px; flex: 1; align-items: stretch; }
+.s2-column { flex: 1; background: #f8f9fa; border-radius: 12px; padding: 24px 28px; display: flex; flex-direction: column; }
+.s2-col-title { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.s2-col-title .icon { font-size: 24px; }
+.s2-list { list-style: none; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.s2-list li { font-size: 18px; color: #333; padding: 10px 14px; background: #fff; border-radius: 8px; border-left: 3px solid #00BFA5; display: flex; align-items: center; gap: 8px; }
+.s2-list li .emo { font-size: 20px; }
+.s2-list li .warn { color: #ff6b35; }
+.s2-arrow { display: flex; align-items: center; font-size: 36px; color: #00BFA5; opacity: 0.6; }
+.s2-page { position: absolute; bottom: 30px; right: 40px; font-size: 18px; color: #99a; }
+</style>
+</head>
+<body>
+<div data-composition-id="s2" data-width="1920" data-height="1080">
+  <div class="s2-badge">📍 回顾与预告</div>
+  <div class="s2-h2">从厨房到改装车间</div>
+  <div class="s2-flow">
+    <div class="s2-column">
+      <div class="s2-col-title"><span class="icon">🍳</span> 回顾上期（第2期）</div>
+      <ul class="s2-list">
+        <li><span class="emo">🍳</span> Docker = 搭厨房</li>
+        <li><span class="emo">🐳</span> docker pull + docker run</li>
+        <li><span class="emo">✅</span> 成功跑起第一个大模型</li>
+        <li><span class="emo">⚠️</span> <span class="warn">但像经济模式开跑车</span></li>
+      </ul>
+    </div>
+    <div class="s2-arrow">➡️</div>
+    <div class="s2-column">
+      <div class="s2-col-title"><span class="icon">🔩</span> 本集流程</div>
+      <ul class="s2-list">
+        <li><span class="emo">🔩</span> 了解引擎（Qwen3.5-9B）</li>
+        <li><span class="emo">⚙️</span> 认识变速箱（vLLM）</li>
+        <li><span class="emo">📊</span> 看懂仪表盘（性能指标）</li>
+        <li><span class="emo">🛠️</span> 实操改装（调优五步）</li>
+        <li><span class="emo">📈</span> 对比效果</li>
+      </ul>
+    </div>
+  </div>
+  <div class="s2-page">02/37</div>
+</div>
+<script>
+(function(){
+  var tl = gsap.timeline({paused:true});
+  var sc = '[data-composition-id="s2"]';
+  tl.from(sc+' .s2-badge', {opacity:0, y:-10, duration:0.3, ease:'power2.out'});
+  tl.from(sc+' .s2-h2', {opacity:0, x:-20, duration:0.4, ease:'power2.out'}, '-=0.2');
+  tl.from(sc+' .s2-column:first-child', {opacity:0, x:-30, duration:0.5, ease:'power2.out'}, '-=0.2');
+  tl.from(sc+' .s2-arrow', {opacity:0, scaleX:0, duration:0.3, ease:'power2.out'}, '-=0.1');
+  tl.from(sc+' .s2-column:last-child', {opacity:0, x:30, duration:0.5, ease:'power2.out'}, '-=0.2');
+  tl.from(sc+' .s2-list li', {opacity:0, y:10, stagger:0.08, duration:0.3, ease:'power2.out'}, '-=0.2');
+  window.__timelines = window.__timelines || {};
+  window.__timelines["s2"] = tl;
+  window.__hf = window.__hf || {};
+  window.__hf["s2"] = {duration:25.0, seek:function(t){var tl=window.__timelines&&window.__timelines["s2"];if(tl)tl.seek(t);}};
+})();
+</script>
+</body>
+</html>

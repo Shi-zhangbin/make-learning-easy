@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: sans-serif; overflow: hidden; }
+[data-composition-id="s29"] {
+  width: 1920px; height: 1080px; position: relative; overflow: hidden;
+  background: #ffffff; display: flex; flex-direction: column; padding: 60px 80px;
+}
+.s29-badge {
+  display: inline-block; background: #00BFA5; color: #fff; font-size: 17px;
+  padding: 4px 14px; border-radius: 20px; align-self: flex-start; margin-bottom: 12px;
+}
+.s29-h2 { font-size: 54px; font-weight: 700; color: #1a1a2e; margin-bottom: 28px; }
+.s29-body { display: flex; gap: 40px; flex: 1; }
+.s29-left { width: 380px; display: flex; align-items: center; justify-content: center; }
+.s29-visual {
+  width: 340px; height: 300px; background: linear-gradient(135deg, #fef9e7, #f0fff4);
+  border-radius: 16px; border: 2px solid #ff6b35;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 20px;
+}
+.s29-visual .v-icon { font-size: 56px; }
+.s29-visual .v-flow { display: flex; align-items: center; gap: 8px; font-size: 20px; color: #555; margin: 6px 0; }
+.s29-visual .v-flow .arrow { color: #00BFA5; font-size: 22px; }
+.s29-visual .v-flow .item { background: #f8f9fa; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 16px; color: #1a1a2e; }
+.s29-visual .v-flow .item.hl { background: #00BFA5; color: #fff; }
+.s29-right { flex: 1; display: flex; flex-direction: column; gap: 18px; justify-content: center; }
+.s29-card { background: #f8f9fa; border-radius: 12px; padding: 14px 20px; }
+.s29-card h4 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+.s29-card p { font-size: 18px; color: #444; line-height: 1.5; }
+.s29-card code { background: #e8e8e8; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 16px; }
+.s29-page { position: absolute; bottom: 30px; right: 40px; font-size: 18px; color: #99a; }
+</style>
+</head>
+<body>
+<div data-composition-id="s29" data-width="1920" data-height="1080">
+  <div class="s29-badge">📞 第四步：对话</div>
+  <div class="s29-h2">curl——与模型对话</div>
+  <div class="s29-body">
+    <div class="s29-left">
+      <div class="s29-visual">
+        <div class="v-icon">📞</div>
+        <div class="v-flow">
+          <span class="item">用户</span>
+          <span class="arrow">➡️</span>
+          <span class="item hl">curl</span>
+          <span class="arrow">➡️</span>
+          <span class="item">模型</span>
+        </div>
+        <div class="v-flow">
+          <span class="item">模型</span>
+          <span class="arrow">⬅️</span>
+          <span class="item hl">curl</span>
+          <span class="arrow">⬅️</span>
+          <span class="item">用户</span>
+        </div>
+        <div style="font-size:14px;color:#999;margin-top:6px;">传话筒：用户→模型→用户</div>
+      </div>
+    </div>
+    <div class="s29-right">
+      <div class="s29-card">
+        <h4>curl是什么</h4>
+        <p>你在终端写一条curl命令，它就帮你在网络上把话传到模型那里，再把模型的回答带回来</p>
+      </div>
+      <div class="s29-card">
+        <h4>访问地址</h4>
+        <p><code>http://localhost:8010/v1/chat/completions</code></p>
+      </div>
+      <div class="s29-card">
+        <h4>开新窗口</h4>
+        <p>在另一个终端窗口执行（vLLM服务窗口保持运行）</p>
+      </div>
+    </div>
+  </div>
+  <div class="s29-page">29/37</div>
+</div>
+<script>
+(function(){
+  var tl = gsap.timeline({paused:true});
+  var sc = '[data-composition-id="s29"]';
+  tl.from(sc+' .s29-badge', {opacity:0, y:-10, duration:0.3});
+  tl.from(sc+' .s29-h2', {opacity:0, x:20, duration:0.4}, '-=0.2');
+  tl.from(sc+' .s29-visual', {opacity:0, scale:0.8, duration:0.5, ease:'back.out(1.2)'}, '-=0.2');
+  tl.from(sc+' .s29-card', {opacity:0, x:30, stagger:0.12, duration:0.4, ease:'power2.out'}, '-=0.3');
+  window.__timelines = window.__timelines || {};
+  window.__timelines["s29"] = tl;
+  window.__hf = window.__hf || {};
+  window.__hf["s29"] = {duration:25.0, seek:function(t){var tl=window.__timelines&&window.__timelines["s29"];if(tl)tl.seek(t);}};
+})();
+</script>
+<img src="data:image/jpeg;base64,PCFkb2N0eXBlIGh0bWw+PGh0bWwgbGFuZz0iZW4iPjxoZWFkPjx0aXRsZT5NYWtpbmcgc3VyZSB5b3UmIzM5O3JlIG5vdCBhIGJvdCE8L3RpdGxlPjxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0iLy53aXRoaW4ud2Vic2l0ZS94L3hlc3MveGVzcy5taW4uY3NzP2NhY2hlYnVzdGVyPXYxLjI0LjAiPjxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsIGluaXRpYWwtc2NhbGU9MS4wIj48bWV0YSBuYW1lPSJyb2JvdHMiIGNvbnRlbnQ9Im5vaW5kZXgsbm9mb2xsb3ciPjxzdHlsZT4KICAgICAgICBib2R5LAogICAgICAgIGh0bWwgewogICAgICAgICAgICBoZWlnaHQ6IDEwMCU7CiAgICAgICAgICAgIGRpc3BsYXk6IGZsZXg7CiAgICAgICAgICAgIGp1c3RpZnktY29udGVudDogY2VudGVyOwogICAgICAgICAgICBhbGlnbi1pdGVtczogY2VudGVyOwogICAgICAgICAgICBtYXJnaW4tbGVmdDogYXV0bzsKICAgICAgICAgICAgbWFyZ2luLXJpZ2h0OiBhdXRvOwogICAgICAgIH0KCiAgICAgICAgLmNlbnRlcmVkLWRpdiB7CiAgICAgICAgICAgIHRleHQtYWxpZ246IGNlbnRlcjsKICAgICAgICB9CgogICAgICAgICNzdGF0dXMgewogICAgICAgICAgICBmb250LXZhcmlhbnQtbnVtZXJpYzogdGFidWxhci1udW1zOwogICAgICAgIH0KCiAgICAgICAgI3Byb2dyZXNzIHsKICAgICAgICAgIGRpc3BsYXk6IG5vbmU7CiAgICAgICAgICB3aWR0aDogOTAlOwogICAgICAgICAgd2lkdGg6IG1pbigyMHJlbSwgOTAlKTsKICAgICAgICAgIGhlaWdodDogMnJlbTsKICAgICAgICAgIGJvcmRlci1yYWRpdXM6IDFyZW07CiAgICAgICAgICBvdmVyZmxvdzogaGlkZGVuOwogICAgICAgICAgbWFyZ2luOiAxcmVtIDAgMnJlbTsKCQkJCQlvdXRsaW5lLW9mZnNldDogMnB4OwoJCQkJCW91dGxpbmU6ICNiMTYyODYgc29saWQgNHB4OwoJCQkJfQoKICAgICAgICAuYmFyLWlubmVyIHsKICAgICAgICAgICAgYmFja2dyb3VuZC1jb2xvcjogI2IxNjI4NjsKICAgICAgICAgICAgaGVpZ2h0OiAxMDAlOwogICAgICAgICAgICB3aWR0aDogMDsKICAgICAgICAgICAgdHJhbnNpdGlvbjogd2lkdGggMC4yNXMgZWFzZS1pbjsKICAgICAgICB9CiAgICAJPC9zdHlsZT48bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Ii8ud2l0aGluLndlYnNpdGUveC9jbWQvYW51YmlzL3N0YXRpYy9jc3MvY3VzdG9tLmNzcyI+PHNjcmlwdCBpZD0iYW51YmlzX3ZlcnNpb24iIHR5cGU9ImFwcGxpY2F0aW9uL2pzb24iPiJ2MS4yNC4wIgo8L3NjcmlwdD48c2NyaXB0IGlkPSJhbnViaXNfY2hhbGxlbmdlIiB0eXBlPSJhcHBsaWNhdGlvbi9qc29uIj57InJ1bGVzIjp7ImFsZ29yaXRobSI6ImZhc3QiLCJkaWZmaWN1bHR5IjoxfSwiY2hhbGxlbmdlIjp7Imlzc3VlZEF0IjoiMjAyNi0wNi0wM1QwOToyNjozOC40Nzg5ODk0NjdaIiwibWV0YWRhdGEiOnsiVXNlci1BZ2VudCI6ImN1cmwvOC43LjEiLCJYLVJlYWwtSXAiOiI1OC4zNC43Ljk5In0sImlkIjoiMDE5ZThjY2UtNmE4ZS03ZjBjLThmY2UtMGY5NzA3ZTkzYzJlIiwibWV0aG9kIjoiZmFzdCIsInJhbmRvbURhdGEiOiJkYTFlZmFiNjVhZGJhM2ZjZDY4ZjBmYzI4OTJjNmU1NGFlYzY1NGE5OTUzYTgzNWZkMjJkYjFmZjFmYTY4M2ExNzlmMjY1MDc2MmQyZDRlMDFmZGQ3OTQxZGI0MzljNmI3YmU2MTRmNGJmZmEwZTVlZGIyNjAyM2UxMjJkZGZhYiIsInBvbGljeVJ1bGVIYXNoIjoiYWM5ODBmNDljNGQzNWZhYiIsImRpZmZpY3VsdHkiOjEsInNwZW50IjpmYWxzZX19Cjwvc2NyaXB0PjxzY3JpcHQgaWQ9ImFudWJpc19iYXNlX3ByZWZpeCIgdHlwZT0iYXBwbGljYXRpb24vanNvbiI+IiIKPC9zY3JpcHQ+PHNjcmlwdCBpZD0iYW51YmlzX3B1YmxpY191cmwiIHR5cGU9ImFwcGxpY2F0aW9uL2pzb24iPiIiCjwvc2NyaXB0PjwvaGVhZD48Ym9keSBpZD0idG9wIj48c2NyaXB0IHR5cGU9Imlnbm9yZSI+PGEgaHJlZj0iLy53aXRoaW4ud2Vic2l0ZS94L2NtZC9hbnViaXMvYXBpL2hvbmV5cG90L2U3ZTdjZTU1LTc5N2QtNDQ2Yy1hMDkwLTYwYzhkMzFlMWZlOC9pbml0Ij5Eb24ndCBjbGljayBtZTwvYT48L3NjcmlwdD48bWFpbj48aDEgaWQ9InRpdGxlIiBjbGFzcz0iY2VudGVyZWQtZGl2Ij5NYWtpbmcgc3VyZSB5b3UmIzM5O3JlIG5vdCBhIGJvdCE8L2gxPjxkaXYgY2xhc3M9ImNlbnRlcmVkLWRpdiI+PGltZyBpZD0iaW1hZ2UiIHN0eWxlPSJ3aWR0aDoxMDAlO21heC13aWR0aDoyNTZweDsiIHNyYz0iLy53aXRoaW4ud2Vic2l0ZS94L2NtZC9hbnViaXMvc3RhdGljL2ltZy9wZW5zaXZlLndlYnA/Y2FjaGVCdXN0ZXI9djEuMjQuMCI+IDxpbWcgc3R5bGU9ImRpc3BsYXk6bm9uZTsiIHN0eWxlPSJ3aWR0aDoxMDAlO21heC13aWR0aDoyNTZweDsiIHNyYz0iLy53aXRoaW4ud2Vic2l0ZS94L2NtZC9hbnViaXMvc3RhdGljL2ltZy9oYXBweS53ZWJwP2NhY2hlQnVzdGVyPXYxLjI0LjAiPjxwIGlkPSJzdGF0dXMiPkxvYWRpbmcuLi48L3A+PHNjcmlwdCBhc3luYyB0eXBlPSJtb2R1bGUiIHNyYz0iLy53aXRoaW4ud2Vic2l0ZS94L2NtZC9hbnViaXMvc3RhdGljL2pzL21haW4ubWpzP2NhY2hlQnVzdGVyPXYxLjI0LjAiPjwvc2NyaXB0PjxkaXYgaWQ9InByb2dyZXNzIiByb2xlPSJwcm9ncmVzc2JhciIgYXJpYS1sYWJlbGxlZGJ5PSJzdGF0dXMiPjxkaXYgY2xhc3M9ImJhci1pbm5lciI+PC9kaXY+PC9kaXY+PGRldGFpbHM+PHA+WW91IGFyZSBzZWVpbmcgdGhpcyBiZWNhdXNlIHRoZSBhZG1pbmlzdHJhdG9yIG9mIHRoaXMgd2Vic2l0ZSBoYXMgc2V0IHVwIEFudWJpcyB0byBwcm90ZWN0IHRoZSBzZXJ2ZXIgYWdhaW5zdCB0aGUgc2NvdXJnZSBvZiBBSSBjb21wYW5pZXMgYWdncmVzc2l2ZWx5IHNjcmFwaW5nIHdlYnNpdGVzLiBUaGlzIGNhbiBhbmQgZG9lcyBjYXVzZSBkb3dudGltZSBmb3IgdGhlIHdlYnNpdGVzLCB3aGljaCBtYWtlcyB0aGVpciByZXNvdXJjZXMgaW5hY2Nlc3NpYmxlIGZvciBldmVyeW9uZS48L3A+PHA+QW51YmlzIGlzIGEgY29tcHJvbWlzZS4gQW51YmlzIHVzZXMgYSBQcm9vZi1vZi1Xb3JrIHNjaGVtZSBpbiB0aGUgdmVpbiBvZiBIYXNoY2FzaCwgYSBwcm9wb3NlZCBwcm9vZi1vZi13b3JrIHNjaGVtZSBmb3IgcmVkdWNpbmcgZW1haWwgc3BhbS4gVGhlIGlkZWEgaXMgdGhhdCBhdCBpbmRpdmlkdWFsIHNjYWxlcyB0aGUgYWRkaXRpb25hbCBsb2FkIGlzIGlnbm9yYWJsZSwgYnV0IGF0IG1hc3Mgc2NyYXBlciBsZXZlbHMgaXQgYWRkcyB1cCBhbmQgbWFrZXMgc2NyYXBpbmcgbXVjaCBtb3JlIGV4cGVuc2l2ZS48L3A+PHA+VWx0aW1hdGVseSwgdGhpcyBpcyBhIHBsYWNlaG9sZGVyIHNvbHV0aW9uIHNvIHRoYXQgbW9yZSB0aW1lIGNhbiBiZSBzcGVudCBvbiBmaW5nZXJwcmludGluZyBhbmQgaWRlbnRpZnlpbmcgaGVhZGxlc3MgYnJvd3NlcnMgKEVHOiB2aWEgaG93IHRoZXkgZG8gZm9udCByZW5kZXJpbmcpIHNvIHRoYXQgdGhlIGNoYWxsZW5nZSBwcm9vZiBvZiB3b3JrIHBhZ2UgZG9lc24mIzM5O3QgbmVlZCB0byBiZSBwcmVzZW50ZWQgdG8gdXNlcnMgdGhhdCBhcmUgbXVjaCBtb3JlIGxpa2VseSB0byBiZSBsZWdpdGltYXRlLjwvcD48cD5QbGVhc2Ugbm90ZSB0aGF0IEFudWJpcyByZXF1aXJlcyB0aGUgdXNlIG9mIG1vZGVybiBKYXZhU2NyaXB0IGZlYXR1cmVzIHRoYXQgcGx1Z2lucyBsaWtlIEpTaGVsdGVyIHdpbGwgZGlzYWJsZS4gUGxlYXNlIGRpc2FibGUgSlNoZWx0ZXIgb3Igb3RoZXIgc3VjaCBwbHVnaW5zIGZvciB0aGlzIGRvbWFpbi48L3A+PC9kZXRhaWxzPjxub3NjcmlwdD48cD5TYWRseSwgeW91IG11c3QgZW5hYmxlIEphdmFTY3JpcHQgdG8gZ2V0IHBhc3QgdGhpcyBjaGFsbGVuZ2UuIFRoaXMgaXMgcmVxdWlyZWQgYmVjYXVzZSBBSSBjb21wYW5pZXMgaGF2ZSBjaGFuZ2VkIHRoZSBzb2NpYWwgY29udHJhY3QgYXJvdW5kIGhvdyB3ZWJzaXRlIGhvc3Rpbmcgd29ya3MuIEEgbm8tSlMgc29sdXRpb24gaXMgYSB3b3JrLWluLXByb2dyZXNzLjwvcD48L25vc2NyaXB0PjxkaXYgaWQ9InRlc3RhcmVhIj48L2Rpdj48L2Rpdj48Zm9vdGVyPjxkaXYgY2xhc3M9ImNlbnRlcmVkLWRpdiI+PHA+UHJvdGVjdGVkIGJ5IDxhIGhyZWY9Imh0dHBzOi8vYW51YmlzLnRlY2hhcm8ubG9sL2RvY3MvYWRtaW4vYm90c3RvcHBlciI+Qm90U3RvcHBlcjwvYT4gRnJvbSA8YSBocmVmPSJodHRwczovL3RlY2hhcm8ubG9sIj5UZWNoYXJvPC9hPi4gTWFkZSB3aXRoIOKdpO+4jyBpbiDwn4eo8J+Hpi48L3A+PHA+VW5zcGxhc2ggfCA8YSBocmVmPSJodHRwczovL2hlbHAudW5zcGxhc2guY29tLyI+SGVscCBDZW50ZXI8L2E+IHwgPGEgaHJlZj0ibWFpbHRvOnN1cHBvcnRAdW5zcGxhc2guY29tIj5zdXBwb3J0QHVuc3BsYXNoLmNvbTwvYT4tLSA8YSBocmVmPSIvLndpdGhpbi53ZWJzaXRlL3gvY21kL2FudWJpcy9hcGkvaW1wcmludCI+SW1wcmludDwvYT48L3A+PC9kaXY+PC9mb290ZXI+PC9tYWluPjwvYm9keT48L2h0bWw+" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" alt="配图">
+</body>
+</html>

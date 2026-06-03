@@ -1,0 +1,69 @@
+{
+  "success": [],
+  "failed": [],
+  "skipped": [
+    {
+      "file": "ai_P1_s01_bg.png"
+    },
+    {
+      "file": "ai_P4_s04_bg.png"
+    },
+    {
+      "file": "ai_P5_s05_visual.png"
+    },
+    {
+      "file": "ai_P7_s07_visual.png"
+    },
+    {
+      "file": "ai_P8_s08_visual.png"
+    },
+    {
+      "file": "ai_P9_s09_bg.png"
+    },
+    {
+      "file": "ai_P10_s10_visual.png"
+    },
+    {
+      "file": "ai_P11_s11_visual.png"
+    },
+    {
+      "file": "ai_P12_s12_visual.png"
+    },
+    {
+      "file": "ai_P13_s13_visual.png"
+    },
+    {
+      "file": "ai_P14_s14_visual.png"
+    },
+    {
+      "file": "ai_P15_s15_visual.png"
+    },
+    {
+      "file": "ai_P16_s16_visual.png"
+    },
+    {
+      "file": "ai_P17_s17_visual.png"
+    },
+    {
+      "file": "ai_P18_s18_bg.png"
+    },
+    {
+      "file": "ai_P20_s20_visual.png"
+    },
+    {
+      "file": "ai_P25_s25_bg.png"
+    },
+    {
+      "file": "ai_P26_s26_visual.png"
+    },
+    {
+      "file": "ai_P27_s27_visual.png"
+    },
+    {
+      "file": "ai_P28_s28_visual.png"
+    },
+    {
+      "file": "ai_P29_s29_bg.png"
+    }
+  ]
+}

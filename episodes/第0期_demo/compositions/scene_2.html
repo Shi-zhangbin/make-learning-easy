@@ -1,0 +1,33 @@
+<!doctype html><html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=1920,height=1080">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif;}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#000;}
+
+.sl{width:100%;height:100%;display:flex;flex-direction:column;padding:50px 80px;position:relative;background:#ffffff;}
+.sl::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(to bottom,#00d4a4,#00d4a4cc);}
+.badge{font-size:11px;color:#00d4a4;letter-spacing:2px;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+h2{font-size:46px;font-weight:700;color:#0a0a0a;line-height:1.15;margin-bottom:16px;}
+.pr{position:absolute;bottom:18px;right:28px;font-size:13px;color:#888;}
+.card{background:#fafafa;border:1px solid #e5e5e5;border-radius:8px;padding:16px 18px;margin-bottom:10px;}
+.card-t{font-size:16px;font-weight:600;color:#0a0a0a;margin-bottom:3px;}
+.card-b{font-size:14px;color:#5a5a5c;line-height:1.5;}
+
+.con{display:flex;flex:1;gap:40px;}
+.con-l{flex:1;display:flex;flex-direction:column;justify-content:center;}
+.con-r{flex:1;display:flex;align-items:center;justify-content:center;background:#f5f5f5;border-radius:10px;min-height:400px;}
+.con-img{max-height:380px;object-fit:contain;border-radius:10px;}
+
+</style></head><body>
+<section data-composition-id="s2" data-width="1920" data-height="1080">
+<div class="sl"><div class="badge">STEP 01</div><h2>什么是融合管线</h2><div class="con"><div class="con-l"><div class="card"><div class="card-t">点1</div><div class="card-b">一句话创建项目</div></div><div class="card"><div class="card-t">点2</div><div class="card-b">全自动TTS分段</div></div><div class="card"><div class="card-t">点3</div><div class="card-b">10种布局模板</div></div><div class="card"><div class="card-t">点4</div><div class="card-b">三段式质量门禁</div></div></div><div class="con-r"><div style="color:#aaa;font-size:14px;">配图</div></div></div><div class="pr">2/5</div></div>
+</section>
+<script>(function(){
+var tl=gsap.timeline({paused:true});
+tl.from(".badge,h2,.con>*",{opacity:0,y:10,duration:.3,stagger:.04});
+window.__timelines=window.__timelines||{};window.__timelines["s2"]=tl;
+window.__hf=window.__hf||{};window.__hf["s2"]={duration:12.0,seek:function(t){var tl=window.__timelines&&window.__timelines["s2"];if(tl)tl.seek(t);}};
+if(top===self)tl.progress(1);
+})();
+</script></body></html>

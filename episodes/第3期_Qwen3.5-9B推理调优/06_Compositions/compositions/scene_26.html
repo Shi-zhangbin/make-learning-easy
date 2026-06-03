@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: sans-serif; overflow: hidden; }
+[data-composition-id="s26"] {
+  width: 1920px; height: 1080px; position: relative; overflow: hidden;
+  background: #ffffff; display: flex; flex-direction: column; padding: 50px 80px;
+}
+.s26-badge {
+  display: inline-block; background: #00BFA5; color: #fff; font-size: 17px;
+  padding: 4px 14px; border-radius: 20px; align-self: flex-start; margin-bottom: 10px;
+}
+.s26-h2 { font-size: 54px; font-weight: 700; color: #1a1a2e; margin-bottom: 18px; }
+.s26-code {
+  background: #13131a; border-radius: 12px; padding: 22px 26px; font-family: 'Courier New', monospace;
+  font-size: 17px; line-height: 1.55; color: #c5d4e0; white-space: pre; overflow-x: auto; flex: 1;
+}
+.s26-code .cmt { color: #6a9955; }
+.s26-code .hl { color: #00BFA5; font-weight: 700; }
+.s26-code .hl2 { color: #569cd6; font-weight: 600; }
+.s26-code .str { color: #ce9178; }
+.s26-legend {
+  margin-top: 14px; display: flex; gap: 30px; align-items: center;
+}
+.s26-legend-item { display: flex; align-items: center; gap: 8px; font-size: 17px; color: #555; }
+.s26-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.s26-page { position: absolute; bottom: 30px; right: 40px; font-size: 18px; color: #99a; }
+</style>
+</head>
+<body>
+<div data-composition-id="s26" data-width="1920" data-height="1080">
+  <div class="s26-badge">⚙️ 改装核心</div>
+  <div class="s26-h2">三个发动机旋钮</div>
+  <div class="s26-code">vllm serve /path/to/model \
+  --served-model-name qwen3.5 \
+  --host 0.0.0.0 \
+  --port 8010 \
+  --<span class="hl">tensor-parallel-size 4</span> \   <span class="cmt"># ← V4发动机，四缸全开</span>
+  --<span class="hl">max-model-len 5000</span> \       <span class="cmt"># ← 油箱容量：5000 token</span>
+  --<span class="hl">max-num-seqs 128</span> \         <span class="cmt"># ← 载客量：128并发</span>
+  --<span class="hl2">trust-remote-code</span> \        <span class="cmt"># ← 信任模型自带脚本</span>
+  --<span class="hl2">enforce-eager</span>              <span class="cmt"># ← 兼容模式，更稳定</span></div>
+  <div class="s26-legend">
+    <div class="s26-legend-item"><span class="s26-legend-dot" style="background:#00BFA5;"></span> 🏎️ tensor-parallel-size 4：4张NPU卡全部上阵</div>
+    <div class="s26-legend-item"><span class="s26-legend-dot" style="background:#00BFA5;"></span> ⛽ max-model-len 5000：记住约两三千汉字的前文</div>
+    <div class="s26-legend-item"><span class="s26-legend-dot" style="background:#00BFA5;"></span> 🚗 max-num-seqs 128：同时服务128个请求</div>
+  </div>
+  <div class="s26-page">26/37</div>
+</div>
+<script>
+(function(){
+  var tl = gsap.timeline({paused:true});
+  var sc = '[data-composition-id="s26"]';
+  tl.from(sc+' .s26-badge', {opacity:0, y:-10, duration:0.3});
+  tl.from(sc+' .s26-h2', {opacity:0, y:-15, duration:0.4}, '-=0.2');
+  tl.from(sc+' .s26-code', {opacity:0, y:15, duration:0.5, ease:'power2.out'}, '-=0.2');
+  tl.from(sc+' .s26-legend-item', {opacity:0, y:10, stagger:0.1, duration:0.3, ease:'power2.out'}, '-=0.15');
+  window.__timelines = window.__timelines || {};
+  window.__timelines["s26"] = tl;
+  window.__hf = window.__hf || {};
+  window.__hf["s26"] = {duration:35.0, seek:function(t){var tl=window.__timelines&&window.__timelines["s26"];if(tl)tl.seek(t);}};
+})();
+</script>
+</body>
+</html>

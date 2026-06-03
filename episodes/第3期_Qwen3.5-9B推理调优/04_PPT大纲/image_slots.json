@@ -1,0 +1,335 @@
+[
+  {
+    "page": "s1",
+    "slot": "bg",
+    "content": "跑车引擎轮廓 + 改装车间氛围背景",
+    "source": "code",
+    "size": "full",
+    "prompt": "",
+    "filename": "s1_bg.jpg"
+  },
+  {
+    "page": "s2",
+    "slot": "main",
+    "content": "两阶段流程图：左半Docker厨房回顾→右半本期五步流程",
+    "source": "code",
+    "size": "full",
+    "prompt": "",
+    "filename": "s2_main.jpg"
+  },
+  {
+    "page": "s3",
+    "slot": "main",
+    "content": "引擎铭牌标注Qwen3.5-9B，带90亿参数标识",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A close-up of a polished car engine nameplate with engraved text \"Qwen3.5-9B\" and \"9 Billion Parameters\". Dark metallic background with subtle blue glow, film noir style, cinematic lighting, shallow depth of field.",
+    "filename": "s3_main.jpg"
+  },
+  {
+    "page": "s4",
+    "slot": "main",
+    "content": "猫的大脑示意图，标注90亿神经元连接概",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A stylized glowing silhouette of a cat's head with a luminous neural network inside the brain area, blue and purple synapses firing, 9 billion particles connecting, dark background, cinematic volumetric lighting, sci-fi documentary style.",
+    "filename": "s4_main.jpg"
+  },
+  {
+    "page": "s5",
+    "slot": "main",
+    "content": "多模态展示：一张照片、一张表格、一段文字同时输入模型",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "Split composition showing three input streams converging into one AI model: a photo of a mountain landscape on the left, a data table in the middle, and text paragraphs on the right, all flowing into a glowing central processor. Clean minimal style, blue and green accents, flat design.",
+    "filename": "s5_main.jpg"
+  },
+  {
+    "page": "s6",
+    "slot": "icon",
+    "content": "vLLM logo + 汽车ECU芯片对比",
+    "source": "real",
+    "size": "320x180",
+    "prompt": "",
+    "filename": "s6_icon.jpg"
+  },
+  {
+    "page": "s7",
+    "slot": "main",
+    "content": "分页式草稿纸管理示意图：抽屉+桌面+分页纸张",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A desk covered with scattered paper sheets transitioning into organized paginated stacks with arrows showing pages moving between a drawer and the desk surface. Minimalist isometric illustration style, clean white and cool blue, like an OS memory management visualization.",
+    "filename": "s7_main.jpg"
+  },
+  {
+    "page": "s8",
+    "slot": "main",
+    "content": "餐厅实时翻台示意图：多桌客人在不同用餐阶段",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A busy restaurant interior showing multiple tables at different dining stages: one table being seated, one table eating, one table paying. A waiter carrying multiple dishes between tables. Warm cozy atmosphere with golden lighting, flat vector illustration style, clean and modern.",
+    "filename": "s8_main.jpg"
+  },
+  {
+    "page": "s9",
+    "slot": "bg",
+    "content": "汽车仪表盘装饰背景，三个仪表分别标注指标名",
+    "source": "code",
+    "size": "full",
+    "prompt": "",
+    "filename": "s9_bg.jpg"
+  },
+  {
+    "page": "s10",
+    "slot": "main",
+    "content": "零百加速 vs 极速对比图：跑车速度表双栏对比",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "Split comparison: left side shows a sports car speedometer at 0-100 km/h with a stopwatch icon, right side shows a speedometer at max speed with a flame icon. Clean infographic style, dark background with green and blue accent colors, flat design with subtle gradients.",
+    "filename": "s10_main.jpg"
+  },
+  {
+    "page": "s11",
+    "slot": "main",
+    "content": "油箱容量示意图+4张NPU卡标注",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A transparent fuel tank with a gauge showing 4 chambers labeled NPU-0 to NPU-3, each with 24-32GB capacity markings. Fuel level visualization in green gradient. Minimalist tech-infographic style, dark background, cool blue lighting, clean lines.",
+    "filename": "s11_main.jpg"
+  },
+  {
+    "page": "s12",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s12_none.jpg"
+  },
+  {
+    "page": "s13",
+    "slot": "main",
+    "content": "密钥打开远程机房门的连接示意图",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A glowing golden key unlocking a door that connects a laptop on the left to a distant server room on the right through a network tunnel. The server room visible through the open door shows rows of server racks. Isometric clean tech illustration, dark background with blue accent lighting.",
+    "filename": "s13_main.jpg"
+  },
+  {
+    "page": "s14",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s14_none.jpg"
+  },
+  {
+    "page": "s15",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s15_none.jpg"
+  },
+  {
+    "page": "s16",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s16_none.jpg"
+  },
+  {
+    "page": "s17",
+    "slot": "main",
+    "content": "厨房升级对比：简易厨房→专业厨房带NPU+vLLM标识",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "Split comparison of two kitchens: left side a simple home kitchen with just a microwave (labeled \"预制菜/Ready-meal\"), right side a professional restaurant kitchen with multiple stoves labeled NPU, Python, PyTorch, vLLM. Clean flat vector illustration, warm lighting, food magazine style.",
+    "filename": "s17_main.jpg"
+  },
+  {
+    "page": "s18",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s18_none.jpg"
+  },
+  {
+    "page": "s19",
+    "slot": "bg",
+    "content": "集装箱厨房示意图，标注三大参数区域",
+    "source": "ai",
+    "size": "full",
+    "prompt": "A shipping container transformed into a modular kitchen seen from an isometric angle. Three highlighted areas labeled: --device (gas pipe connection), -p (takeout window), -v (storage cabinet). Clean minimalist flat design, green accent color on white background, modern architectural illustration style.",
+    "filename": "s19_bg.jpg"
+  },
+  {
+    "page": "s20",
+    "slot": "main",
+    "content": "燃气管道从外部连接到厨房内部的示意图",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "Isometric cutaway view showing 4 gas pipes (labeled davinci0-3) connecting from the outside wall into a kitchen interior where a stove burner is lit. Industrial pipes in metallic gray, kitchen in warm orange-tone, clear technical illustration style with callout arrows.",
+    "filename": "s20_main.jpg"
+  },
+  {
+    "page": "s21",
+    "slot": "main",
+    "content": "厨房墙上的外卖窗口，标号8010",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A kitchen wall with a small takeout window labeled \"8010\". Through the window you can see someone inside the kitchen cooking. Outside the window a customer is reaching in to pick up an order. Cozy warm illustration style, flat vector art with gentle colors, food-market vibe.",
+    "filename": "s21_main.jpg"
+  },
+  {
+    "page": "s22",
+    "slot": "main",
+    "content": "两个储物柜对比：一个没共享每次重新下载，一个有共享直接取用",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "Split illustration showing two scenarios: left side a person repeatedly downloading from a cloud to an empty locker (red X mark), right side a person directly taking a pre-stored model file from a shared locker connected between host and container (green checkmark). Clean iconographic style, blue and green palette.",
+    "filename": "s22_main.jpg"
+  },
+  {
+    "page": "s23",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s23_none.jpg"
+  },
+  {
+    "page": "s24",
+    "slot": "bg",
+    "content": "引擎点火动画：ECU连接引擎+电路火花",
+    "source": "ai",
+    "size": "full",
+    "prompt": "A car engine starting with blue electrical sparks jumping between the ECU unit and the engine block. The engine is labeled \"vLLM\" and the ECU is labeled \"Serve Framework\". Dramatic cinematic lighting, dark background with electric blue glow, engine bay photography style.",
+    "filename": "s24_bg.jpg"
+  },
+  {
+    "page": "s25",
+    "slot": "main",
+    "content": "网络连接示意图：模型名片+全球网络访问",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A sleek name card floating in space labeled \"qwen3.5\" with Wi-Fi signal waves radiating outward, connecting to multiple globe icons. Clean minimalist tech illustration, dark background with neon green accents, modern UI concept art style.",
+    "filename": "s25_main.jpg"
+  },
+  {
+    "page": "s26",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s26_none.jpg"
+  },
+  {
+    "page": "s27",
+    "slot": "main",
+    "content": "盾牌保护+兼容模式图标",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "Two icons side by side on a dark background: left a digital shield with a checkmark labeled \"trust-remote-code\", right a gear/shield hybrid labeled \"enforce-eager\". Floating particles connecting them. Clean modern tech-UI style, green and blue neon accents.",
+    "filename": "s27_main.jpg"
+  },
+  {
+    "page": "s28",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s28_none.jpg"
+  },
+  {
+    "page": "s29",
+    "slot": "main",
+    "content": "传话筒示意图：用户→终端→模型→终→用户",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "A communication flow diagram showing a person speaking into a terminal window, data packets traveling through a network pipe to an AI model icon, and response packets traveling back as text output. Clean flat vector illustration with flowing data streams, blue and green tech palette.",
+    "filename": "s29_main.jpg"
+  },
+  {
+    "page": "s30",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s30_none.jpg"
+  },
+  {
+    "page": "s31",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s31_none.jpg"
+  },
+  {
+    "page": "s32",
+    "slot": "main",
+    "content": "汽车仪表盘舒适模式vs运动模式切换",
+    "source": "ai",
+    "size": "640x360",
+    "prompt": "Split car dashboard view: left side shows a luxury comfort mode with soft blue backlight and smooth indicators, right side shows sport mode with red backlight, aggressive tachometer, and performance gauges. Middle shows a toggle switch. Clean realistic car interior style, split composition.",
+    "filename": "s32_main.jpg"
+  },
+  {
+    "page": "s33",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s33_none.jpg"
+  },
+  {
+    "page": "s34",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s34_none.jpg"
+  },
+  {
+    "page": "s35",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s35_none.jpg"
+  },
+  {
+    "page": "s36",
+    "slot": "none",
+    "content": "",
+    "source": "code",
+    "size": "none",
+    "prompt": "",
+    "filename": "s36_none.jpg"
+  },
+  {
+    "page": "s37",
+    "slot": "bg",
+    "content": "预告装饰+下期预告视觉",
+    "source": "code",
+    "size": "full",
+    "prompt": "",
+    "filename": "s37_bg.jpg"
+  }
+]

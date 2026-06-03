@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: sans-serif; overflow: hidden; }
+[data-composition-id="s1"] {
+  width: 1920px; height: 1080px; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 40%, #16213e 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.s1-title { font-size: 80px; font-weight: 800; color: #ffffff; text-align: center; letter-spacing: 2px; }
+.s1-title span { color: #00BFA5; }
+.s1-subtitle { font-size: 26px; color: rgba(255,255,255,0.65); margin-top: 18px; letter-spacing: 4px; }
+.s1-decoration { display: flex; gap: 24px; margin-bottom: 32px; align-items: center; }
+.s1-icon-box { font-size: 48px; }
+.s1-version { position: absolute; bottom: 50px; font-size: 18px; color: rgba(255,255,255,0.35); letter-spacing: 2px; }
+.s1-accent-line { width: 120px; height: 3px; background: #00BFA5; margin: 20px auto; border-radius: 2px; }
+.s1-page { position: absolute; bottom: 30px; right: 40px; font-size: 18px; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
+</style>
+</head>
+<body>
+<div data-composition-id="s1" data-width="1920" data-height="1080">
+  <div class="s1-decoration">
+    <span class="s1-icon-box">🏎️</span>
+    <span class="s1-icon-box" style="font-size:36px;">🔧</span>
+  </div>
+  <div class="s1-title">Qwen3.5-9B<span>推理调优实操</span></div>
+  <div class="s1-accent-line"></div>
+  <div class="s1-subtitle">启明 AI 实操系列 · 第3期</div>
+  <div class="s1-version">vLLM Ascend | 昇腾NPU</div>
+  <div class="s1-page">01/37</div>
+</div>
+<script>
+(function(){
+  var tl = gsap.timeline({paused:true});
+  var scope = '[data-composition-id="s1"]';
+  tl.from(scope+' .s1-decoration', {opacity:0, y:-30, duration:0.5, ease:'power2.out'});
+  tl.from(scope+' .s1-title', {opacity:0, y:20, duration:0.6, ease:'power2.out'}, '-=0.3');
+  tl.from(scope+' .s1-accent-line', {scaleX:0, duration:0.4, ease:'power2.out'}, '-=0.3');
+  tl.from(scope+' .s1-subtitle', {opacity:0, y:15, duration:0.5, ease:'power2.out'}, '-=0.2');
+  tl.from(scope+' .s1-version', {opacity:0, duration:0.4, ease:'power2.out'}, '-=0.1');
+  window.__timelines = window.__timelines || {};
+  window.__timelines["s1"] = tl;
+  window.__hf = window.__hf || {};
+  window.__hf["s1"] = {duration:5.0, seek:function(t){var tl=window.__timelines&&window.__timelines["s1"];if(tl)tl.seek(t);}};
+})();
+</script>
+</body>
+</html>

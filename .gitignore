@@ -1,1 +1,8 @@
-node_modules/\n.DS_Store\n*.mp4\n*.mp3\n_audio_segments/
+node_modules/
+.DS_Store
+*.mp4
+*.mp3
+_audio_segments/
+__pycache__/
+*.pyc
+.hermes/

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: sans-serif; overflow: hidden; }
+[data-composition-id="s6"] {
+  width: 1920px; height: 1080px; position: relative; overflow: hidden;
+  background: #ffffff; display: flex; flex-direction: column; padding: 60px 80px;
+}
+.s6-badge {
+  display: inline-block; background: #00BFA5; color: #fff; font-size: 17px;
+  padding: 4px 14px; border-radius: 20px; align-self: flex-start; margin-bottom: 12px;
+}
+.s6-h2 { font-size: 54px; font-weight: 700; color: #1a1a2e; margin-bottom: 32px; }
+.s6-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1; align-content: start; }
+.s6-card { background: #f8f9fa; border-radius: 12px; padding: 20px 24px; }
+.s6-card h4 { font-size: 22px; font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+.s6-card p { font-size: 18px; color: #444; line-height: 1.5; }
+.s6-card.accent { border-left: 4px solid #00BFA5; }
+.s6-card.blue { border-left: 4px solid #1a73e8; }
+.s6-page { position: absolute; bottom: 30px; right: 40px; font-size: 18px; color: #99a; }
+</style>
+</head>
+<body>
+<div data-composition-id="s6" data-width="1920" data-height="1080">
+  <div class="s6-badge">⚙️ 智能变速箱</div>
+  <div class="s6-h2">vLLM——大模型的点火系统</div>
+  <div class="s6-grid">
+    <div class="s6-card accent">
+      <h4>💡 没有vLLM就像手摇曲轴</h4>
+      <p>V8跑车引擎再强，用手摇曲轴发动到天黑也发动不了</p>
+    </div>
+    <div class="s6-card blue">
+      <h4>⚡ vLLM = ECU</h4>
+      <p>自动帮你点火、喷油、换挡、调节气门正时</p>
+    </div>
+    <div class="s6-card accent">
+      <h4>🔧 推理加速框架</h4>
+      <p>专门为了让大模型跑得更快而生</p>
+    </div>
+    <div class="s6-card blue">
+      <h4>🧩 两大核心技术</h4>
+      <p>PagedAttention + Continuous Batching 下面两页分别详解</p>
+    </div>
+  </div>
+  <div class="s6-page">06/37</div>
+</div>
+<script>
+(function(){
+  var tl = gsap.timeline({paused:true});
+  var sc = '[data-composition-id="s6"]';
+  tl.from(sc+' .s6-badge', {opacity:0, y:-10, duration:0.3});
+  tl.from(sc+' .s6-h2', {opacity:0, y:-15, duration:0.4}, '-=0.2');
+  tl.from(sc+' .s6-card', {opacity:0, y:20, stagger:0.1, duration:0.4, ease:'power2.out'}, '-=0.2');
+  window.__timelines = window.__timelines || {};
+  window.__timelines["s6"] = tl;
+  window.__hf = window.__hf || {};
+  window.__hf["s6"] = {duration:25.0, seek:function(t){var tl=window.__timelines&&window.__timelines["s6"];if(tl)tl.seek(t);}};
+})();
+</script>
+</body>
+</html>

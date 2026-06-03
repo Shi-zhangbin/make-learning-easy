@@ -1,0 +1,15 @@
+{
+  "episode": "第0期_Demo视频",
+  "topic": "Demo视频",
+  "design_style": "mintlify",
+  "steps": {
+    "created": {
+      "status": "done",
+      "detail": "Demo视频",
+      "ts": "2026-06-02T23:34:06.745072"
+    }
+  },
+  "current_step": "T0",
+  "created_at": "2026-06-02T23:34:06.744823",
+  "updated_at": "2026-06-02T23:34:06.745144"
+}
