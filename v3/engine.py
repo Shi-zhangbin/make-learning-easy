@@ -11,24 +11,24 @@ from v3.config import EPISODES_DIR, PRESETS_DIR
 from v3.designs.base import load_preset, list_presets
 
 # ── Step registry ──
-STEPS = ["T0", "T1", "T3", "TTS", "T2", "T5", "T6", "T7", "T8"]
+STEPS = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"]
 
 # Dependencies: step -> list of step names that must be done first
 DEPS = {
     "T0": [],
     "T1": ["T0"],
-    "T3": ["T1"],
-    "TTS": ["T3"],
-    "T2": ["TTS"],
-    "T5": ["T2"],
+    "T2": ["T1"],
+    "T3": ["T2"],
+    "T4": ["T3"],
+    "T5": ["T4"],
     "T6": ["T5"],
     "T7": ["T6"],
     "T8": ["T7"],
 }
 
 STEP_LABELS = {
-    "T0": "选题研究", "T1": "知识点大纲", "T3": "口播稿",
-    "TTS": "配音+字幕", "T2": "PPT分镜", "T5": "配图生成",
+    "T0": "选题研究", "T1": "知识点大纲", "T2": "口播稿",
+    "T3": "配音+字幕", "T4": "分镜设计", "T5": "配图生成",
     "T6": "Composition", "T7": "渲染+后期", "T8": "字幕（可选）",
 }
 
@@ -167,9 +167,9 @@ def _get_handler(step: str, episode_dir: str, design: dict | None):
     handlers = {
         "T0": lambda ed, d: TopicResearchHandler(ed, d, t0_topic),
         "T1": OutlineHandler,
-        "T3": ScriptHandler,
-        "TTS": TTSHandler,
-        "T2": StoryboardHandler,
+        "T2": ScriptHandler,
+        "T3": TTSHandler,
+        "T4": StoryboardHandler,
         "T5": ImageHandler,
         "T6": CompositionHandler,
         "T7": RenderHandler,
@@ -359,7 +359,7 @@ def cmd_create(args):
         return
     
     # Step 2: Run all steps automatically
-    steps_to_run = ["T0", "T1", "T3", "TTS", "T2", "T5", "T6", "T7"]
+    steps_to_run = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"]
     
     for step in steps_to_run:
         state = load_state(episode_dir)
@@ -387,9 +387,9 @@ def cmd_create(args):
         else:
             handlers_map = {
                 "T1": OutlineHandler,
-                "T3": ScriptHandler,
-                "TTS": TTSHandler,
-                "T2": StoryboardHandler,
+                "T2": ScriptHandler,
+                "T3": TTSHandler,
+                "T4": StoryboardHandler,
                 "T5": ImageHandler,
                 "T6": CompositionHandler,
                 "T7": RenderHandler,
