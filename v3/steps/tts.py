@@ -96,7 +96,7 @@ class TTSHandler(StepHandler):
             "python3", "-m", "edge_tts",
             "--voice", EDGE_TTS_VOICE,
             "--rate", EDGE_TTS_RATE,
-            "-f", script_path,
+            "-f", clean_path,
             "--write-media", audio_path,
         ], capture_output=True, timeout=600, check=True)
 
