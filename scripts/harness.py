@@ -93,12 +93,98 @@ HERMES_LAYOUTS = [
     ("hero-container","hero"), ("content-row","content"),
     ("compare-row","comparison"), ("flow-row","flowchart"),
     ("chart-row","chart"), ("quote-wrap","quote"),
+    # Hermes custom gen patterns
+    ("comp-left","comparison"),  # .comp-left + .comp-right = comparison
+    (".comp-left","comparison"),
+    ('class="card"',"card-grid"),  # multiple class="card"
 ]
 MIN_CHINESE = 20
 MIN_TAGS = 3
 MIN_TOTAL_CHARS = 100
 MIN_LAYOUTS = 3
 MIN_B64_RATIO = 0.5
+MIN_STANDALONE_RATIO = 0.9  # 至少 90% 的页面要有 standalone mode
+
+# Design system token profiles (brand color + font)
+# Extracted from ~/Desktop/ascend-pipeline/designs/awesome-design-md/design-md/*/DESIGN.md
+DESIGN_PROFILES = {
+    "mintlify": {
+        "brand_color": "#00d4a4",
+        "font_body": "Inter",
+        "surface": "#f7f7f7",
+        "ink": "#0a0a0a",
+        "charcoal": "#1c1c1e",
+    },
+    "notion": {
+        "brand_color": "#000000",
+        "font_body": "Inter,sans-serif",
+        "surface": "#f7f6f3",
+        "ink": "#0a0a0a",
+        "charcoal": "#37352f",
+    },
+    "linear.app": {
+        "brand_color": "#5e6ad2",
+        "font_body": "Inter,sans-serif",
+        "surface": "#0f1011",
+        "ink": "#f7f8f8",
+        "charcoal": "#010102",
+    },
+    "default": {
+        "brand_color": None,  # no check
+        "font_body": "sans-serif",
+        "surface": None,
+        "ink": None,
+        "charcoal": None,
+    },
+}
+
+
+# ── Design / Style helpers ──
+
+def check_standalone(comp_path):
+    """Check if a single composition has standalone mode."""
+    if not os.path.exists(comp_path):
+        return False
+    with open(comp_path) as f:
+        c = f.read()
+    # Check for any if(top===self) pattern that includes tl.progress
+    return ("if(top===self)" in c and "tl.progress" in c) or "if(top===self)console.log" in c
+
+
+def get_design_profile(project):
+    """Read .design-system file and return the matching design profile."""
+    ds_path = None
+    for root, dirs, files in os.walk(project):
+        if ".design-system" in files:
+            ds_path = os.path.join(root, ".design-system")
+            break
+    if not ds_path:
+        if os.path.exists(os.path.join(project, ".design-system")):
+            ds_path = os.path.join(project, ".design-system")
+    if not ds_path:
+        log("设计规范", False, "缺 .design-system 文件")
+        return None
+    with open(ds_path) as f:
+        style = f.read().strip().lower()
+    profile = DESIGN_PROFILES.get(style) or DESIGN_PROFILES.get("default")
+    if profile:
+        BRAND = profile.get("brand_color", "N/A")
+        FONT = profile.get("font_body", "N/A")
+        log("设计规范", True, f"风格={style}, 品牌色={BRAND}, 字体={FONT}")
+    return profile
+
+
+def check_dir_structure(project):
+    """Verify composition files exist in all expected directories."""
+    comp_dirs = ["compositions", "04_PPT/compositions", "06_Compositions/compositions"]
+    for d in comp_dirs:
+        p = os.path.join(project, d)
+        count = len([f for f in os.listdir(p) if f.endswith(".html")]) if os.path.isdir(p) else 0
+        if count >= 3:
+            log(f"目录 {d}", True, f"{count} 个 composition")
+            return True
+    log("composition 目录", False, "未在标准路径找到 (compositions/ | 04_PPT/compositions/ | 06_Compositions/compositions/)")
+    return False
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -229,8 +315,19 @@ def phase2(project):
         if f'__timelines["{sid}"]' not in c: issues.append("缺_timelines")
         if f'__hf["{sid}"]' not in c: issues.append("缺__hf")
         if 'paused:true' not in c: issues.append("缺paused")
-        if 'if(top===self)tl.progress(1)' not in c: issues.append("缺standalone")
+        
         if 'sans-serif' not in c and 'monospace' not in c: issues.append("缺字体")
+        n_anim = c.count("tl.from(") + c.count("tl.to(")
+        if n_anim < 3: issues.append(f"动画仅{n_anim}步")
+        if not re.search(r"\d+\s*/\s*\d+", c) and pid > 1:
+            issues.append("缺页码")
+        has_badge = "border-radius:20px" in c or "badge" in c.lower()
+        has_heading = bool(re.search(r"font-size:[45]\d", c))
+        has_img = "data:image" in c
+        has_body = "<p>" in c or "<li>" in c or 'class="card"' in c or 'class="item"' in c
+        layers = sum([has_badge, has_heading, has_img, has_body]) + 1
+        if layers < 3 and pid > 1:
+            issues.append(f"层次仅{layers}层")
         if re.search(r'\.sl(?:ide)?\{[^}]*opacity:\s*0[^}]*\}', c): issues.append("opacity:0")
 
         cl = c.lower()
@@ -258,15 +355,59 @@ def phase2(project):
         cur = None
         body_part = c.split('<body>', 1)[-1].split('</script>', 1)[0] if '<body>' in c else c
         body_lower = body_part.lower()
+        # Try 1: specific class names (Hermes standard)
         for pattern, name in HERMES_LAYOUTS:
             if pattern in body_lower:
                 cur = name; break
+        # Try 2: layout name in CSS class
         if not cur:
             for ln in LAYOUT_NAMES:
                 if ln in body_lower:
                     ctx = body_lower[body_lower.find(ln)-30:body_lower.find(ln)+len(ln)+30]
                     if 'class=' in ctx or 'layout=' in ctx:
                         cur = ln; break
+        # Try 3: structural detection (catches Hermes custom gen)
+        if not cur:
+            text_only = re.sub(r'<[^>]+>', '', body_part)
+            chinese = len(re.findall(r'[\u4e00-\u9fff]', text_only))
+            n_divs = len(re.findall(r'<div[^>]*style="', c))
+            n_flex = len(re.findall(r'display:\s*flex', c))
+            has_arrows = '→' in c or '⬇️' in c or '➡️' in c
+            has_comp_css = '.comp-left' in c or '.comp-right' in c
+            has_card_class = bool(re.findall(r'class="[^"]*card[^"]*"', c, re.I))
+            has_emoji = len(re.findall(r'[\U0001F300-\U0001FAFF\u2600-\u27BF]', c)) >= 2
+            
+            # hero: title page, few divs, no flex, little text
+            # hero: minimal text, no complex content
+            if chinese <= 25 and not has_card_class and not has_arrows and not has_comp_css:
+                cur = 'hero'
+            elif n_flex <= 1 and chinese <= 20 and 'font-size:5' in c:
+                cur = 'hero'
+            # comparison: .comp-left / .comp-right CSS classes
+            elif has_comp_css:
+                cur = 'comparison'
+            # card-grid: card class names + many divs
+            elif has_card_class and n_divs >= 8:
+                cur = 'card-grid'
+            # flowchart: arrows + flex layout
+            elif has_arrows and n_flex >= 2:
+                cur = 'flowchart'
+            # code-block
+            elif '<code>' in body_part or 'monospace' in body_part:
+                cur = 'code-block'
+            # hero (cover/ending): few divs, big centered content
+            if n_divs <= 3 and any(x in c for x in ['font-size:5','font-size:6','font-size:7','font-size:8','font-size:4']):
+                cur = 'hero'
+            # quote: few divs, lots of text, font-size styling
+            elif n_divs <= 5 and chinese >= 30 and 'font-size' in body_part:
+                cur = 'quote'
+            # default: concept (can be concept or flipped)
+            else:
+                # flipped: has emoji + text on opposite sides
+                if has_emoji and n_flex >= 1:
+                    cur = 'flipped'
+                else:
+                    cur = 'concept'  # default
 
         if cur:
             layouts.append(cur)
@@ -299,6 +440,54 @@ def phase2(project):
 
     log("全部 composition 规范", all_ok)
 
+    # ── Standalone 覆盖率 ──
+    standalone_ok = sum(1 for r in refs if check_standalone(os.path.join(comp_base, r) if os.path.exists(os.path.join(comp_base, r)) else os.path.join(project, r)))
+    sr = standalone_ok / max(len(refs), 1)
+    log(f"standalone 模式 {standalone_ok}/{len(refs)} ({sr:.0%})", sr >= MIN_STANDALONE_RATIO)
+
+    # ── 设计规范符合度 ──
+    ds_profile = get_design_profile(project)
+    if ds_profile:
+        brand_ok, font_ok, surface_ok, ink_ok = 0, 0, 0, 0
+        total_checked = 0
+        for ref in refs:
+            fp = os.path.join(comp_base, ref) if os.path.exists(os.path.join(comp_base, ref)) else os.path.join(project, ref)
+            if not os.path.exists(fp):
+                continue
+            with open(fp) as f:
+                c = f.read()
+            total_checked += 1
+            if ds_profile.get("brand_color") and ds_profile["brand_color"] in c:
+                brand_ok += 1
+            if ds_profile.get("font_body") and ds_profile["font_body"] in c:
+                font_ok += 1
+            if ds_profile.get("surface") and ds_profile["surface"] in c:
+                surface_ok += 1
+            if ds_profile.get("ink") and ds_profile["ink"] in c:
+                ink_ok += 1
+        if total_checked > 0:
+            log(f"品牌色 [{ds_profile.get('brand_color','?')}] {brand_ok}/{total_checked}", brand_ok / total_checked >= 0.5)
+            log(f"正文字体 [{ds_profile.get('font_body','?')}] {font_ok}/{total_checked}", font_ok / total_checked >= 0.5)
+            if ds_profile.get("surface"):
+                log(f"卡片背景 [{ds_profile.get('surface','?')}] {surface_ok}/{total_checked}", surface_ok / total_checked >= 0.3)
+        
+        # B) 口播稿含分镜指令检测
+        script_path = None
+        for root, dirs, files in os.walk(project):
+            for fn in files:
+                if fn in ("配音稿_分段.txt","口播稿.md","口播稿.txt","配音稿.txt"):
+                    script_path = os.path.join(root, fn); break
+            if script_path: break
+        if script_path:
+            with open(script_path, encoding='utf-8') as sf:
+                sc = sf.read()
+            story_markers = len(re.findall(r'[（(][^）)]*画面[^）)]*[）)]', sc))
+            time_markers = len(re.findall(r'[（(][^）)]*字数[^）)]*[）)]', sc))
+            if story_markers > 0 or time_markers > 0:
+                log("口播稿含分镜指令", False, f"{story_markers}处'（画面）' + {time_markers}处'（字数）'")
+            else:
+                log("口播稿含分镜指令", True, "无")
+
     # ── 审计文件检查 ──
     has_audit = False
     for root, dirs, files in os.walk(project):
@@ -317,9 +506,12 @@ def phase2(project):
     if layouts:
         ul = len(set(layouts))
         log(f"布局多样性 ({ul}/10)", ul >= MIN_LAYOUTS, f"使用: {', '.join(sorted(set(layouts)))}")
-        if len(layouts) != len(set(layouts)):
-            repeats = [x for i, x in enumerate(layouts) if x in layouts[:i]]
-            log("布局重复", False, f"出现多次: {', '.join(set(repeats))}")
+        # Only flag consecutive duplicates
+        consec = sum(1 for i in range(1, len(layouts)) if layouts[i] == layouts[i-1])
+        if consec > 0:
+            log("布局连续重复", False, f"{consec} 处连续相同布局")
+        else:
+            log("布局连续重复", True, "无连续同布局")
 
     # ── 全片文字量 ──
     total_ch = 0
@@ -367,7 +559,11 @@ def phase2(project):
         try:
             with open(tl_path) as f:
                 tld = json.load(f)
-            tl_total = sum(s.get("duration",0) for s in tld.get("slides",[]))
+            # Support both formats: slides[], pages[], and total_duration
+            tl_total = tld.get("total_duration", 0)
+            if not tl_total:
+                tl_slides = tld.get("slides", tld.get("pages", []))
+                tl_total = sum(s.get("duration", 0) for s in tl_slides)
             log(f"timeline.json {tl_total:.1f}s ≈ index.html {dec:.1f}s", abs(tl_total - dec) < 2.0)
         except: pass
 

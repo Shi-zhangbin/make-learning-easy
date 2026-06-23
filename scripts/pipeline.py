@@ -209,7 +209,8 @@ def cmd_status(args):
     print(f"   \U0001f4cc 当前: {LABELS.get(cur,cur)}")
     stalled = check_stalled(state)
     if stalled:
-        print(f"   \u26a0\ufe0f  停滞步骤: {', '.join(f'{s}({m}\u5206\u949f\u65e0\u54cd\u5e94)' for s,m in stalled)}")
+        stalled_str = ', '.join(f'{s}({m}分钟无响应)' for s,m in stalled)
+        print(f"   \u26a0\ufe0f  停滞步骤: {stalled_str}")
         print(f"      (建议: repair --episode \"{os.path.basename(ed)}\")")
     print()
     for s in PIPELINE:
@@ -250,25 +251,45 @@ def cmd_step(args):
     else:
         guides = {
             "T0": ["delegate_task \u7ed9 xuan-ti-yan-jiu-yuan (deepseek-v4-pro)", "\u4ea7\u51fa: \u9009\u9898\u7814\u7a76.md"],
-            "T1": ["delegate_task \u7ed9 yanjiuyuan (deepseek-v4-pro)", "\u4ea7\u51fa: \u77e5\u8bc6\u70b9\u5927\u7eb2.md"],
-            "T3": ["delegate_task \u7ed9 bianju (MiniMax-M2.7)", "\u4ea7\u51fa: \u914d\u97f3\u7a3f.txt"],
+            "T1": ["delegate_task \u7ed9 yanjiuyuan (deepseek-v4-pro)", "\u4ea7\u51fa: \u77e5\u8bc6\u70b9\u5927\u7eb2.md",
+                   "\u7136\u540e delegate_task \u7ed9 shenheyuan: \u5ba1\u8ba1\u5927\u7eb2\u51c6\u786e\u6027\uff0c\u53c2\u8003 shenheyuan_audit.md \u00a71"],
+            "T3": ["delegate_task \u7ed9 bianju (MiniMax-M2.7)", "\u4ea7\u51fa: \u914d\u97f3\u7a3f.txt",
+                   "\u7136\u540e delegate_task \u7ed9 shenheyuan: \u5ba1\u53e3\u64ad\u7a3f\u51c6\u786e\u6027\uff0c\u53c2\u8003 shenheyuan_audit.md \u00a72"],
             "T2": ["delegate_task \u7ed9 meishu (MiniMax-M2.7)",
                    f"DESIGN.md: {BASE}/designs/awesome-design-md/design-md/{state.get('design_style','mintlify')}/DESIGN.md",
-                   "\u26a0\ufe0f image_slots.json \u5fc5\u987b\u542b filename \u5b57\u6bb5"],
+                   "\u26a0\ufe0f image_slots.json \u5fc5\u987b\u542b filename \u5b57\u6bb5",
+                   "\u7136\u540e delegate_task \u7ed9 shenheyuan: \u5ba1\u4fe1\u606f\u5bc6\u5ea6\u3001\u65e0\u8584\u9875\u9762\uff0c\u53c2\u8003 shenheyuan_audit.md \u00a73"],
 
             "T5": ["可跳过: python3 scripts/pipeline.py skip --episode \"<ep>\" --step T5",
                    "  API Key 已配: python3 scripts/pipeline.py step --episode \"<ep>\" --step T5 (自动生成)"],
-            "T6": ["delegate_task 给 editor (qwen3.6-plus)",
+            "T6": ["铁律: 使用 scripts/render_compositions.py，禁止手写 gen_compositions.py",
+                   "  python3 scripts/render_compositions.py \"<ep>\"",
+                   "  它会:",
+                   "    1. 读 timeline.json + image_slots.json + images/",
+                   "    2. 用 composition_helper.py 生成标准 composition",
+                   "    3. 自动注入 standalone + design tokens + base64 图片",
+                   "    4. 写 index.html",
+                   "    5. 验证品牌色和standalone",
+                   "  禁用: 手写 gen_compositions.py / 自己写 HTML / 不用 composition_helper",
+                   "  context: image_slots.json + images/ 目录 + timeline.json",
+                   "  from composition_helper import scene_wrapper, index_html, gsap_head",
+                   "  1) 从 PPT大纲 读取每页内容 + Block类型",
+                   "  2) 用 scene_wrapper(sid, layout, inner_html, duration) 生成每页",
+                   "  3) 用 index_html(pages, total_duration) 生成主文件",
+                   "  4) scene_wrapper 自动注入: GSAP + design tokens + standalone",
+                   "  5) 内容元素加 class='hf-animate-1/2/3/...' 自动渐入",
                    "铁律: 图片从 images/ 目录读取并 base64 嵌入",
                    "  image_slots.json 定义了 filename, T5 已生成到 images/",
                    "  如果 images/ 不存在或为空: T5 被跳过, 用纯文字占位",
-                   "  从 images/ 读取 base64:",
+                   "  从 images/ 读取:",
                    '  with open(f"images/{fn}", "rb") as f:',
                    "      b64 = base64.b64encode(f.read()).decode()",
                    '  img = f\'<img src="data:image/jpeg;base64,{b64}">\'',
-                   "⚠️ 优先 HyperFrames Block, 再 generate_composition.py 兜底",
+                   "布局多样性: 相邻页不能同布局, 至少用4种不同布局类型",
+                   "  支持: hero/concept/flipped/comparison/flowchart/card-grid/timeline/quote/code-block",
                    "   context: DESIGN.md + PPT大纲 + images/ + AGENTS.md",
-                   "✅ 完成后: python3 scripts/harness.py \"<ep>\" 2"],
+                   "✅ 完成后: python3 scripts/composition_helper.py --verify \"<ep>\"",
+                   "✅ 再跑: python3 scripts/harness.py \"<ep>\" 2"],
             "T7": ["✅ 自动: python3 scripts/pipeline.py verify --episode \"<ep>\"",
                    "  hyperframes render . --fps 15 -o final.mp4",
                    "  ffmpeg + audio merge (见 AGENTS.md §4)"],
@@ -287,7 +308,8 @@ def cmd_verify(args):
     if target and target in PIPELINE:
         print(f"\n\U0001f50d \u6821\u9a8c {LABELS.get(target, target)}")
         ok, results = verify_step(ed, target)
-        print(f"\n{'\u2705 \u5168\u90e8\u901a\u8fc7' if ok else '\u274c \u90e8\u5206\u672a\u901a\u8fc7'}")
+        ok_label = '\u2705 \u5168\u90e8\u901a\u8fc7' if ok else '\u274c \u90e8\u5206\u672a\u901a\u8fc7'
+        print(f"\n{ok_label}")
         return
     print(f"\n\U0001f50d \u5168\u6b65\u9aa4\u6821\u9a8c")
     all_good = True
@@ -296,9 +318,11 @@ def cmd_verify(args):
         if si.get("status") != "done":
             continue
         ok, _ = verify_step(ed, s, quiet=True)
-        print(f"  {LABELS.get(s,s)}: {'\u2705' if ok else '\u274c'}")
+        ok_icon = '✅' if ok else '❌'
+        print(f"  {LABELS.get(s,s)}: {ok_icon}")
         if not ok: all_good = False
-    print(f"\n{'\U0001f389 \u5168\u90e8\u5b8c\u6574' if all_good else '\u274c \u90e8\u5206\u7f3a\u5931'}")
+    final_label = '🎉 全部完整' if all_good else '❌ 部分缺失'
+    print(f"\n{final_label}")
 
 def cmd_heartbeat(args):
     ed = find_ep(args.episode)
@@ -350,6 +374,166 @@ def cmd_skip(args):
     mark(ed, step, "skipped", "\u624b\u52a8\u8df3\u8fc7")
     print(f"  \u2796 {step} \u2192 skipped")
 
+def cmd_auto(args):
+    """Auto-detect completed steps from file output (safe, no reset)."""
+    ed = find_ep(args.episode)
+    if not ed:
+        print(f"\u274c \u4e0d\u5b58\u5728: {args.episode}")
+        return
+    state = load(ed)
+    cur_step = state.get("current_step", "created")
+    print(f"  \u5f53\u524d\u6b65\u9aa4: {cur_step}")
+    
+    # 只校验当前步骤和已完成步骤的产物
+    all_checks = {
+        "T0": lambda: os.path.exists(os.path.join(ed, "\u9009\u9898\u7814\u7a76.md")),
+        "T1": lambda: os.path.exists(os.path.join(ed, "\u77e5\u8bc6\u70b9\u5927\u7eb2.md")),
+        "T3": lambda: os.path.exists(os.path.join(ed, "\u53e3\u64ad\u7a3f.md")) or os.path.exists(os.path.join(ed, "\u53e3\u64ad\u7a3f.txt")),
+        "TTS": lambda: bool(glob.glob(os.path.join(ed, "audio", "*.mp3"))),
+        "T2": lambda: os.path.exists(os.path.join(ed, "timeline.json")),
+        "T6": lambda: len(glob.glob(os.path.join(ed, "**", "compositions", "*.html"), recursive=True)) >= 3,
+        "T7": lambda: len(glob.glob(os.path.join(ed, "**", "*.mp4"))) >= 1,
+    }
+    changed = 0
+    for step in PIPELINE:
+        if step in ("created", "delivered"):
+            continue
+        si = state.get("steps", {}).get(step, {})
+        if si.get("status") in ("done", "skipped"):
+            continue
+        check_fn = all_checks.get(step)
+        if check_fn and check_fn():
+            mark(ed, step, "done", "(auto)")
+            print(f"  \u2705 {step} \u2192 done")
+            changed += 1
+    st = load(ed)
+    if changed:
+        nxt = st.get('current_step', '?')
+        print(f"  \u2714 \u8bc6\u522b {changed} \u4e2a\u5b8c\u6210\u6b65\u9aa4")
+        print(f"  \u2192 \u4e0b\u4e00\u6b65: {nxt}")
+        # Print what to do for the next step
+        nxt_labels = {
+            "T1": "\u59d4\u6258 yanjiuyuan \u5199 \u77e5\u8bc6\u70b9\u5927\u7eb2.md",
+            "T3": "\u59d4\u6258 bianju \u5199 \u53e3\u64ad\u7a3f.md",
+            "TTS": "\u7528 edge-tts \u751f\u6210 mp3",
+            "T2": "\u59d4\u6258 meishu \u505a PPT\u5927\u7eb2 + timeline + image_slots",
+            "T5": "python3 scripts/pipeline.py step --episode \"<ep>\" --step T5 (\u81ea\u52a8\u751f\u56fe)",
+            "T6": "\u4f7f\u7528 composition_helper.py \u751f\u6210 composition",
+            "T7": "\u6e32\u67d3 + harness \u9a8c\u8bc1",
+        }
+        tip = nxt_labels.get(nxt, "")
+        if tip:
+            print(f"     \u2192 {tip}")
+    else:
+        print(f"  \u2139 \u65e0\u65b0\u4ea7\u7269, \u5f53\u524d\u6b65\u9aa4: {cur_step}")
+
+
+def cmd_enforce(args):
+    """Enforce pipeline standards on a project: fix design tokens, standalone, layouts."""
+    ed = find_ep(args.episode)
+    if not ed:
+        print(f"项目不存在: {args.episode}")
+        return
+    
+    print("=== Enforcing pipeline standards ===")
+    
+    # Find compositions directory
+    comp_dir = None
+    for d in [os.path.join(ed, "compositions"), 
+              os.path.join(ed, "06_Compositions", "compositions"),
+              os.path.join(ed, "04_PPT", "compositions")]:
+        if os.path.isdir(d):
+            comp_dir = d
+            break
+    
+    if not comp_dir:
+        print("X No compositions directory found")
+        return
+    
+        # 1. Fix standalone mode
+    fixed_standalone = 0
+    import re
+    for fname in sorted(os.listdir(comp_dir)):
+        if not fname.endswith(".html"):
+            continue
+        fp = os.path.join(comp_dir, fname)
+        with open(fp, "r", encoding="utf-8") as f:
+            c = f.read()
+        if "if(top===self)tl.progress(1)" in c or "if(top===self)console.log" in c:
+            continue
+        # Inject standalone after __hf definition
+        hf_match = re.search(r'__hf\[("[^"]+")\]\s*=\s*\{[^}]+\};', c)
+        if hf_match:
+            sid = hf_match.group(1)
+            inj = '\nif(top===self){var tl=window.__timelines&&window.__timelines[' + sid + '];if(tl)tl.progress(1);}'
+            c = c[:hf_match.end()] + inj + c[hf_match.end():]
+            with open(fp, "w", encoding="utf-8") as f:
+                f.write(c)
+            fixed_standalone += 1
+    # Also fix the index.html main timeline standalone
+    for idx_candidate in [os.path.join(ed, "index.html"),
+                          os.path.join(ed, "04_PPT", "index.html"),
+                          os.path.join(ed, "06_Compositions", "index.html")]:
+        if os.path.exists(idx_candidate):
+            with open(idx_candidate, "r", encoding="utf-8") as f:
+                c = f.read()
+            if "if(top===self)tl.progress(1)" not in c:
+                c = c.replace("</script>", '\nif(top===self){var tl=window.__timelines&&window.__timelines["main"];if(tl)tl.progress(1);}\n</script>', 1)
+                with open(idx_candidate, "w", encoding="utf-8") as f:
+                    f.write(c)
+    print(f"  Standalone: {fixed_standalone}/{len([f for f in os.listdir(comp_dir) if f.endswith('.html')])} fixed")
+    
+    # 2. Fix brand color: #00BFA5 → #00d4a4
+    comp_files = [f for f in os.listdir(comp_dir) if f.endswith(".html")]
+    fixed_color = 0
+    for fname in comp_files:
+        fp = os.path.join(comp_dir, fname)
+        with open(fp, 'r', encoding='utf-8') as f:
+            c = f.read()
+        if '#00BFA5' not in c:
+            continue
+        c = c.replace('#00BFA5', '#00d4a4')
+        # Also fix -deep and -soft variants
+        c = c.replace('#009688', '#00b48a')
+        c = c.replace('#b2dfdb', '#7cebcb')
+        with open(fp, 'w', encoding='utf-8') as f:
+            f.write(c)
+        fixed_color += 1
+    print(f"  Brand color: {fixed_color}/{len(comp_files)} fixed (#00BFA5→#00d4a4)")
+    
+    # 3. Fix font: sans-serif → Inter
+    fixed_font = 0
+    for fname in comp_files:
+        fp = os.path.join(comp_dir, fname)
+        with open(fp, 'r', encoding='utf-8') as f:
+            c = f.read()
+        if 'font-family:sans-serif' not in c and 'font-family: sans-serif' not in c:
+            continue
+        c = c.replace('font-family:sans-serif', 'font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif')
+        c = c.replace('font-family: sans-serif', 'font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif')
+        with open(fp, 'w', encoding='utf-8') as f:
+            f.write(c)
+        fixed_font += 1
+    print(f"  Font: {fixed_font}/{len(comp_files)} fixed (sans-serif→Inter)")
+    
+    # 4. Inject Google Fonts import into index.html
+    for idx_candidate in [os.path.join(ed, "index.html"), 
+                          os.path.join(ed, "04_PPT", "index.html"),
+                          os.path.join(ed, "06_Compositions", "index.html")]:
+        if os.path.exists(idx_candidate):
+            with open(idx_candidate, 'r', encoding='utf-8') as f:
+                c = f.read()
+            if 'fonts.googleapis.com' not in c:
+                c = c.replace('<style>', 
+                    '<style>\n@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");\n')
+                with open(idx_candidate, 'w', encoding='utf-8') as f:
+                    f.write(c)
+                print(f"  Index: Inter font import added to {os.path.basename(idx_candidate)}")
+    
+    print("\n=== Enforce complete ===")
+    print(f"  Run 'python3 scripts/harness.py \"{os.path.basename(ed)}\" 2' to verify")
+
+
 def run_tts(ed, state):
     for name in ["\u914d\u97f3\u7a3f_\u5206\u6bb5.txt","\u914d\u97f3\u7a3f.txt","narration.txt","02_\u53e3\u64ad\u7a3f/\u53e3\u64ad\u7a3f.txt"]:
         p = os.path.join(ed, name)
@@ -378,7 +562,7 @@ def run_t5(ed, state):
         mark(ed, "T5", "failed", "dry-run\u5931\u8d25")
         return
     # API Key check
-    api_key = os.environ.get("OPENAI_API_KEY", "")
+    api_key = os.environ.get("WUYINKEJI_KEY", os.environ.get("OPENAI_API_KEY", ""))
     if not api_key:
         print("\n\u26a0\ufe0f  OPENAI_API_KEY \u672a\u8bbe\u7f6e")
         print("   A) export OPENAI_API_KEY=sk-xxx \u540e\u91cd\u8bd5")
@@ -416,10 +600,12 @@ def main():
     sp.add_argument("--step", choices=[x for x in PIPELINE if x not in ("created","delivered")])
 
     sp = s.add_parser("heartbeat"); sp.add_argument("--episode", required=True)
+    sp = s.add_parser("auto"); sp.add_argument("--episode", required=True)
+    sp = s.add_parser("enforce"); sp.add_argument("--episode", required=True)
 
     args = p.parse_args()
     dispatch = {"start":cmd_start,"step":cmd_step,"status":cmd_status,
-                "repair":cmd_repair,"skip":cmd_skip,"verify":cmd_verify,"heartbeat":cmd_heartbeat}
+                "repair":cmd_repair,"skip":cmd_skip,"verify":cmd_verify,"heartbeat":cmd_heartbeat,"auto":cmd_auto,"enforce":cmd_enforce}
     dispatch[args.cmd](args)
 
 if __name__ == "__main__":

@@ -1,0 +1,85 @@
+{% extends "base.html.j2" %}
+{% block content %}
+<div class="badge-section no-animate" style="margin-bottom:12px;">{{ page_spec.badge }}</div>
+<h1 class="page-title" style="font-size:38px;">{{ page_spec.emoji }} {{ page_spec.title }}</h1>
+{% if page_spec.subtitle %}
+<p class="page-subtitle" style="font-size:18px;max-width:100%;margin-top:4px;">{{ page_spec.subtitle }}</p>
+{% endif %}
+
+{% if page_spec.image_position == 'background' %}
+  {# ==== background: image covers whole page ==== #}
+  <div style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;overflow:hidden;">
+    <img src="{{ page_spec.image_slot }}" style="width:100%;height:100%;object-fit:cover;">
+    <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);"></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;position:relative;z-index:1;">
+    <div style="display:flex;flex-direction:column;gap:14px;">
+    {% for section in page_spec.sections %}
+      {% for card in section.cards %}
+      <div class="feature-card" style="padding:16px 20px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          {% if card.icon %}<span class="card-icon" style="font-size:24px;flex-shrink:0;">{{ card.icon }}</span>{% endif %}
+          <div>
+            {% if card.title %}<h3 style="font-size:17px;margin-bottom:2px;">{{ card.title }}</h3>{% endif %}
+            <p style="font-size:15px;color:var(--teach-body);line-height:1.5;">{{ card.body }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% endfor %}
+    </div>
+  </div>
+
+{% elif page_spec.image_position == 'right' or page_spec.image_position == 'left' %}
+  {# ==== side: image on right or left ==== #}
+  <div style="flex:1;display:flex;flex-direction:row;gap:18px;margin-top:6px;min-height:0;">
+    <div style="flex:1.2;display:flex;flex-direction:column;justify-content:center;gap:14px;{% if page_spec.image_position == 'left' %}order:1{% endif %}">
+      <div style="display:flex;flex-direction:column;gap:14px;">
+      {% for section in page_spec.sections %}
+        {% for card in section.cards %}
+        <div class="feature-card" style="padding:16px 20px;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            {% if card.icon %}<span class="card-icon" style="font-size:24px;flex-shrink:0;">{{ card.icon }}</span>{% endif %}
+            <div>
+              {% if card.title %}<h3 style="font-size:17px;margin-bottom:2px;">{{ card.title }}</h3>{% endif %}
+              <p style="font-size:15px;color:var(--teach-body);line-height:1.5;">{{ card.body }}</p>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% endfor %}
+      </div>
+    </div>
+    {% if page_spec.image_slot %}
+    <div class="image-rail no-animate" style="flex:0.8;height:100%;{% if page_spec.image_position == 'left' %}order:0{% endif %}">
+      <img src="{{ page_spec.image_slot }}" style="width:100%;height:100%;object-fit:contain;">
+    </div>
+    {% endif %}
+  </div>
+
+{% else %}
+  {# ==== bottom: image at bottom, fills remaining ==== #}
+  <div style="flex:1;display:flex;flex-direction:column;gap:14px;margin-top:6px;min-height:0;">
+    <div style="display:flex;flex-direction:row;gap:14px;">
+    {% for section in page_spec.sections %}
+      {% for card in section.cards %}
+      <div class="feature-card" style="flex:1;padding:16px 20px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          {% if card.icon %}<span class="card-icon" style="font-size:24px;flex-shrink:0;">{{ card.icon }}</span>{% endif %}
+          <div>
+            {% if card.title %}<h3 style="font-size:17px;margin-bottom:2px;">{{ card.title }}</h3>{% endif %}
+            <p style="font-size:15px;color:var(--teach-body);line-height:1.5;">{{ card.body }}</p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% endfor %}
+    </div>
+    {% if page_spec.image_slot %}
+    <div class="image-rail no-animate" style="flex:1;min-height:120px;">
+      <img src="{{ page_spec.image_slot }}" style="width:100%;height:100%;object-fit:contain;">
+    </div>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

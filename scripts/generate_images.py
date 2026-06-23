@@ -41,11 +41,90 @@ def find_slots(project):
 def load_slots(slots_path):
     with open(slots_path) as f:
         data = json.load(f)
-    slot_list = data.get("slots", data) if isinstance(data, dict) else data
-    return slot_list if isinstance(slot_list, list) else []
+    # Handle multiple formats:
+    # 1. Direct list: [...]  
+    # 2. Dict with "slots": [...]
+    # 3. Dict with "data": [...]
+    slot_list = []
+    if isinstance(data, dict):
+        slot_list = data.get("slots", data.get("data", []))
+    elif isinstance(data, list):
+        slot_list = data
+    if not isinstance(slot_list, list):
+        slot_list = []
+    # Auto-detect AI slots: any slot with a "prompt" field is AI
+    for s in slot_list:
+        if isinstance(s, dict):
+            if "source" not in s and s.get("prompt"):
+                s["source"] = "ai"
+    return slot_list
 
 
-def openai_generate(prompt, filename, out_dir, size="1024x1024"):
+def wuyinkeji_generate(prompt, filename, out_dir):
+    """Generate image via wuyinkeji async API (status=2=done, param=id)."""
+    api_key = os.environ.get("WUYINKEJI_KEY", "")
+    if not api_key:
+        print(f"  WUYINKEJI_KEY not set, skip {filename}")
+        return False
+    if not HAS_REQUESTS:
+        print(f"  requests not installed, skip {filename}")
+        return False
+
+    import time
+    base = "https://api.wuyinkeji.com/api/async"
+
+    # Submit
+    try:
+        r = requests.post(f"{base}/image_gpt",
+            json={"prompt": prompt, "size": "1792x1024", "key": api_key}, timeout=15)
+        resp = r.json()
+        if resp.get("code") != 200:
+            print(f"  X {filename}: submit fail - {resp.get('msg','?')}")
+            return False
+        img_id = resp["data"]["id"]
+    except Exception as e:
+        print(f"  X {filename}: submit error - {e}")
+        return False
+
+    # Poll (param: id=, status: 2=done, -1=failed)
+    for attempt in range(60):
+        time.sleep(5)
+        try:
+            r = requests.get(f"{base}/detail",
+                params={"id": img_id, "key": api_key}, timeout=15)
+            resp = r.json()
+            if resp.get("code") != 200:
+                continue
+            status = resp.get("data", {}).get("status", 0)
+            if status == 2:
+                urls = resp.get("data", {}).get("result", [])
+                if urls:
+                    img_r = requests.get(urls[0], timeout=60)
+                    out_path = os.path.join(out_dir, filename)
+                    with open(out_path, "wb") as f:
+                        f.write(img_r.content)
+                    if HAS_PIL:
+                        from PIL import Image
+                        img = Image.open(out_path)
+                        if img.mode in ("RGBA", "P"): img = img.convert("RGB")
+                        w, h = img.size
+                        # Keep resolution for HD video (min 1920 width)
+                        if w > 3840:
+                            s = 3840 / w
+                            img = img.resize((int(w*s), int(h*s)), Image.LANCZOS)
+                        img.save(out_path, "JPEG", quality=95, optimize=True)
+                    print(f"  OK {filename} ({os.path.getsize(out_path)//1024}KB)")
+                    return True
+            elif status == -1:
+                print(f"  X {filename}: generate failed")
+                return False
+        except Exception as e:
+            if attempt < 3: continue
+            print(f"  X {filename}: poll error - {e}")
+            return False
+    print(f"  - {filename}: timeout")
+    return False
+def openai_generate(prompt, filename, out_dir, size="1792x1024"):
     """Generate a single image via OpenAI API."""
     api_key = os.environ.get("OPENAI_API_KEY", "")
     if not api_key:
@@ -91,10 +170,11 @@ def openai_generate(prompt, filename, out_dir, size="1024x1024"):
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
             w, h = img.size
-            if w > 1280 or h > 720:
-                r = min(1280 / w, 720 / h, 1.0)
+            # Keep resolution for HD video
+            if w > 3840:
+                r = 3840 / w
                 img = img.resize((int(w * r), int(h * r)), Image.LANCZOS)
-            img.save(out_path, "JPEG", quality=85, optimize=True)
+            img.save(out_path, "JPEG", quality=95, optimize=True)
 
         print(f"  ✅ 生成: {filename} ({os.path.getsize(out_path)//1024}KB)")
         return True
@@ -129,7 +209,7 @@ def generate_images(project, api="openai", dry_run=False):
 
     pending = []
     for slot in ai_slots:
-        fn = slot.get("filename", f"{slot['page']}_{slot.get('slot','main')}.jpg")
+        fn = slot.get("filename", f"p{slot.get('id',0):02d}_{slot.get('slot','main')}.jpg")
         if fn in existing_files:
             print(f"  ✅ 已有: {fn}  ({os.path.getsize(os.path.join(img_dir, fn))//1024}KB)")
         else:
@@ -160,9 +240,12 @@ def generate_images(project, api="openai", dry_run=False):
                 "640x360": "1024x576",
                 "320x180": "1024x576",
             }
-            api_size = size_map.get(size, "1024x1024")
+            api_size = size_map.get(size, "1792x1024")
 
-            ok = openai_generate(prompt, fn, img_dir, api_size)
+            if api == "wuyinkeji":
+                ok = wuyinkeji_generate(prompt, fn, img_dir)
+            else:
+                ok = openai_generate(prompt, fn, img_dir, api_size)
             if ok:
                 success += 1
 
@@ -187,7 +270,7 @@ def generate_images(project, api="openai", dry_run=False):
 def main():
     p = argparse.ArgumentParser(description="从 image_slots.json 生成配图")
     p.add_argument("project", help="项目目录路径或名称")
-    p.add_argument("--api", default="openai", choices=["openai"], help="图片生成 API")
+    p.add_argument("--api", default="wuyinkeji", choices=["openai", "wuyinkeji"], help="图片生成 API")
     p.add_argument("--dry-run", action="store_true", help="只列出，不生成")
 
     args = p.parse_args()

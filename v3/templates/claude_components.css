@@ -1,0 +1,353 @@
+/* ════════════════════════════════════════════════════════════════
+   Claude Design System — Component CSS
+   Based on awesome-design-md/design-md/claude/DESIGN.md
+   
+   Surface rhythm: cream → cream_soft → cream_card → dark → cream
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ── */
+:root {
+  /* Colors */
+  --claude-primary: #cc785c;
+  --claude-primary-active: #a9583e;
+  --claude-primary-disabled: #e6dfd8;
+  --claude-ink: #141413;
+  --claude-body: #3d3d3a;
+  --claude-body-strong: #252523;
+  --claude-muted: #6c6a64;
+  --claude-muted-soft: #8e8b82;
+  --claude-accent-teal: #5db8a6;
+  --claude-accent-amber: #e8a55a;
+  
+  /* Surfaces */
+  --claude-canvas: #faf9f5;
+  --claude-surface-soft: #f5f0e8;
+  --claude-surface-card: #efe9de;
+  --claude-surface-strong: #e8e0d2;
+  --claude-surface-dark: #181715;
+  --claude-surface-dark-elevated: #252320;
+  --claude-surface-dark-soft: #1f1e1b;
+  --claude-hairline: #e6dfd8;
+  --claude-hairline-soft: #ebe6df;
+  
+  /* Text on dark */
+  --claude-on-primary: #ffffff;
+  --claude-on-dark: #faf9f5;
+  --claude-on-dark-soft: #a09d96;
+  
+  /* Typography for Claude */
+  --claude-font-display: serif;
+  --claude-font-body: sans-serif;
+  --claude-font-code: monospace;
+  
+  /* Spacing */
+  --claude-section: 96px;
+  --claude-xl: 32px;
+  --claude-lg: 24px;
+  --claude-md: 16px;
+  --claude-sm: 12px;
+  --claude-xs: 8px;
+  
+  /* Rounded */
+  --claude-radius-lg: 12px;
+  --claude-radius-md: 8px;
+  --claude-radius-xl: 16px;
+  --claude-radius-pill: 9999px;
+}
+
+/* ── Surface Backgrounds ── */
+.surface-cream       { background: #faf9f5; }
+.surface-cream-soft  { background: #f5f0e8; }
+.surface-cream-card  { background: #efe9de; }
+.surface-dark        { background: #181715; }
+.surface-accent      { background: #cc785c; }
+.surface-dark-code   { background: #1a1a1a; }
+
+/* ── Typography ── */
+.page-title {
+  font-family: serif;
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  color: var(--claude-ink);
+  margin: 0 0 8px 0;
+}
+
+.page-subtitle {
+  font-family: sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--claude-muted);
+  margin: 0 0 20px 0;
+  max-width: 70%;
+}
+
+.section-heading {
+  font-family: sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--claude-body-strong);
+  margin: 0 0 10px 0;
+  letter-spacing: 0;
+}
+
+/* ── Badges ── */
+.badge-pill {
+  display: inline-block;
+  background: var(--claude-surface-card);
+  color: var(--claude-ink);
+  border-radius: var(--claude-radius-pill);
+  padding: 4px 16px;
+  font-family: sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.badge-accent {
+  background: var(--claude-primary);
+  color: var(--claude-on-primary);
+}
+
+.badge-dark {
+  background: var(--claude-surface-dark-elevated);
+  color: var(--claude-on-dark);
+}
+
+/* ── Feature Card ── */
+.feature-card {
+  background: var(--claude-surface-card);
+  border-radius: var(--claude-radius-lg);
+  padding: var(--claude-xl);
+  border: 1px solid var(--claude-hairline);
+}
+
+.feature-card .card-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.feature-card h3 {
+  font-family: sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--claude-ink);
+  margin: 0 0 4px 0;
+}
+
+.feature-card p {
+  font-family: sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--claude-body);
+  margin: 0;
+}
+
+/* ── Code Window (Deep Dark) ── */
+.code-window {
+  background: var(--claude-surface-dark);
+  border-radius: var(--claude-radius-lg);
+  overflow: hidden;
+}
+
+.code-window .window-header {
+  background: var(--claude-surface-dark-elevated);
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 6px;
+}
+
+.code-window .window-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.code-window .window-body {
+  padding: 16px 20px;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e0e0e0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+/* ── Comparison Table ── */
+.compare-col {
+  flex: 1;
+  padding: var(--claude-lg);
+}
+
+.compare-col h4 {
+  font-family: sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--claude-primary);
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--claude-primary);
+}
+
+.compare-col li {
+  font-family: sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--claude-body);
+  margin-bottom: 6px;
+  list-style: none;
+  padding-left: 20px;
+  position: relative;
+}
+
+.compare-col li::before {
+  content: "•";
+  position: absolute;
+  left: 4px;
+  color: var(--claude-primary);
+}
+
+/* ── Steps / Flowchart ── */
+.step-card {
+  background: var(--claude-surface-card);
+  border-radius: var(--claude-radius-lg);
+  padding: 20px;
+  text-align: center;
+  flex: 1;
+}
+
+.step-card .step-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.step-card .step-title {
+  font-family: sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--claude-ink);
+  margin-bottom: 4px;
+}
+
+.step-card .step-body {
+  font-family: sans-serif;
+  font-size: 14px;
+  color: var(--claude-body);
+  line-height: 1.4;
+}
+
+.step-arrow {
+  font-size: 28px;
+  color: var(--claude-primary);
+  flex-shrink: 0;
+  padding: 0 8px;
+  align-self: center;
+}
+
+/* ── Quote Card ── */
+.quote-card {
+  background: var(--claude-surface-dark);
+  border-radius: var(--claude-radius-lg);
+  padding: 48px 60px;
+  text-align: center;
+}
+
+.quote-card .quote-text {
+  font-family: serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.3;
+  color: var(--claude-on-dark);
+  margin-bottom: 16px;
+  letter-spacing: -0.3px;
+}
+
+.quote-card .quote-author {
+  font-family: sans-serif;
+  font-size: 16px;
+  color: var(--claude-on-dark-soft);
+}
+
+/* ── Side-by-side layout helpers ── */
+.flex-row { display: flex; flex-direction: row; gap: 24px; }
+.flex-col { display: flex; flex-direction: column; }
+.flex-1 { flex: 1; }
+.flex-14 { flex: 1.4; }
+.flex-08 { flex: 0.8; }
+.gap-sm { gap: 12px; }
+.gap-md { gap: 16px; }
+.gap-lg { gap: 24px; }
+
+/* ── Grid ── */
+.card-grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Page Elements ── */
+.page-number {
+  position: absolute;
+  bottom: 30px;
+  right: 40px;
+  font-family: sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0,0,0,0.12);
+}
+
+.page-number-dark {
+  color: var(--claude-on-dark-soft);
+}
+
+.progress-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--claude-hairline);
+}
+
+.progress-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--claude-primary);
+}
+
+/* ── Image Container ── */
+.image-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: var(--claude-radius-lg);
+}
+
+.image-rail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ── Section Divider ── */
+.divider-line {
+  height: 2px;
+  background: var(--claude-hairline);
+  margin: 20px 0;
+  width: 60px;
+}
+
+/* ── No-animate helper ── */
+.no-animate { opacity: 1 !important; }

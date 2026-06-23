@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>*{margin:0;padding:0}html,body{width:1920px;height:1080px;overflow:hidden;background:#000}</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="{{ total_duration }}" data-width="1920" data-height="1080">
+{% for p in pages %}<div data-composition-id="s{{ p.page }}" data-composition-src="compositions/scene_{{ p.page }}.html" data-start="{{ "%.2f"|format(p.start) }}" data-duration="{{ "%.2f"|format(p.duration) }}" data-width="1920" data-height="1080"></div>
+{% endfor %}</div>
+<script>
+window.__timelines=window.__timelines||{};window.__timelines["main"]=gsap.timeline({paused:true});
+window.__hf=window.__hf||{};window.__hf["main"]={duration:{{ total_duration }},seek:function(t){var tl=window.__timelines&&window.__timelines["main"];if(tl)tl.seek(t);}};
+</script></body></html>
+
