@@ -66,20 +66,22 @@ class TTSHandler(StepHandler):
         with open(script_path, encoding="utf-8") as f:
             raw_script = f.read()
         
-        # Strip page markers for TTS (--- P1 (10s) --- lines)
+        # First, parse page markers from raw script
         import re
+        page_pattern = re.compile(r"---\s*P(\d+).*?---\s*\n(.*?)(?=\n---\s*P|\Z)", re.DOTALL)
+        page_matches = list(page_pattern.finditer(raw_script))
+        
+        # Strip page markers for TTS
         clean_lines = []
         for line in raw_script.split("\n"):
-            # Skip marker lines like "--- P1 (10s) ---"
             if re.match(r'^---+\s*P\d+', line.strip()):
                 continue
-            # Skip pure marker lines
             if line.strip() == '---':
                 continue
             clean_lines.append(line)
         full_script = "\n".join(clean_lines)
         
-        # Also write a clean version for reference
+        # Write a clean version for reference
         clean_path = script_path.replace('.txt', '_纯文字.txt')
         with open(clean_path, 'w', encoding='utf-8') as f:
             f.write(full_script)
@@ -124,7 +126,6 @@ class TTSHandler(StepHandler):
         pages = []
         # Parse script for page markers (--- P1 ... --- patterns)
         page_pattern = re.compile(r"---\s*P(\d+).*?---\s*\n(.*?)(?=\n---\s*P|\Z)", re.DOTALL)
-        page_matches = list(page_pattern.finditer(full_script))
 
         if page_matches:
             total_chars = sum(len(m.group(2).strip()) for m in page_matches)
