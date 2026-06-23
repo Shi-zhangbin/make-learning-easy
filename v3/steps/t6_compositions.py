@@ -295,7 +295,7 @@ def _render(design, slides, audio_path=""):
     # Assemble
         audio_html = ""
     if audio_path and os.path.exists(audio_path):
-        audio_html = f"<audio id=\"narration\" data-start=\"0\" data-duration=\"{total_dur}\" data-track-index=\"0\" src=\"{audio_path}\" data-volume=\"1\"></audio>"
+        audio_html = f"<audio id=\"narration\" data-start=\"0\" data-duration=\"{total_dur}\" data-track-index=\"0\" src=\"audio/narration.mp3\" data-volume=\"1\"></audio>"
     gf_link = f'<link data-hf-fonts="true" href="{gf_url}" rel="stylesheet" />' if gf_url else ""
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">

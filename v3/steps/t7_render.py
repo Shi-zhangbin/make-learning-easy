@@ -25,11 +25,18 @@ class RenderHandler(StepHandler):
         # Step 1: HyperFrames render
         raw_video = str(video_dir / "raw.mp4")
         print(f"  Rendering with HyperFrames (fps={VIDEO_FPS})...")
-        r = subprocess.run([
-            "hyperframes", "render", ".",
-            "--fps", str(VIDEO_FPS),
-            "-o", raw_video,
-        ], cwd=str(episode_dir), capture_output=True, text=True, timeout=3600)
+        r = subprocess.run(
+            ["npx", "hyperframes", "render"],
+            cwd=str(episode_dir), capture_output=True, text=True, timeout=3600)
+        if r.returncode != 0:
+            return StepResult(False, errors=[f"HyperFrames render failed: {r.stderr[:500]}"])
+        # npx hyperframes render saves to renders/ dir, find the latest
+        import glob
+        renders = sorted(glob.glob(str(episode_dir / "renders" / "*.mp4")))
+        if not renders:
+            return StepResult(False, errors=["Render produced no MP4 output"])
+        latest = renders[-1]
+        subprocess.run(["cp", latest, raw_video], check=True)
 
         if r.returncode != 0:
             # Check for common errors
