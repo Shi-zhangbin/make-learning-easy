@@ -119,7 +119,24 @@ def run_step(episode_dir: str, step: str, design: dict | None = None):
     result = handler.run()
 
     if result:
-        # Success
+        # Run post-execution gate
+        from v3.gates.gate_master import run_gate
+        gate = run_gate(step, episode_dir)
+        
+        if not gate:
+            # Gate failed — don't mark done, print feedback
+            state["steps"][step] = {
+                "status": "failed",
+                "ts": datetime.now().isoformat(),
+                "detail": {"gate_failed": True, "issues": gate.issues, "feedback_target": gate.feedback_target},
+            }
+            state["current_step"] = step
+            save_state(episode_dir, state)
+            print(f"\n  ❌ {step} 门禁未通过")
+            print(f'\n  → 请修改后重试: bash go.sh run --episode \"{os.path.basename(episode_dir)}\" --step {step}')
+            return False
+        
+        # Success — gate passed
         state["steps"][step] = {
             "status": "done",
             "ts": datetime.now().isoformat(),
@@ -129,7 +146,7 @@ def run_step(episode_dir: str, step: str, design: dict | None = None):
         next_step = _next_pending(state)
         state["current_step"] = next_step if next_step else step
         save_state(episode_dir, state)
-        print(f"\n  ✅ {step} completed")
+        print(f"\n  ✅ {step} 通过门禁")
         if next_step:
             print(f"  → Next: {next_step} ({STEP_LABELS.get(next_step, '')})")
         return True
