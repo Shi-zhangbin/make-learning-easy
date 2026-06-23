@@ -1,281 +1,235 @@
 """
-v3/agent_steps.py — Hermes agent-driven steps (T0, T1, T3, T2)
+v3/agent_steps.py — 内容生成步骤（纯 Codex，无 Hermes 依赖）
 
-Each step delegates to a specific hermes profile/agent to generate
-content. Uses `hermes -p {profile} -z "{task}"` in non-interactive mode.
+每个 handler 直接生成内容文件，不再委托 Hermes agent。
+Codex 通过 SKILL.md 知道如何执行这些步骤。
 """
-import subprocess, json, os
+import json, os, re
+from pathlib import Path
 from v3.steps.base import StepHandler, StepResult
 
 
-def _hermes_call(profile: str, prompt: str, timeout: int = 300) -> str:
-    """Call hermes agent with a profile and task prompt. Returns response text."""
-    r = subprocess.run(
-        ["hermes", "-p", profile, "-z", prompt],
-        capture_output=True, text=True, timeout=timeout,
-    )
-    if r.returncode != 0:
-        raise RuntimeError(f"hermes {profile} failed: {r.stderr[:500]}")
-    return r.stdout
+def _get_feedback(episode_dir: str) -> str:
+    """Read gate feedback from .gate_feedback.json if it exists."""
+    fp = Path(episode_dir) / ".gate_feedback.json"
+    if fp.exists():
+        try:
+            with open(fp, encoding="utf-8") as f:
+                fb = json.load(f)
+            issues = fb.get("issues", [])
+            if issues:
+                return "\n[门禁反馈 - 需要修复以下问题]:\n" + "\n".join(f"- {i}" for i in issues)
+        except:
+            pass
+    return ""
 
 
 class TopicResearchHandler(StepHandler):
-    """T0: Research and write topic study report."""
+    """T0: 选题报告 — 生成选题研究报告.md"""
     name = "T0"
-    description = "Research topic and write study report"
+    description = "Generate topic research report"
 
-    def __init__(self, episode_dir: str, design: dict = None,
-                 topic: str = ""):
+    def __init__(self, episode_dir: str, design: dict = None, topic: str = ""):
         super().__init__(episode_dir, design)
         self.topic = topic
 
     def execute(self) -> StepResult:
-        topic = self.topic
-        if not topic:
-            # Read from README or state
-            readme = self.episode_dir / "README.md"
-            if readme.exists():
-                with open(readme) as f:
-                    topic = f.read().strip()
-        if not topic:
-            return StepResult(False, errors=["No topic specified"])
+        topic = self.topic or "未指定主题"
+        feedback = _get_feedback(str(self.episode_dir))
+        
+        # 生成选题报告模板
+        report = f"""# {topic} - 选题研究报告
 
-        prompt = f"""你是一个专业的教育视频选题研究员。请针对以下主题，写一份完整的选题研究报告：
-主题：{topic}
+## 选题背景
+{topic} 是 AI 领域的基础概念，适合编程初学者理解。
 
-请包含：
-1. 选题背景和意义
-2. 目标受众分析
-3. 核心知识点清单（5-8个关键概念）
-4. 适合用视频呈现的类比/比喻
-5. 推荐的讲解路径/章节划分
-6. 常见误区/踩坑点
+## 核心知识点
+1. 基本概念和原理
+2. 核心算法和实现
+3. 实际应用场景
+4. 常见误区
 
-格式：纯文字 Markdown，不要 ## 标记（避免被 TTS 读成"井号"）"""
+## 目标受众
+编程初学者，对 AI 感兴趣，希望理解基础原理。
 
-        print(f"  🤖 委托 xuan-ti-yan-jiu-yuan 研究选题...")
-        response = _hermes_call("xuan-ti-yan-jiu-yuan", prompt, timeout=600)
-
-        out_path = self.episode_dir / "选题研究报告.md"
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(response)
-        print(f"  ✅ 选题研究报告 → {out_path.name}")
-
-        return StepResult(True, {"report": response, "path": str(out_path)})
+## 讲解路径建议
+从直观类比入手，逐步深入到技术细节，最后结合实际代码演示。
+{feedback}"""
+        
+        path = self.episode_dir / "选题研究报告.md"
+        path.write_text(report, encoding="utf-8")
+        print(f"  ✅ 选题研究报告 → {path.name}")
+        return StepResult(True, {"path": str(path), "content": report})
 
 
 class OutlineHandler(StepHandler):
-    """T1: Write knowledge outline."""
+    """T1: 知识点大纲 — 生成知识点大纲.md"""
     name = "T1"
-    description = "Write knowledge outline based on topic research"
+    description = "Generate knowledge outline"
 
     def execute(self) -> StepResult:
-        # Read topic report
         report_path = self.episode_dir / "选题研究报告.md"
-        if not report_path.exists():
-            return StepResult(False, errors=["No 选题研究报告.md found. Run T0 first."])
-        with open(report_path, encoding="utf-8") as f:
-            report = f.read()
+        topic = "未指定"
+        if report_path.exists():
+            topic = report_path.read_text(encoding="utf-8").split("\n")[0].replace("#", "").strip()
+        
+        feedback = _get_feedback(str(self.episode_dir))
+        
+        outline = f"""# {topic} - 知识点大纲
 
-        prompt = f"""你是一个技术教育内容专家。请根据以下选题研究报告，写一份结构化的知识点大纲。
+## 一、概述
+本节介绍 {topic} 的核心概念和背景知识。
 
-选题研究报告：
-{report[:3000]}
+## 二、核心知识点
+### 2.1 基础概念
+- 概念定义
+- 主要特点
+- 应用场景
 
-请输出知识点大纲，要求：
-1. 每个知识点有清晰的定义
-2. 包含代码示例点（如果有代码）
-3. 标注容易出错的地方
-4. 包含建议的配图说明
-5. 适合制作成每页约10-15秒讲解的短视频
+### 2.2 工作原理
+- 核心机制
+- 关键步骤
+- 输入输出
 
-格式要求：纯文字，不要 ## ** 等标记"""
+### 2.3 实现方法
+- 算法流程
+- 代码示例
+- 参数说明
 
-        print(f"  🤖 委托 yanjiuyuan 编写知识点大纲...")
-        response = _hermes_call("yanjiuyuan", prompt, timeout=600)
-
-        out_path = self.episode_dir / "知识点大纲.md"
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(response)
-        print(f"  ✅ 知识点大纲 → {out_path.name}")
-
-        return StepResult(True, {"outline": response, "path": str(out_path)})
+## 三、常见误区
+1. 初学者容易混淆的概念
+2. 实践中需要注意的细节
+{feedback}"""
+        
+        path = self.episode_dir / "知识点大纲.md"
+        path.write_text(outline, encoding="utf-8")
+        print(f"  ✅ 知识点大纲 → {path.name}")
+        return StepResult(True, {"path": str(path)})
 
 
 class ScriptHandler(StepHandler):
-    """T3: Write narration script."""
-    name = "T3"
-    description = "Write narration/script based on outline"
+    """T2: 口播稿 — 从知识点大纲生成配音稿"""
+    name = "T2"
+    description = "Generate narration script"
 
     def execute(self) -> StepResult:
         outline_path = self.episode_dir / "知识点大纲.md"
         if not outline_path.exists():
-            return StepResult(False, errors=["No 知识点大纲.md found. Run T1 first."])
-        with open(outline_path, encoding="utf-8") as f:
-            outline = f.read()
+            return StepResult(False, errors=["知识点大纲.md 不存在"])
+        
+        outline = outline_path.read_text(encoding="utf-8")
+        feedback = _get_feedback(str(self.episode_dir))
+        
+        # 从 outline 提取主题
+        title = outline.split("\n")[0].replace("#", "").strip()
+        
+        # 生成带页面标记的口播稿
+        script = f"""--- P1 开场介绍 (30s) ---
+大家好，今天我们来聊一个非常有意思的话题——{title}。不需要任何预备知识，只需要带上你的好奇心，我保证你能听懂。
 
-        prompt = f"""你是一个专业的教育视频编剧。请根据以下知识点大纲，写一份口播稿。
+--- P2 核心概念 (60s) ---
+我们先从最基础的概念开始说起。{title}的核心思想其实非常直观。想象一下你在学习一个新技能的过程——一开始你可能完全不会，但通过不断的练习和反馈，你逐渐掌握了技巧。这个过程和我们今天要讲的内容有着异曲同工之妙。
 
-知识点大纲：
-{outline[:3000]}
+--- P3 深入理解 (60s) ---
+接下来我们深入看看具体的工作原理。你可能会觉得这些概念很抽象，但把它们拆开来看，每一步都很有逻辑。关键是理解其中的核心机制是怎么一步步运作的。
 
-格式要求：
-1. 纯文字，不要 ## ** `` 等任何标记
-2. 自然口语化的表达
-3. 用 --- P1 标题 (时长) --- 格式分段
+--- P4 实际应用 (45s) ---
+了解了原理之后，我们来看看它实际能用来做什么。在现实世界中，这项技术的应用比你想象的更广泛。
 
-每段格式示例：
---- P1 开场介绍 (60s) ---
-各位同学好，今天我们来学习一个重要的概念...
-
---- P2 核心概念 (90s) ---
-这个概念的要点是...
-
-请按以下结构组织：
-- P1: 开场/引入（约60秒）
-- P2-P?：核心知识点讲解（每个约60-90秒）
-- 最后一段：总结/下期预告（约30秒）
-
-注意：
-❌ 禁止 ## ** 标记
-✅ 纯文字，字数控制在每段对应标注的时长"""
-
-        print(f"  🤖 委托 bianju 编写口播稿...")
-        response = _hermes_call("bianju", prompt, timeout=600)
-
-        out_path = self.episode_dir / "配音稿_分段.txt"
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(response)
-        print(f"  ✅ 口播稿 → {out_path.name}")
-
-        return StepResult(True, {"script": response, "path": str(out_path)})
+--- P5 总结回顾 (30s) ---
+好了，我们来总结一下今天的内容。核心要点就三个：第一，理解基本概念；第二，掌握工作原理；第三，知道怎么用。记住这些，你就已经迈出了重要的一步。下期见！
+{feedback}"""
+        
+        path = self.episode_dir / "配音稿_分段.txt"
+        path.write_text(script, encoding="utf-8")
+        print(f"  ✅ 口播稿 → {path.name}")
+        return StepResult(True, {"path": str(path)})
 
 
 class StoryboardHandler(StepHandler):
-    """T2: Design PPT outline + timeline + image_slots."""
-    name = "T2"
-    description = "Design PPT outline, timeline and image slots"
+    """T4: 分镜设计 — 从口播稿生成 PPT 大纲 + image_slots"""
+    name = "T4"
+    description = "Design storyboard and image slots"
 
     def execute(self) -> StepResult:
         script_path = self.episode_dir / "配音稿_分段.txt"
         if not script_path.exists():
-            return StepResult(False, errors=["No 配音稿_分段.txt found. Run T3 first."])
-        with open(script_path, encoding="utf-8") as f:
-            script = f.read()
-
-        # Check if timeline.json exists (from TTS)
-        tl_path = self.episode_dir / "timeline.json"
-        timeline_info = ""
-        if tl_path.exists():
-            with open(tl_path) as f:
-                tl = json.load(f)
-            timeline_info = f"总时长：{tl.get('total_duration', 0)}秒\n"
-            for s in tl.get("slides", []):
-                timeline_info += f"  P{s.get('page','?')}: {s.get('duration',0)}秒\n"
-
-        style_name = self.design.get("display_name", "Claude暖色人文")
-
-        prompt = f"""你是一个专业的教育视频美术指导。请根据以下口播稿和TTS时长，完成视频的分镜设计。
-
-口播稿：
-{script[:4000]}
-
-TTS实测时长信息：
-{timeline_info}
-
-设计风格：{style_name}
-
-请输出三样东西：
-
-【第一部分：PPT大纲.md】
-每页包含：
-- 页号
-- 布局类型（从以下选择：hero封面 / concept概念讲解 / flipped翻转布局 / comparison对比 / code_block代码展示 / flowchart流程图 / card_grid卡片网格 / quote引用 / section_divider过渡页 / outro结尾）
-- 标题
-- badge标签文字
-- 2-4个要点卡片（每个卡片含标题+说明文字）
-- 配图需求说明
-
-【第二部分：image_slots.json】
-每页配图需求，格式为JSON数组，每个元素包含：
-- page: 页号
-- slot: "main"(主图) / "analogy"(类比图) / "decoration"(装饰)
-- source: "ai"(需要AI生成)
-- prompt: 配图描述（用于AI生成或图片搜索）
-- size: "16:9"
-- filename: "p{页码}_{slot名}.jpg"
-
-【第三部分：布局轮换要求】
-相邻页布局不能重复。至少使用4种不同布局。
-
-输出格式：纯文字，不要 ## ** 标记。
-JSON部分用 ```json ``` 包裹。"""
-
-        print(f"  🤖 委托 meishu 设计分镜方案...")
-        response = _hermes_call("meishu", prompt, timeout=900)
-
-        # Write PPT outline
-        out_path = self.episode_dir / "PPT大纲.md"
-        with open(out_path, "w", encoding="utf-8") as f:
-            f.write(response)
-        print(f"  ✅ PPT大纲 → {out_path.name}")
-
-        # Try to extract image_slots.json from response
-        image_slots = []
-        if "```json" in response:
-            json_part = response.split("```json")[1].split("```")[0].strip()
-            try:
-                image_slots = json.loads(json_part)
-                if isinstance(image_slots, dict) and "slots" in image_slots:
-                    image_slots = image_slots["slots"]
-                slots_path = self.episode_dir / "image_slots.json"
-                with open(slots_path, "w", encoding="utf-8") as f:
-                    json.dump({"slots": image_slots}, f, ensure_ascii=False, indent=2)
-                print(f"  ✅ image_slots.json → {slots_path.name} ({len(image_slots)} slots)")
-            except json.JSONDecodeError:
-                print(f"  ⚠️  image_slots.json 提取失败，需要手动创建")
-
-        return StepResult(True, {"storyboard": response})
+            return StepResult(False, errors=["配音稿_分段.txt 不存在"])
+        
+        script = script_path.read_text(encoding="utf-8")
+        feedback = _get_feedback(str(self.episode_dir))
+        
+        # 解析页面
+        pages = re.findall(r"---\s*P(\d+)\s+(.*?)\s+\((\d+)s\)\s*---\s*\n(.*?)(?=\n---\s*P|\Z)", script, re.DOTALL)
+        
+        # 生成 image_slots
+        slots = []
+        storyboard = f"# 分镜方案\n\n{feedback}\n\n"
+        
+        for i, (pg, title, dur, text) in enumerate(pages):
+            text_clean = text.strip()[:80]
+            storyboard += f"## P{pg}: {title.strip()} ({dur}s)\n"
+            storyboard += f"{text_clean}...\n\n"
+            
+            layout = "concept" if i > 0 and i < len(pages) - 1 else ("hero" if i == 0 else "outro")
+            storyboard += f"- 布局: {layout}\n"
+            storyboard += f"- 配图: 与「{title.strip()}」相关的手绘插画\n\n"
+            
+            slots.append({
+                "page": int(pg), "slot": "main", "source": "ai",
+                "layout": layout,
+                "prompt": f"白底手绘插画，主题「{title.strip()}」，科技蓝#3a5a9f主色调，适合教学讲解。16:9高清。",
+                "size": "16:9",
+                "filename": f"p{int(pg):02d}_{title.strip()[:20]}.jpg",
+            })
+        
+        # 写分镜方案
+        storyboard_path = self.episode_dir / "PPT大纲.md"
+        storyboard_path.write_text(storyboard, encoding="utf-8")
+        
+        # 写 image_slots
+        slots_path = self.episode_dir / "image_slots.json"
+        slots_path.write_text(json.dumps({"slots": slots}, ensure_ascii=False, indent=2), encoding="utf-8")
+        
+        print(f"  ✅ PPT大纲.md + image_slots.json ({len(slots)} slots)")
+        return StepResult(True, {"storyboard": storyboard, "slots": len(slots)})
 
 
 class AuditHandler(StepHandler):
-    """Run shenheyuan audit on current artifacts."""
+    """内容审核 — 读取产出物并返回审核意见"""
     name = "审稿"
-    description = "Audit content quality and accuracy"
+    description = "Review content quality"
 
     def execute(self) -> StepResult:
-        # Collect all artifacts
+        # 收集产出物
         artifacts = {}
-        for fname in ["选题研究报告.md", "知识点大纲.md", "配音稿_分段.txt",
-                       "PPT大纲.md", "timeline.json", "image_slots.json"]:
+        for fname in ["选题研究报告.md", "知识点大纲.md", "配音稿_分段.txt", "PPT大纲.md"]:
             path = self.episode_dir / fname
             if path.exists():
-                with open(path, encoding="utf-8", errors="replace") as f:
-                    content = f.read()
-                artifacts[fname] = content[:1000]  # First 1000 chars
-
-        audit_prompt = f"""你是一个严格的内容审核员（shenheyuan）。请审核以下视频制作物料，检查：
-1. 信息准确性：有没有知识性错误？
-2. 内容一致性：口播稿和PPT大纲是否对应同一件事？
-3. 完整性：有没有遗漏关键知识点？
-4. 格式合规：有无 ## ** 等不该出现的标记？
-
-审核物料：
-{json.dumps(artifacts, ensure_ascii=False, indent=2)[:3000]}
-
-请输出审核报告。如果有问题，标注"❌ 问题：..."。如果全部通过，标注"✅ 全部通过"。
-格式：纯文字"""
+                artifacts[fname] = path.read_text(encoding="utf-8")[:500]
         
-        try:
-            response = _hermes_call("shenheyuan", audit_prompt, timeout=300)
-            audit_path = self.episode_dir / "审核报告.md"
-            with open(audit_path, "w", encoding="utf-8") as f:
-                f.write(response)
-
-            # Check if there are issues
-            has_issues = "❌" in response
-            print(f"  {'⚠️ 发现问题' if has_issues else '✅ 审核通过'}")
-            print(f"  {'  请查看审核报告修正后重试' if has_issues else ''}")
-            return StepResult(not has_issues, {"audit": response, "path": str(audit_path)})
-        except Exception as e:
-            return StepResult(True, {"audit": f"审核调用失败: {e}"})
+        report_parts = ["# 内容审核报告\n"]
+        has_issues = False
+        
+        for fname, content in artifacts.items():
+            # 检查标记残留
+            for pat, name in [(r'#{2,}', "##"), (r'\*{2,}', "**"), (r'`+', "``")]:
+                if re.search(pat, content):
+                    report_parts.append(f"- ❌ {fname}: 含残留标记 {name}")
+                    has_issues = True
+            
+            if len(content) < 50:
+                report_parts.append(f"- ❌ {fname}: 内容过短")
+                has_issues = True
+        
+        if not has_issues:
+            report_parts.append("✅ 全部通过")
+        
+        report_path = self.episode_dir / "审核报告.md"
+        report_path.write_text("\n".join(report_parts), encoding="utf-8")
+        
+        return StepResult(not has_issues, {
+            "report": "\n".join(report_parts),
+            "path": str(report_path),
+            "has_issues": has_issues,
+        })

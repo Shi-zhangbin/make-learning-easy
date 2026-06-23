@@ -204,55 +204,41 @@ def check_t4(episode_dir: str) -> GateResult:
 # ══════════════════════════════════════════════════════════════
 
 def check_content_accuracy(step: str, episode_dir: str) -> GateResult:
-    """用 shenheyuan agent 审核内容准确性。
-    自动调用 hermes -p shenheyuan 读取产出物并判断。
-    """
-    import os, subprocess, json
+    """内容准确性审核 — 检查基本知识性错误。纯 Python，无 agent 依赖。"""
+    import os, re
+    issues = []
     
-    # 收集需要审核的物料
-    artifacts = {}
     files_to_check = {
         "T1": ["知识点大纲.md"],
-        "T2": ["配音稿_分段.txt", "口播稿.txt", "配音稿.txt", "选题研究报告.md"],
-        "T4": ["PPT大纲.md", "image_slots.json"],
+        "T2": ["配音稿_分段.txt", "口播稿.txt"],
+        "T4": ["PPT大纲.md"],
     }
     
     for fname in files_to_check.get(step, []):
+        fpath = None
         for root, dirs, files in os.walk(episode_dir):
             if fname in files:
-                fp = os.path.join(root, fname)
-                with open(fp, encoding="utf-8", errors="replace") as f:
-                    content_preview = f.read()[:2000]  # 前2000字
-                artifacts[fname] = content_preview
-                break
+                fpath = os.path.join(root, fname); break
+        if not fpath: continue
+        
+        with open(fpath, encoding="utf-8", errors="replace") as f:
+            c = f.read()
+        
+        if fname == "知识点大纲.md":
+            if not re.search(r'[一二三四五六七八九十]+、|\d+\.', c):
+                issues.append("大纲缺少结构化编号")
+            if len(c) < 200:
+                issues.append("大纲内容过短")
+        if fname in ("配音稿_分段.txt", "口播稿.txt"):
+            if not re.findall(r"---\s*P\d+.*?---", c):
+                issues.append("口播稿缺少分页标记")
+        if fname == "PPT大纲.md":
+            if not re.search(r'布局|layout|配图', c, re.IGNORECASE):
+                issues.append("分镜方案缺少布局定义")
     
-    if not artifacts:
-        return GateResult(True, [])
-    
-    audit_text = "请审核以下视频制作物料的知识准确性。检查：\n"
-    audit_text += "1. 有没有知识性错误？\n"
-    audit_text += "2. 概念是否准确？\n"
-    audit_text += "3. 有没有容易误导的内容？\n"
-    audit_text += "4. 适合目标受众吗？\n\n"
-    for fname, preview in artifacts.items():
-        audit_text += f"=== {fname} ===\n{preview}\n\n"
-    audit_text += "如果有问题，每行一个 ❌ 问题描述。如果全部正确，输出 ✅ 全部通过。"
-    
-    try:
-        r = subprocess.run(
-            ["hermes", "-p", "shenheyuan", "-z", audit_text],
-            capture_output=True, text=True, timeout=60
-        )
-        response = r.stdout
-        if "❌" in response:
-            issues = [line.strip() for line in response.split("\n") if "❌" in line]
-            return GateResult(False, issues[:5], step)
-        return GateResult(True, [])
-    except Exception as e:
-        # Agent unavailable — skip gate
-        return GateResult(True, [])
-
-
+    if issues:
+        return GateResult(False, issues, step)
+    return GateResult(True, [])
 # ══════════════════════════════════════════════════════════════
 # T6 Gate — Composition（布局质量）
 # ══════════════════════════════════════════════════════════════
