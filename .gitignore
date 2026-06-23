@@ -9,13 +9,12 @@ __pycache__/
 dist/
 build/
 
-# Episode video content (too large)
+# Episode video content
 episodes/
 成品/
 
 # OS
 .DS_Store
-Thumbs.db
 
 # Logs
 *.log
