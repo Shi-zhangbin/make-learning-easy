@@ -27,6 +27,10 @@ case "${1:-help}" in
     cd "$BASE" && PYTHONPATH="$BASE:$PYTHONPATH" python3 -m v3.engine create "$EP" --topic "$TOPIC" --style "$STYLE"
     ;;
     
+  skip|跳过)
+    shift
+    cd "$BASE" && PYTHONPATH="$BASE:$PYTHONPATH" python3 -m v3.engine skip "$@" ;;
+    
   status|进度)
     cd "$BASE" && PYTHONPATH="$BASE:$PYTHONPATH" python3 -m v3.engine status --episode "${2:-}" ;;
     

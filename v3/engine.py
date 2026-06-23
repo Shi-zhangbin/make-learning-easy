@@ -455,6 +455,30 @@ def cmd_create(args):
     print(f"  📁 {episode_dir}/成品/final.mp4")
     print(f"{'='*60}")
 
+def cmd_skip(args):
+    """Skip a pipeline step."""
+    episode_dir = get_episode_dir(args.episode)
+    state = load_state(episode_dir)
+    step = args.step
+    if step not in STEPS:
+        print(f"  ❌ 未知步骤: {step}")
+        return
+    si = state.get("steps", {}).get(step, {})
+    if si.get("status") in ("done", "skipped"):
+        print(f"  ⏭ {step} 已是 {si.get('status')} 状态")
+        return
+    state["steps"][step] = {"status": "skipped", "ts": __import__("datetime").datetime.now().isoformat()}
+    # Advance to next pending step
+    from v3.engine import _next_pending
+    nxt = _next_pending(state)
+    if nxt:
+        state["current_step"] = nxt
+    save_state(episode_dir, state)
+    print(f"  ⏭ {step}({STEP_LABELS.get(step, '')}) → 已跳过")
+    if nxt:
+        print(f"  → 下一步: {nxt}({STEP_LABELS.get(nxt, '')})")
+
+
 def cmd_designs(args):
     """List available design presets."""
     print("\n  Available design presets:")
@@ -483,6 +507,10 @@ def main():
     sp = s.add_parser("list")
     sp = s.add_parser("designs")
     
+    sp = s.add_parser("skip")
+    sp.add_argument("--episode", required=True)
+    sp.add_argument("--step", choices=STEPS, required=True)
+    
     sp = s.add_parser("create")
     sp.add_argument("name", help="Episode name (e.g. 第7期_主题)")
     sp.add_argument("--topic", required=True, help="Topic description")
@@ -498,6 +526,7 @@ def main():
         "list": cmd_list,
         "designs": cmd_designs,
         "create": cmd_create,
+        "skip": cmd_skip,
     }
     dispatch[args.cmd](args)
 
