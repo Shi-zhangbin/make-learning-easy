@@ -17,8 +17,8 @@ STEPS = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"]
 DEPS = {
     "T0": [],
     "T1": ["T0"],
-    "T2": ["T4"],
-    "T3": ["T1"],
+    "T2": ["T1"],
+    "T3": ["T2"],
     "T4": ["T3"],
     "T5": ["T4"],
     "T6": ["T5"],
@@ -27,8 +27,8 @@ DEPS = {
 }
 
 STEP_LABELS = {
-    "T0": "选题研究", "T1": "知识点大纲", "T2": "分镜设计",
-    "T3": "口播稿", "T4": "配音+字幕", "T5": "配图生成",
+    "T0": "选题研究", "T1": "知识点大纲", "T2": "口播稿",
+    "T3": "配音+字幕", "T4": "分镜设计", "T5": "配图生成",
     "T6": "Composition", "T7": "渲染+后期", "T8": "字幕（可选）",
 }
 
@@ -167,9 +167,9 @@ def _get_handler(step: str, episode_dir: str, design: dict | None):
     handlers = {
         "T0": lambda ed, d: TopicResearchHandler(ed, d, t0_topic),
         "T1": OutlineHandler,
-        "T2": StoryboardHandler,
-        "T3": ScriptHandler,
-        "T4": TTSHandler,
+        "T2": ScriptHandler,
+        "T3": TTSHandler,
+        "T4": StoryboardHandler,
         "T5": ImageHandler,
         "T6": CompositionHandler,
         "T7": RenderHandler,
@@ -387,9 +387,9 @@ def cmd_create(args):
         else:
             handlers_map = {
                 "T1": OutlineHandler,
-                "T2": StoryboardHandler,
-                "T3": ScriptHandler,
-                "T4": TTSHandler,
+                "T2": ScriptHandler,
+                "T3": TTSHandler,
+                "T4": StoryboardHandler,
                 "T5": ImageHandler,
                 "T6": CompositionHandler,
                 "T7": RenderHandler,
