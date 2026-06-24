@@ -130,6 +130,17 @@ def _render(design, slides, audio_path="", html_path=""):
     .spacer-lg {{ height:32px; }}
     .pn {{ position:absolute; bottom:28px; right:40px; font-size:14px; font-weight:500; color:color-mix(in srgb,var(--ink)15%,transparent); }}
 
+    .progress-bar {{ position:absolute; bottom:0; left:0; right:0; height:52px; background:linear-gradient(to top,var(--card),transparent); display:flex; align-items:flex-end; padding:0 140px 10px; gap:10px; z-index:999; pointer-events:none; }}
+    .progress-track {{ flex:1; height:3px; position:relative; }}
+    .progress-bg {{ height:100%; background:color-mix(in srgb,var(--accent)20%,transparent); border-radius:2px; width:100%; overflow:hidden; }}
+    .progress-fill {{ height:3px; background:var(--accent); border-radius:2px; width:0%; position:relative; }}
+    .progress-label {{ font-size:12px; font-weight:500; color:var(--muted); white-space:nowrap; min-width:30px; text-align:right; font-feature-settings:'tnum'; }}
+    .dancer {{ position:absolute; bottom:-6px; left:0%; width:60px; height:60px; transform-origin:center bottom; background-image:url("sprite_sheet.png"); background-size:540px 60px; image-rendering:auto; animation:spriteRun 1s steps(9) infinite; z-index:1000; }}
+    @keyframes spriteRun {{
+  0% {{ background-position: 0px 0px; }}
+  100% {{ background-position: -540px 0px; }}
+}}
+
     .bg-glow {{ position:absolute; border-radius:50%; pointer-events:none; }}
     .bg-glow-1 {{ width:800px; height:800px; background:radial-gradient(circle,var(--accent)08 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); }}
 """
@@ -272,7 +283,7 @@ def _render(design, slides, audio_path="", html_path=""):
   <div id="s{pg}" class="sc">
     <div class="sci">
       {inner}
-      <div class="pn">{pg}/{n}</div>
+      <div style="display:none;"></div>
     </div>
   </div>"""
         all_js += js
@@ -282,6 +293,7 @@ def _render(design, slides, audio_path="", html_path=""):
             all_js += f"""    tl.to("#s{pg}", {{ y:-1080, duration:{trans}, ease:"power3.inOut" }}, {nt});
     tl.fromTo("#s{pg+1}", {{ y:1080, opacity:0 }}, {{ y:0, opacity:1, duration:{trans}, ease:"power3.inOut" }}, {nt});
     tl.set("#s{pg}", {{ visibility:"hidden" }}, {nt + trans + 0.1});
+    tl.set("#pl", {{ innerText:'{pg+1}/{n}' }}, {nt});
 """
         else:
             fe = t + dur - 2
@@ -312,11 +324,21 @@ def _render(design, slides, audio_path="", html_path=""):
   {audio_html}
   <div class="bg-glow bg-glow-1"></div>
   {all_scenes}
+  <div class="progress-bar">
+    <div class="progress-track">
+      <div class="progress-bg"></div>
+      <div class="progress-fill" id="pf">
+        <div class="dancer" id="pr"></div>
+      </div>
+    </div>
+    <span class="progress-label" id="pl">1/{n}</span>
+  </div>
 </div>
 <script>
 window.__timelines = window.__timelines || {{}};
 const tl = gsap.timeline({{ paused: true }});
 tl.to(".bg-glow-1", {{ scale:1.1, opacity:0.6, duration:3, ease:"sine.inOut", yoyo:true, repeat:15 }}, 0);
+tl.to("#pf", {{ width:'100%', duration:{total_dur}, ease:'linear' }}, 0);
 {all_js}
 window.__timelines["main"] = tl;
 </script>
@@ -342,6 +364,30 @@ class CompositionHandler(StepHandler):
         total_dur = timeline.get("total_duration", sum(s.get("duration", 8) for s in slides))
         audio_path = str(self.episode_dir / "audio" / "narration.mp3")
         idx_path = self.episode_dir / "index.html"
+        # Copy run_sprite.png if it exists in project root
+        # Generate topic-appropriate sprite for progress bar
+        import subprocess, json as jjson
+        sprite_script = Path(__file__).resolve().parent.parent / "skills" / "bilibili-sprite-gen" / "scripts" / "generate_topic_sprite.py"
+        state_path = self.episode_dir / "pipeline_state.json"
+        topic = os.path.basename(str(self.episode_dir))
+        if state_path.exists():
+            with open(state_path) as sf:
+                topic = jjson.load(sf).get("topic", topic)
+        sprite_out = str(self.episode_dir / "run_sprite.png")
+        print(f"  Generating sprite for topic: {topic[:40]}...")
+        subprocess.run([
+            "python3", str(sprite_script),
+            "--topic", topic,
+            "--out", sprite_out,
+        ], capture_output=True, text=True, timeout=300)
+        if os.path.exists(sprite_out):
+            print(f"  Sprite generated: {os.path.getsize(sprite_out)} bytes")
+        else:
+            # Fallback: copy default sprite
+            default = Path(__file__).resolve().parent.parent / "episodes" / "run_sprite_pixel.png"
+            if default.exists():
+                import shutil
+                shutil.copy2(default, sprite_out)
         html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)

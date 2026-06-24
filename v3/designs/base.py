@@ -62,11 +62,7 @@ def preset_to_css_vars(preset: dict) -> str:
     """Convert a resolved preset dict to CSS custom properties string."""
     d = preset.get("layout_defaults", {})
     lines = [":root {"]
-    for key in ["font_family", "code_family", "heading_family", "body_family",
-                 "canvas_bg", "content_bg", "card_bg", "code_bg",
-                 "text_color", "heading_color", "body_color", "muted_color",
-                 "accent_color", "border_color",
-                 "page_number_color", "page_number_size"]:
+    for key in d:
         val = d.get(key, "")
         if val:
             css_key = "--" + key.replace("_", "-")

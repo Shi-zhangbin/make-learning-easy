@@ -61,7 +61,7 @@ def load_state(episode_dir: str) -> dict:
         "episode": os.path.basename(episode_dir),
         "current_step": "T0",
         "steps": {},
-        "design_style": "claude",
+        "design_style": "bilibili",
         "created_at": datetime.now().isoformat(),
     }
 
@@ -225,7 +225,7 @@ def cmd_status(args):
     state = load_state(episode_dir)
 
     print(f"\n📊 {state.get('episode', os.path.basename(episode_dir))}")
-    print(f"   风格: {state.get('design_style', 'claude')}")
+    print(f"   风格: {state.get('design_style', 'bilibili')}")
     print(f"   当前: {state.get('current_step', '?')} ({STEP_LABELS.get(state['current_step'], '')})")
     print()
 
@@ -259,12 +259,12 @@ def cmd_run(args):
     step = args.step or state.get("current_step", "T0")
 
     # Load design
-    style = state.get("design_style", "claude")
+    style = state.get("design_style", "bilibili")
     try:
         design = load_preset(style)
     except FileNotFoundError:
         print(f"  ⚠️  Design preset '{style}' not found, using default")
-        design = load_preset("claude")
+        design = load_preset("bilibili")
 
     run_step(episode_dir, step, design)
 
@@ -273,7 +273,7 @@ def cmd_init(args):
     """Initialize a new episode project."""
     name = args.name
     topic = args.topic or name
-    style = args.style or "claude"
+    style = args.style or "bilibili"
 
     # Create episode directory
     episode_dir = os.path.join(EPISODES_DIR, name)
@@ -293,7 +293,7 @@ def cmd_init(args):
         print(f"  ⚠️  Design '{style}' not found. Available:")
         for p in list_presets():
             print(f"     - {p['name']}: {p['display_name']}")
-        style = "claude"
+        style = "bilibili"
 
     # Write initial state
     state = {
@@ -334,7 +334,7 @@ def cmd_create(args):
     
     name = args.name
     topic = args.topic
-    style = args.style or "claude"
+    style = args.style or "bilibili"
     
     # Step 1: init project
     print(f"\n{'='*60}")
@@ -371,9 +371,9 @@ def cmd_create(args):
     try:
         design = load_preset(style)
     except FileNotFoundError:
-        print(f"  ⚠️  设计预设 {style} 不存在，使用 claude")
-        design = load_preset("claude")
-        style = "claude"
+        print(f"  ⚠️  设计预设 {style} 不存在，使用 bilibili")
+        design = load_preset("bilibili")
+        style = "bilibili"
     
     if not args.auto:
         print(f"\n  项目已创建。运行: bash go.sh run --episode \"{name}\"")
@@ -492,7 +492,7 @@ def main():
     sp = s.add_parser("init")
     sp.add_argument("name", help="Episode name")
     sp.add_argument("--topic", help="Topic description")
-    sp.add_argument("--style", default="claude", help="Design preset")
+    sp.add_argument("--style", default="bilibili", help="Design preset")
 
     sp = s.add_parser("run")
     sp.add_argument("--episode", required=True)
@@ -507,7 +507,7 @@ def main():
     sp = s.add_parser("create")
     sp.add_argument("name", help="Episode name (e.g. 第7期_主题)")
     sp.add_argument("--topic", required=True, help="Topic description")
-    sp.add_argument("--style", default="claude", help="Design preset")
+    sp.add_argument("--style", default="bilibili", help="Design preset")
     sp.add_argument("--auto", action="store_true", default=True, help="Auto-run all steps")
 
     args = p.parse_args()
