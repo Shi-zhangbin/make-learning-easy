@@ -13,11 +13,6 @@ pip install -r requirements.txt
 cp .env.example .env
 # 编辑 .env 填入你的 key（wuyinkeji 配图 + 可选 Pexels/Pixabay 兜底）
 
-# 快速出片（跳过内容生成，直接从 timeline 合成）
-bash go.sh quick --name "第N期_主题" --preset dark-teal
-# → 写 timeline.json（元素数组格式）
-# → bash go.sh run --episode "第N期_主题" --step T6
-
 # 一键全自动
 bash go.sh create --name "第N期_主题" --topic "..." --auto
 ```
@@ -92,7 +87,7 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 
 ```
 .
-├── go.sh                  # 主入口：quick / run / create / status
+├── go.sh                  # 主入口：run / create / status / list / designs
 ├── v3/
 │   ├── engine.py          # 管线编排引擎
 │   ├── steps/
@@ -114,17 +109,10 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 └── .codex_instructions.md  # AI 编码规则（视频必须走管线）
 ```
 
-## 快速创建新期目
+## 创建新期目
 
 ```bash
-# 方式一：快速出片（跳过内容生成）
-bash go.sh quick --name "第7期_神经网络训练技巧" --preset dark-teal
-
-# 写 timeline.json...
-# bash go.sh run --episode "第7期_神经网络训练技巧" --step T6
-# → 生成 index.html + 渲染 MP4
-
-# 方式二：完整管线
+# 完整管线
 bash go.sh create --name "第7期_主题" --topic "用通俗方式讲 Transformer" --auto
 
 # 查看状态
