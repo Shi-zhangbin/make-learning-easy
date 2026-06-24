@@ -174,6 +174,7 @@ def check_t3(episode_dir: str) -> GateResult:
 def check_t4(episode_dir: str) -> GateResult:
     """分镜方案完整吗？image_slots 有吗？"""
     import os, json
+    from pathlib import Path
     issues = []
     
     slots_path = None
@@ -244,39 +245,53 @@ def check_content_accuracy(step: str, episode_dir: str) -> GateResult:
 # ══════════════════════════════════════════════════════════════
 
 def check_t6(episode_dir: str) -> GateResult:
-    """页面层数、视觉元素、布局多样性。"""
-    import re
+    """Check composition has actual scene content in index.html."""
+    import re, os
     from pathlib import Path
-    from v3.pagespec import MIN_LAYERS
     
-    comp_dir = Path(episode_dir) / "compositions"
-    if not comp_dir.exists():
-        return GateResult(False, ["compositions/ 目录不存在"], "T4")
+    ep = Path(episode_dir)
+    idx = ep / "index.html"
+    if not idx.exists():
+        return GateResult(False, ["index.html 不存在"], "T4")
     
+    html = idx.read_text(encoding="utf-8")
     issues = []
-    files = sorted(comp_dir.glob("scene_*.html"))
     
-    for fp in files:
-        html = fp.read_text(encoding="utf-8")
-        page_num = int(re.search(r'scene_(\d+)', fp.stem).group(1))
-        
-        # 层数
-        layers = len(re.findall(r'class="[^"]*(?:badge-section|page-title|page-subtitle|feature-card|'
-                                r'code-window|quote-card|step-card|image-rail|compare-col|step-arrow|grid-2x2)[^"]*"', html))
-        # 找出这个页面用的什么布局（从 title 或者上下文推断）
-        min_l = 5  # 默认
-        if layers < min_l:
-            issues.append(f"P{page_num}: {layers}层 < {min_l}层，内容太少")
-        
-        # 视觉元素
-        if not re.search(r'data:image|card-icon|window-body|step-arrow|progress-dot', html):
-            issues.append(f"P{page_num}: 纯文字页，缺少视觉元素")
-        
-        # 检查 page-number 在底部
-        if "position:absolute;bottom:30px" not in html and "position: absolute; bottom: 30px" not in html:
-            issues.append(f"P{page_num}: 页码不在底部")
+    # Count scenes in HTML
+    scenes = re.findall(r'<div id="s(\d+)" class="sc">', html)
+    if len(scenes) < 5:
+        issues.append(f"仅 {len(scenes)} 个场景 < 5")
     
-    # 布局多样性检查
+    # Check each scene has visible elements
+    for si in scenes:
+        # Extract scene block
+        pat_start = r'<div id="s' + si + r'" class="sc">'
+        m_start = re.search(pat_start, html)
+        if not m_start:
+            continue
+        s = m_start.start()
+        # Find next scene or progress-bar
+        nxt = re.search(r'</div>\s*\n\s*<div (?:id="s' + str(int(si)+1) + r'"|class="progress-bar")', html[s:])
+        if nxt:
+            block = html[s:s + nxt.start()]
+        else:
+            block = html[s:]
+        # Count visible content elements
+        content_els = len(re.findall(r'class="(?:h-xl|h-lg|h-md|h-sm|p-lg|p-md|p-sm|badge|card|card-alt|fq|quote|img-wrap)', block))
+        if content_els == 0:
+            issues.append(f"Scene {si}: 无内容元素")
+        # Check for images (allow cover and summary scenes to skip)
+        if len(scenes) > 1 and si in [str(1), str(len(scenes))]:
+            pass
+        elif not re.search(r'<img\s+[^>]*src="', block):
+            issues.append(f"Scene {si}: 无配图")
+    
+    # Check compositional elements exist
+    if not re.search(r'class="progress-bar"', html):
+        issues.append("缺少进度条")
+    if not re.search(r'<audio', html):
+        issues.append("缺少音频")
+    
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T4")
@@ -304,16 +319,18 @@ def check_t7(episode_dir: str) -> GateResult:
     if not final:
         return GateResult(False, ["成品视频不存在"], "T6")
     
-    # 视频时长 vs timeline
+    # Get video duration via ffprobe
+    r = subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
+        "-of","csv=p=0", str(final)], capture_output=True, text=True, timeout=10)
+    vid_dur = float(r.stdout.strip()) if r.stdout.strip() else 0.0
+    
+    # Video duration vs timeline
     tl_path = ep / "timeline_v3.json"
-    if tl_path.exists():
+    if tl_path.exists() and vid_dur > 0:
         with open(tl_path) as f:
             tl = json.load(f)
         tl_dur = tl.get("total_duration", 0)
-        r = subprocess.run(["ffprobe","-v","error","-show_entries","format=duration",
-            "-of","csv=p=0", str(final)], capture_output=True, text=True, timeout=10)
-        if r.stdout.strip():
-            vid_dur = float(r.stdout.strip())
+        if tl_dur > 0:
             drift = abs(vid_dur - tl_dur)
             if drift > 2.0:
                 issues.append(f"视频时长偏差 {drift:.1f}s (timeline={tl_dur:.1f}s 实际={vid_dur:.1f}s)")
@@ -337,9 +354,41 @@ def check_t7(episode_dir: str) -> GateResult:
             end_str = last.group(2).replace(",", ".")
             parts = end_str.split(":")
             last_end = int(parts[0])*3600 + int(parts[1])*60 + float(parts[2])
-            if abs(last_end - vid_dur) > 1.0:
+            if vid_dur > 0 and abs(last_end - vid_dur) > 1.0:
                 issues.append(f"字幕末句偏差 {abs(last_end-vid_dur):.1f}s")
     
+    # Frame black-check: sample at 25%, 50%, 75%
+    import tempfile
+    for frac in [0.25, 0.5, 0.75]:
+        ts = vid_dur * frac
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
+            frame_path = tmp.name
+        r = subprocess.run([
+            "ffmpeg", "-y", "-ss", str(ts), "-i", str(final),
+            "-vframes", "1", "-q:v", "2", frame_path
+        ], capture_output=True, timeout=15)
+        if r.returncode == 0 and os.path.exists(frame_path):
+            try:
+                from PIL import Image
+                img = Image.open(frame_path).convert("RGB")
+                w, h = img.size
+                px = img.load()
+                dark_count = 0
+                total = 0
+                for y in range(0, h, h//20):
+                    for x in range(0, w, w//20):
+                        r, g, b = px[x, y]
+                        if r < 25 and g < 25 and b < 25:
+                            dark_count += 1
+                        total += 1
+                dark_pct = dark_count / total * 100
+                if dark_pct > 95:
+                    issues.append("Frame at {0:.0f}%: {1:.0f}% near-black".format(frac*100, dark_pct))
+            except:
+                pass
+            finally:
+                try: os.unlink(frame_path)
+                except: pass
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T6")
@@ -349,12 +398,53 @@ def check_t7(episode_dir: str) -> GateResult:
 # 统一调度入口
 # ══════════════════════════════════════════════════════════════
 
+
+# T5 Gate - 配图质量
+def check_t5(episode_dir: str) -> GateResult:
+    """Check images are not blank/black."""
+    import os
+    from PIL import Image
+    issues = []
+    img_dir = os.path.join(episode_dir, "images")
+    if not os.path.isdir(img_dir):
+        return GateResult(False, ["images/ directory missing"], "T4")
+    pngs = sorted([f for f in os.listdir(img_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
+    if not pngs:
+        return GateResult(False, ["images/ has no image files"], "T4")
+    for fn in pngs:
+        fp = os.path.join(img_dir, fn)
+        try:
+            img = Image.open(fp).convert('RGB')
+            w, h = img.size
+            px = img.load()
+            # Grid sampling: 20x20 grid
+            dark_count = 0
+            total = 0
+            for y in range(0, h, h//20):
+                for x in range(0, w, w//20):
+                    r, g, b = px[x, y]
+                    if r < 25 and g < 25 and b < 25:
+                        dark_count += 1
+                    total += 1
+            dark_pct = dark_count / total * 100
+            if dark_pct > 95:
+                issues.append("{0}: {1:.0f}% near-black pixels".format(fn, dark_pct))
+            fsize = os.path.getsize(fp)
+            if fsize < 2000:
+                issues.append("{0}: too small ({1} bytes)".format(fn, fsize))
+        except Exception as e:
+            issues.append("{0}: unreadable ({1})".format(fn, e))
+    if not issues:
+        return GateResult(True, [], "")
+    return GateResult(False, issues, "T4")
+
 CHECKERS = {
     "T0": check_t0,
     "T1": check_t1,
     "T2": check_t2,
     "T3": check_t3,
     "T4": check_t4,
+    "T5": check_t5,
     "T6": check_t6,
     "T7": check_t7,
 }

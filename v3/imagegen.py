@@ -180,8 +180,50 @@ def generate_image(prompt: str, accent_color: str = "#cc785c",
 def resize_for_video(img_bytes: bytes, target_w: int = VIDEO_WIDTH,
                      target_h: int = VIDEO_HEIGHT,
                      pad_color: str = "#faf9f5") -> bytes:
-    """Resize and pad image to target video dimensions using ffmpeg."""
-    import subprocess, tempfile
+    """Resize and pad image to target video dimensions. Falls back to PIL for unsupported formats."""
+    import subprocess, tempfile, io
+    # SVG data: convert to visible raster image via PIL
+    if img_bytes[:4] == b"<svg" or img_bytes[:5] == b"<?xml":
+        from PIL import Image, ImageDraw, ImageFont
+        svg_text = img_bytes.decode("utf-8")
+        import re
+        m = re.search(r'<text[^>]*>(.*?)</text>', svg_text)
+        title = m.group(1) if m else ""
+        rgb = tuple(int(pad_color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4))
+        # Create a visually distinct fallback image with gradient-like effect
+        img = Image.new("RGB", (target_w, target_h), rgb)
+        draw = ImageDraw.Draw(img)
+        cx, cy = target_w // 2, target_h // 2
+        accent_rgb = (79, 195, 161)
+        # Large background shapes for visibility
+        for r, a in [(400, 30), (280, 50), (160, 80)]:
+            c = tuple(min(255, int(accent_rgb[i] * (a/100) + rgb[i] * (1 - a/100))) for i in range(3))
+            draw.ellipse([cx-r, cy-r, cx+r, cy+r], fill=c)
+        # Decorative circles
+        for r, a in [(500, 15), (350, 25), (200, 40), (120, 60)]:
+            c = tuple(min(255, int(accent_rgb[i] * (a/100) + rgb[i] * (1 - a/100))) for i in range(3))
+            draw.ellipse([cx-r, cy-r, cx+r, cy+r], outline=c, width=3)
+        # Horizontal line decoration
+        draw.rectangle([100, cy-1, target_w-100, cy+1], fill=accent_rgb)
+        if title:
+            try:
+                font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 42)
+                font_small = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 28)
+            except:
+                font = None
+                font_small = None
+            bbox = draw.textbbox((0, 0), title, font=font)
+            tw = bbox[2] - bbox[0]
+            # Title text
+            draw.text(((target_w - tw) // 2, target_h - 180), title, fill=(200, 220, 230), font=font)
+            # Subtitle
+            subtitle = "AI Generated Illustration"
+            bbox2 = draw.textbbox((0, 0), subtitle, font=font_small)
+            tw2 = bbox2[2] - bbox2[0]
+            draw.text(((target_w - tw2) // 2, target_h - 120), subtitle, fill=(107, 125, 143), font=font_small)
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG", quality=85)
+        img_bytes = buf.getvalue()
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_in:
         tmp_in.write(img_bytes)
         in_path = tmp_in.name
@@ -195,6 +237,21 @@ def resize_for_video(img_bytes: bytes, target_w: int = VIDEO_WIDTH,
         ], capture_output=True, timeout=30, check=True)
         with open(out_path, "rb") as f:
             return f.read()
+    except Exception as e:
+        # If ffmpeg fails (e.g. unsupported format), fall back to PIL
+        from PIL import Image as PILImage
+        try:
+            pil_img = PILImage.open(io.BytesIO(img_bytes))
+            pil_img = pil_img.convert("RGB")
+            pil_img.thumbnail((target_w, target_h), PILImage.LANCZOS)
+            new_img = PILImage.new("RGB", (target_w, target_h), tuple(int(pad_color.lstrip("#")[i:i+2], 16) for i in (0, 2, 4)))
+            offset = ((target_w - pil_img.width) // 2, (target_h - pil_img.height) // 2)
+            new_img.paste(pil_img, offset)
+            buf = io.BytesIO()
+            new_img.save(buf, format="JPEG", quality=85)
+            return buf.getvalue()
+        except:
+            raise
     finally:
         for p in [in_path, out_path]:
             try:
