@@ -24,7 +24,7 @@ def _load_design(episode_dir):
         return load_preset("claude")
 
 
-def _render(design, slides, audio_path=""):
+def _render(design, slides, audio_path="", html_path=""):
     """Element-driven HyperFrames composition generator."""
     ld = design.get("layout_defaults", {})
     c = design.get("colors", {})
@@ -295,7 +295,8 @@ def _render(design, slides, audio_path=""):
     # Assemble
         audio_html = ""
     if audio_path and os.path.exists(audio_path):
-        audio_html = f"<audio id=\"narration\" data-start=\"0\" data-duration=\"{total_dur}\" data-track-index=\"0\" src=\"audio/narration.mp3\" data-volume=\"1\"></audio>"
+        rel_audio = os.path.relpath(audio_path, start=os.path.dirname(html_path))
+        audio_html = f"<audio id=\"narration\" data-start=\"0\" data-duration=\"{total_dur}\" data-track-index=\"0\" src=\"{rel_audio}\" data-volume=\"1\"></audio>"
     gf_link = f'<link data-hf-fonts="true" href="{gf_url}" rel="stylesheet" />' if gf_url else ""
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -340,8 +341,8 @@ class CompositionHandler(StepHandler):
         design = _load_design(str(self.episode_dir))
         total_dur = timeline.get("total_duration", sum(s.get("duration", 8) for s in slides))
         audio_path = str(self.episode_dir / "audio" / "narration.mp3")
-        html = _render(design, slides, audio_path)
         idx_path = self.episode_dir / "index.html"
+        html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)
         print(f"  ✅ Element-driven composition: {len(slides)} scenes, {total_dur}s")
