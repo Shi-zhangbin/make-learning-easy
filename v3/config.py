@@ -39,7 +39,7 @@ WUYINKEJI_SIZE_MAP = {
 
 # ── Project paths ──
 import os
-BASE_DIR = os.path.expanduser("~/Desktop/ascend-pipeline")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EPISODES_DIR = os.path.join(BASE_DIR, "episodes")
 V3_DIR = os.path.join(BASE_DIR, "v3")
 PRESETS_DIR = os.path.join(V3_DIR, "designs", "presets")

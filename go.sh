@@ -27,7 +27,7 @@ case "$CMD" in
   "current_step": "T6",
   "steps": {"T0":{"status":"skipped"},"T1":{"status":"skipped"},"T2":{"status":"done"},"T3":{"status":"skipped"},"T4":{"status":"done"},"T5":{"status":"skipped"}},
   "design_style": "$PRESET",
-  "created_at": "$(date -I)"
+  "created_at": "$(date +%Y-%m-%d)"
 }
 EOF
     echo "📁 episodes/$NAME 已创建，design_style: $PRESET"

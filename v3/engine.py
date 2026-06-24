@@ -44,6 +44,10 @@ def get_episode_dir(name: str) -> str:
     # Try direct path
     if os.path.isdir(name):
         return name
+    # Try episodes/NAME relative to cwd
+    cwd_path = os.path.join(os.getcwd(), "episodes", name)
+    if os.path.isdir(cwd_path):
+        return cwd_path
     raise FileNotFoundError(f"Episode not found: {name}")
 
 
