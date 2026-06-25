@@ -140,8 +140,6 @@ def _render(design, slides, audio_path="", html_path=""):
     .progress-bg {{ height:100%; background:color-mix(in srgb,var(--accent)20%,transparent); border-radius:2px; width:100%; overflow:hidden; }}
     .progress-fill {{ height:3px; background:var(--accent); border-radius:2px; width:0%; position:relative; }}
     .progress-label {{ font-size:12px; font-weight:500; color:var(--muted); white-space:nowrap; min-width:30px; text-align:right; font-feature-settings:'tnum'; }}
-    .dancer {{ position:absolute; bottom:-6px; left:0%; width:60px; height:60px; transform-origin:center bottom; background-image:url("sprite_sheet.png"); background-size:540px 60px; image-rendering:auto; animation:spriteRun 1s steps(9) infinite; z-index:1000; }}
-    @keyframes spriteRun {{
   0% {{ background-position: 0px 0px; }}
   100% {{ background-position: -540px 0px; }}
 }}
@@ -495,79 +493,6 @@ window.__timelines["main"] = tl;
 </body>
 </html>"""
 
-
-def _generate_sprite_sheet(out_path: str):
-    """Generate a 9-frame pixel art running boy sprite sheet (540x60) with chroma-key green."""
-    try:
-        from PIL import Image, ImageDraw
-        frames = 9
-        fw, fh = 60, 60
-        sheet = Image.new("RGBA", (fw * frames, fh), (0, 255, 0, 255))
-
-        # Simple pixel art running boy frames
-        # Each frame is a 6-color pixel art character on green background
-        palette = {
-            "skin": (255, 200, 150),
-            "hair": (80, 60, 40),
-            "shirt": (251, 114, 153),
-            "pants": (60, 80, 120),
-            "shoe": (40, 40, 50),
-            "outline": (20, 20, 30),
-        }
-
-        # 9 frames of running animation (each 60x60)
-        for f in range(frames):
-            img = Image.new("RGBA", (fw, fh), (0, 255, 0, 0))
-            draw = ImageDraw.Draw(img)
-            phase = (f % 9) * 2  # animation phase 0-16
-
-            # Head (circle)
-            head_cy = 14
-            draw.ellipse([18, head_cy - 8, 42, head_cy + 8], fill=palette["skin"], outline=palette["outline"], width=1)
-
-            # Hair
-            draw.ellipse([17, head_cy - 10, 43, head_cy - 2], fill=palette["hair"])
-            draw.rectangle([17, head_cy - 8, 43, head_cy - 6], fill=palette["hair"])
-
-            # Body
-            body_top = 22
-            body_bot = 38
-            draw.rectangle([22, body_top, 38, body_bot], fill=palette["shirt"], outline=palette["outline"], width=1)
-
-            # Arms with swing based on phase
-            arm_swing = int(3 * (phase % 8 - 4) / 4)
-            # Left arm
-            draw.rectangle([16, body_top + 2 + arm_swing, 22, body_top + 10 + arm_swing], fill=palette["skin"], outline=palette["outline"], width=1)
-            # Right arm
-            draw.rectangle([38, body_top + 2 - arm_swing, 44, body_top + 10 - arm_swing], fill=palette["skin"], outline=palette["outline"], width=1)
-
-            # Legs with stride based on phase
-            leg_stride = int(2 * (phase % 8 - 4) / 4)
-            # Left leg
-            draw.rectangle([23, body_bot, 29, body_bot + 16 + leg_stride], fill=palette["pants"], outline=palette["outline"], width=1)
-            # Right leg
-            draw.rectangle([31, body_bot, 37, body_bot + 16 - leg_stride], fill=palette["pants"], outline=palette["outline"], width=1)
-
-            # Shoes
-            draw.rectangle([21, body_bot + 14 + leg_stride, 30, body_bot + 18 + leg_stride], fill=palette["shoe"], outline=palette["outline"], width=1)
-            draw.rectangle([30, body_bot + 14 - leg_stride, 39, body_bot + 18 - leg_stride], fill=palette["shoe"], outline=palette["outline"], width=1)
-
-            # Paste onto sheet with chroma-key green background
-            x_offset = f * fw
-            sheet.paste(img, (x_offset, 0), img)
-
-        # Convert to full RGB with chroma key (#00ff00)
-        final = Image.new("RGB", (fw * frames, fh), (0, 255, 0))
-        final.paste(sheet, (0, 0), sheet)
-        final.save(out_path, "PNG")
-    except ImportError:
-        # If PIL not available, create a minimal placeholder
-        print("  PIL not available, creating placeholder sprite")
-        data = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100  # invalid, will be skipped
-        with open(out_path, "wb") as f:
-            f.write(data)
-
-
 class CompositionHandler(StepHandler):
     """Element-driven HyperFrames composition engine."""
     name = "T6"
@@ -586,13 +511,6 @@ class CompositionHandler(StepHandler):
         total_dur = timeline.get("total_duration", sum(s.get("duration", 8) for s in slides))
         audio_path = str(self.episode_dir / "audio" / "narration.mp3")
         idx_path = self.episode_dir / "index.html"
-        # Generate pixel art sprite sheet for progress bar (9 frames running boy)
-        sprite_out = str(self.episode_dir / "sprite_sheet.png")
-        if not os.path.exists(sprite_out):
-            print(f"  Generating pixel sprite...")
-            _generate_sprite_sheet(sprite_out)
-        if os.path.exists(sprite_out):
-            print(f"  Sprite: {os.path.getsize(sprite_out)} bytes, 9 frames 540x60")
         html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)
