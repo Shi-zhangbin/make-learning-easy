@@ -1,0 +1,19 @@
+ {
+   "name": "make-learning-easy",
+   "version": "1.0.0",
+   "private": true,
+   "description": "AI 视频自动生产线 — 从一句话到成品视频",
+   "scripts": {
+     "render": "npx hyperframes render",
+     "list": "bash go.sh list",
+     "status": "bash go.sh status --episode",
+     "browser:ensure": "npx playwright install chromium"
+   },
+   "dependencies": {
+     "hyperframes": "^0.7.6",
+     "playwright": "^1.52.0"
+   },
+   "engines": {
+     "node": ">=18"
+   }
+ }
