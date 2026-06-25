@@ -230,22 +230,22 @@ def _render(design, slides, audio_path="", html_path=""):
         etype = elem.get("type", "")
         delay = t + 0.15 + idx * 0.08
         mapping = {
-            "badge": f'y:12,opacity:0,duration:0.3',
-            "heading": f'y:25,opacity:0,duration:0.5',
-            "paragraph": f'y:15,opacity:0,duration:0.4',
-            "accent-line": f'scaleX:0,opacity:0,duration:0.4',
-            "spacer": f'opacity:0,duration:0.01',
-            "chip-row": f'y:12,opacity:0,duration:0.3',
-            "card-row": f'y:20,opacity:0,duration:0.45',
-            "card-alt": f'x:-15,opacity:0,duration:0.4',
-            "card-alt-row": f'y:15,opacity:0,duration:0.4',
-            "grid-2x2": f'y:15,opacity:0,duration:0.4',
-            "image": f'scale:0.95,opacity:0,duration:0.5',
-            "code": f'x:-15,opacity:0,duration:0.5',
-            "split": f'opacity:0,duration:0.4',
-            "fq-row": f'y:15,opacity:0,duration:0.4',
-            "quote": f'y:15,opacity:0,duration:0.5',
-            "button": f'scale:0.9,opacity:0,duration:0.4',
+            "badge": f'y:12,opacity:0,dur:0.3',
+            "heading": f'y:25,opacity:0,dur:0.5',
+            "paragraph": f'y:15,opacity:0,dur:0.4',
+            "accent-line": f'scaleX:0,opacity:0,dur:0.4',
+            "spacer": f'opacity:0,dur:0.01',
+            "chip-row": f'y:12,opacity:0,dur:0.3',
+            "card-row": f'y:20,opacity:0,dur:0.45',
+            "card-alt": f'x:-15,opacity:0,dur:0.4',
+            "card-alt-row": f'y:15,opacity:0,dur:0.4',
+            "grid-2x2": f'y:15,opacity:0,dur:0.4',
+            "image": f'scale:0.95,opacity:0,dur:0.5',
+            "code": f'x:-15,opacity:0,dur:0.5',
+            "split": f'opacity:0,dur:0.4',
+            "fq-row": f'y:15,opacity:0,dur:0.4',
+            "quote": f'y:15,opacity:0,dur:0.5',
+            "button": f'scale:0.9,opacity:0,dur:0.4',
         }
         props = mapping.get(etype)
         if not props:
