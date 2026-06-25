@@ -148,6 +148,34 @@ def _render(design, slides, audio_path="", html_path=""):
 
     .bg-glow {{ position:absolute; border-radius:50%; pointer-events:none; }}
     .bg-glow-1 {{ width:800px; height:800px; background:radial-gradient(circle,var(--accent)08 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); }}
+
+    /* Danmaku / bullet comments overlay */
+    .danmaku-overlay {{ position:absolute; top:0; left:0; width:1920px; height:1080px; overflow:hidden; pointer-events:none; z-index:500; }}
+    .danmaku {{ position:absolute; white-space:nowrap; font-family:"Noto Sans SC",sans-serif; font-size:22px; font-weight:700; color:var(--accent); text-shadow:0 0 8px rgba(0,0,0,0.3),0 0 2px white; opacity:0.7; animation:danmakuFly 8s linear forwards; }}
+    .danmaku-1 {{ top:80px; animation-duration:9s; }}
+    .danmaku-2 {{ top:160px; animation-duration:11s; animation-delay:2s; }}
+    .danmaku-3 {{ top:600px; animation-duration:7s; animation-delay:4s; }}
+    .danmaku-4 {{ top:720px; animation-duration:10s; animation-delay:1s; }}
+    .danmaku-5 {{ top:240px; animation-duration:12s; animation-delay:6s; font-size:18px; color:var(--accent_amber); }}
+    .danmaku-6 {{ top:380px; animation-duration:8s; animation-delay:3s; font-size:20px; color:var(--accent_blue); }}
+    .danmaku-7 {{ top:850px; animation-duration:9s; animation-delay:5s; color:var(--accent_green); }}
+    .danmaku-8 {{ top:450px; animation-duration:11s; animation-delay:7s; font-size:24px; color:var(--accent_amber); }}
+    @keyframes danmakuFly {{
+  0% {{ transform:translateX(1920px); opacity:0; }}
+  5% {{ opacity:0.8; }}
+  90% {{ opacity:0.8; }}
+  100% {{ transform:translateX(-100%); opacity:0; }}
+}}
+
+    /* Comic speech bubble for highlights */
+    .speech-bubble {{ position:relative; display:inline-block; background:var(--accent); color:white; border-radius:16px; padding:8px 16px; font-size:18px; font-weight:600; font-family:var(--hf); }}
+    .speech-bubble::after {{ content:""; position:absolute; bottom:-8px; left:30px; border-left:8px solid transparent; border-right:8px solid transparent; border-top:8px solid var(--accent); }}
+
+    /* Meme corner sticker */
+    .meme-sticker {{ position:absolute; bottom:80px; right:20px; font-size:48px; z-index:888; opacity:0.5; pointer-events:none; }}
+
+    /* Code block special: add a small tag */
+    .code-tag {{ position:absolute; top:44px; right:28px; background:var(--accent); color:white; padding:2px 10px; border-radius:4px; font-size:11px; font-weight:600; text-transform:uppercase; z-index:10; }}
 """
 
     # Build per-element renderers
@@ -208,7 +236,9 @@ def _render(design, slides, audio_path="", html_path=""):
             return f'<div class="img-wrap" style="flex-shrink:0;height:{height};"><img src="{el.get("src","")}" alt=""></div>'
         elif t == "code":
             lines = el.get("code", el.get("text", ""))
-            return f'<div class="code-w" style="flex:1"><div class="ch"><span class="cd" style="background:#ff5f56;"></span><span class="cd" style="background:#ffbd2e;"></span><span class="cd" style="background:#27c93f;"></span><span style="margin-left:10px;font-family:monospace;font-size:12px;color:#888;">{el.get("lang","")}</span></div><div class="cb">{lines}</div></div>'
+            tag = el.get("lang", "")
+            tag_html = f'<div class="code-tag">{tag}</div>' if tag else ""
+            return f'<div class="code-w" style="flex:1"><div class="ch"><span class="cd" style="background:#ff5f56;"></span><span class="cd" style="background:#ffbd2e;"></span><span class="cd" style="background:#27c93f;"></span><span style="margin-left:10px;font-family:monospace;font-size:12px;color:#888;">{tag}</span></div>{tag_html}<div class="cb">{lines}</div></div>'
         elif t == "split":
             left = ""
             for sub in el.get("left", []):
@@ -226,6 +256,8 @@ def _render(design, slides, audio_path="", html_path=""):
             return f'<div class="fq-grid">{rows}</div>'
         elif t == "quote":
             return f'<div class="quote"><div class="qt">{el.get("text","")}</div>{f"<div class=\"qa\">{el.get('author','')}</div>" if el.get("author") else ""}</div>'
+        elif t == "speech-bubble":
+            return f'<div style="display:flex;gap:12px;align-items:center;max-width:70%;"><div class="speech-bubble" style="background:var(--accent);color:white;border-radius:16px;padding:12px 20px;font-size:22px;font-weight:600;font-family:var(--hf);">{el.get("text","")}</div></div>'
         elif t == "button":
             return f'<div style="display:flex;justify-content:center;margin-top:8px;"><div class="badge" style="border:2px solid var(--accent);background:transparent;padding:8px 28px;border-radius:999px;cursor:default;">{el.get("text","")}</div></div>'
         return ""
@@ -251,6 +283,7 @@ def _render(design, slides, audio_path="", html_path=""):
             "fq-row": f'y:15,opacity:0,duration:0.4',
             "quote": f'y:15,opacity:0,duration:0.5',
             "button": f'scale:0.9,opacity:0,duration:0.4',
+            "speech-bubble": f'scale:0.85,opacity:0,duration:0.5',
         }
         props = mapping.get(etype)
         if not props:
@@ -295,8 +328,25 @@ def _render(design, slides, audio_path="", html_path=""):
 
         if i < n - 1:
             nt = t + dur
-            all_js += f"""    tl.to("#s{pg}", {{ y:-1080, duration:{trans}, ease:"power3.inOut" }}, {nt});
-    tl.fromTo("#s{pg+1}", {{ y:1080, opacity:0 }}, {{ y:0, opacity:1, duration:{trans}, ease:"power3.inOut" }}, {nt});
+            # Scene transition variety (B010)
+            _t = i % 5
+            if _t == 0:
+                _oa = f'tl.to("#s{pg}", {{ y:-1080, duration:{trans}, ease:"power3.inOut" }}, {nt})'
+                _ia = f'tl.fromTo("#s{pg+1}", {{ y:1080, opacity:0 }}, {{ y:0, opacity:1, duration:{trans}, ease:"power3.inOut" }}, {nt})'
+            elif _t == 1:
+                _oa = f'tl.to("#s{pg}", {{ scale:0.8, opacity:0, duration:{trans}, ease:"power2.inOut" }}, {nt})'
+                _ia = f'tl.fromTo("#s{pg+1}", {{ scale:1.15, opacity:0 }}, {{ scale:1, opacity:1, duration:{trans}, ease:"power2.out" }}, {nt})'
+            elif _t == 2:
+                _oa = f'tl.to("#s{pg}", {{ x:-1920, duration:{trans}, ease:"power3.inOut" }}, {nt})'
+                _ia = f'tl.fromTo("#s{pg+1}", {{ x:1920, opacity:0 }}, {{ x:0, opacity:1, duration:{trans}, ease:"power3.inOut" }}, {nt})'
+            elif _t == 3:
+                _oa = f'tl.to("#s{pg}", {{ scale:1.15, rotation:4, opacity:0, duration:{trans}, ease:"power2.in" }}, {nt})'
+                _ia = f'tl.fromTo("#s{pg+1}", {{ scale:0.9, rotation:-4, opacity:0 }}, {{ scale:1, rotation:0, opacity:1, duration:{trans}, ease:"power2.out" }}, {nt})'
+            else:
+                _oa = f'tl.to("#s{pg}", {{ opacity:0, duration:{trans*0.6}, ease:"sine.inOut" }}, {nt})'
+                _ia = f'tl.fromTo("#s{pg+1}", {{ opacity:0 }}, {{ opacity:1, duration:{trans*0.6}, ease:"sine.inOut" }}, {nt})'
+            all_js += f"""    {_oa};
+    {_ia};
     tl.set("#s{pg}", {{ visibility:"hidden" }}, {nt + trans + 0.1});
     tl.set("#pl", {{ innerText:'{pg+1}/{n}' }}, {nt});
 """
@@ -322,7 +372,7 @@ def _render(design, slides, audio_path="", html_path=""):
 <meta name="viewport" content="width=1920, height=1080" />
 {gf_link}
 <script>/* inlined: assets/gsap.min.js */
-_GSAP_INLINE</script>
+{_GSAP_INLINE}</script>
 <style>{css_vars}{common_css}{scene_css}</style>
 </head>
 <body>
@@ -339,6 +389,17 @@ _GSAP_INLINE</script>
     </div>
     <span class="progress-label" id="pl">1/{n}</span>
   </div>
+  <!-- Danmaku overlay -->
+  <div class="danmaku-overlay">
+    <div class="danmaku danmaku-1">学到了！</div>
+    <div class="danmaku danmaku-2">哈哈真实</div>
+    <div class="danmaku danmaku-3">妙啊</div>
+    <div class="danmaku danmaku-4">就这？</div>
+    <div class="danmaku danmaku-5">是我了</div>
+    <div class="danmaku danmaku-6">这也太真实了</div>
+    <div class="danmaku danmaku-7">已三连</div>
+    <div class="danmaku danmaku-8">下次一定</div>
+  </div>
 </div>
 <script>
 window.__timelines = window.__timelines || {{}};
@@ -350,6 +411,78 @@ window.__timelines["main"] = tl;
 </script>
 </body>
 </html>"""
+
+
+def _generate_sprite_sheet(out_path: str):
+    """Generate a 9-frame pixel art running boy sprite sheet (540x60) with chroma-key green."""
+    try:
+        from PIL import Image, ImageDraw
+        frames = 9
+        fw, fh = 60, 60
+        sheet = Image.new("RGBA", (fw * frames, fh), (0, 255, 0, 255))
+
+        # Simple pixel art running boy frames
+        # Each frame is a 6-color pixel art character on green background
+        palette = {
+            "skin": (255, 200, 150),
+            "hair": (80, 60, 40),
+            "shirt": (251, 114, 153),
+            "pants": (60, 80, 120),
+            "shoe": (40, 40, 50),
+            "outline": (20, 20, 30),
+        }
+
+        # 9 frames of running animation (each 60x60)
+        for f in range(frames):
+            img = Image.new("RGBA", (fw, fh), (0, 255, 0, 0))
+            draw = ImageDraw.Draw(img)
+            phase = (f % 9) * 2  # animation phase 0-16
+
+            # Head (circle)
+            head_cy = 14
+            draw.ellipse([18, head_cy - 8, 42, head_cy + 8], fill=palette["skin"], outline=palette["outline"], width=1)
+
+            # Hair
+            draw.ellipse([17, head_cy - 10, 43, head_cy - 2], fill=palette["hair"])
+            draw.rectangle([17, head_cy - 8, 43, head_cy - 6], fill=palette["hair"])
+
+            # Body
+            body_top = 22
+            body_bot = 38
+            draw.rectangle([22, body_top, 38, body_bot], fill=palette["shirt"], outline=palette["outline"], width=1)
+
+            # Arms with swing based on phase
+            arm_swing = int(3 * (phase % 8 - 4) / 4)
+            # Left arm
+            draw.rectangle([16, body_top + 2 + arm_swing, 22, body_top + 10 + arm_swing], fill=palette["skin"], outline=palette["outline"], width=1)
+            # Right arm
+            draw.rectangle([38, body_top + 2 - arm_swing, 44, body_top + 10 - arm_swing], fill=palette["skin"], outline=palette["outline"], width=1)
+
+            # Legs with stride based on phase
+            leg_stride = int(2 * (phase % 8 - 4) / 4)
+            # Left leg
+            draw.rectangle([23, body_bot, 29, body_bot + 16 + leg_stride], fill=palette["pants"], outline=palette["outline"], width=1)
+            # Right leg
+            draw.rectangle([31, body_bot, 37, body_bot + 16 - leg_stride], fill=palette["pants"], outline=palette["outline"], width=1)
+
+            # Shoes
+            draw.rectangle([21, body_bot + 14 + leg_stride, 30, body_bot + 18 + leg_stride], fill=palette["shoe"], outline=palette["outline"], width=1)
+            draw.rectangle([30, body_bot + 14 - leg_stride, 39, body_bot + 18 - leg_stride], fill=palette["shoe"], outline=palette["outline"], width=1)
+
+            # Paste onto sheet with chroma-key green background
+            x_offset = f * fw
+            sheet.paste(img, (x_offset, 0), img)
+
+        # Convert to full RGB with chroma key (#00ff00)
+        final = Image.new("RGB", (fw * frames, fh), (0, 255, 0))
+        final.paste(sheet, (0, 0), sheet)
+        final.save(out_path, "PNG")
+    except ImportError:
+        # If PIL not available, create a minimal placeholder
+        print("  PIL not available, creating placeholder sprite")
+        data = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100  # invalid, will be skipped
+        with open(out_path, "wb") as f:
+            f.write(data)
 
 
 class CompositionHandler(StepHandler):
@@ -370,30 +503,13 @@ class CompositionHandler(StepHandler):
         total_dur = timeline.get("total_duration", sum(s.get("duration", 8) for s in slides))
         audio_path = str(self.episode_dir / "audio" / "narration.mp3")
         idx_path = self.episode_dir / "index.html"
-        # Copy run_sprite.png if it exists in project root
-        # Generate topic-appropriate sprite for progress bar
-        import subprocess, json as jjson
-        sprite_script = Path(__file__).resolve().parent.parent / "skills" / "bilibili-sprite-gen" / "scripts" / "generate_topic_sprite.py"
-        state_path = self.episode_dir / "pipeline_state.json"
-        topic = os.path.basename(str(self.episode_dir))
-        if state_path.exists():
-            with open(state_path) as sf:
-                topic = jjson.load(sf).get("topic", topic)
-        sprite_out = str(self.episode_dir / "run_sprite.png")
-        print(f"  Generating sprite for topic: {topic[:40]}...")
-        subprocess.run([
-            "python3", str(sprite_script),
-            "--topic", topic,
-            "--out", sprite_out,
-        ], capture_output=True, text=True, timeout=300)
+        # Generate pixel art sprite sheet for progress bar (9 frames running boy)
+        sprite_out = str(self.episode_dir / "sprite_sheet.png")
+        if not os.path.exists(sprite_out):
+            print(f"  Generating pixel sprite...")
+            _generate_sprite_sheet(sprite_out)
         if os.path.exists(sprite_out):
-            print(f"  Sprite generated: {os.path.getsize(sprite_out)} bytes")
-        else:
-            # Fallback: copy default sprite
-            default = Path(__file__).resolve().parent.parent / "episodes" / "run_sprite_pixel.png"
-            if default.exists():
-                import shutil
-                shutil.copy2(default, sprite_out)
+            print(f"  Sprite: {os.path.getsize(sprite_out)} bytes, 9 frames 540x60")
         html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)

@@ -131,6 +131,17 @@ def _seconds_to_ass_time(sec: float) -> str:
     return f"{h}:{m:02d}:{s:05.2f}"
 
 
+
+def check_libass() -> bool:
+    """Check if ffmpeg has libass/subtitles filter support."""
+    import subprocess
+    try:
+        r = subprocess.run(["ffmpeg", "-filters"], capture_output=True, text=True, timeout=5)
+        return "subtitles" in r.stdout or "libass" in r.stdout
+    except Exception:
+        return False
+
+
 def burn_subtitles(video_path: str, srt_or_ass_path: str,
                    output_path: str | None = None) -> str:
     if not output_path:

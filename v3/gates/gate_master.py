@@ -30,6 +30,13 @@ class GateResult:
 # T0 Gate — 选题报告
 # ══════════════════════════════════════════════════════════════
 
+
+# ── Placeholder detection patterns (1D) ──
+PLACEHOLDER_PATTERNS = [
+    r'卡片', r'图片', r'图表', r'TKTK', r'TODO', r'占位',
+    r'placeholder', r'此处插入', r'这里放', r'请插入', r'示例文本',
+]
+
 def check_t0(episode_dir: str) -> GateResult:
     """选题报告完整吗？"""
     import os
@@ -76,7 +83,7 @@ def check_t1(episode_dir: str) -> GateResult:
 # ══════════════════════════════════════════════════════════════
 
 def check_t2(episode_dir: str) -> GateResult:
-    """口播稿无残留标记、无空页、字数合理。"""
+    """口播稿无残留标记、无空页、字数合理、无占位符。"""
     import os, re
     issues = []
     
@@ -94,10 +101,25 @@ def check_t2(episode_dir: str) -> GateResult:
     with open(script_path, encoding="utf-8") as f:
         content = f.read()
     
+    clean_text = re.sub(r'---.*?---\s*\n', '', content)
+    
+    # 1D: 占位符检测
+    for pat in PLACEHOLDER_PATTERNS:
+        if re.search(pat, clean_text):
+            issues.append(f"含占位符文本: [{pat}]")
+            break
+    
+    # B009: 时长估算校验
+    chars = len(re.findall(r'[\u4e00-\u9fff\w]', clean_text))
+    from v3.config import TTS_EFFECTIVE_CHARS_PER_SEC
+    estimated_sec = chars / TTS_EFFECTIVE_CHARS_PER_SEC
+    if estimated_sec < 300:
+        issues.append(f"估计音频仅 {estimated_sec:.0f}s ({chars}字)，不足 5 分钟（阈值 300s/{int(300*TTS_EFFECTIVE_CHARS_PER_SEC)}字）")
+    
     # 标记残留
     artifacts = []
     for pat, name in [(r'#{2,}', "##标题"), (r'\*{2,}', "**加粗**"), (r'`{2,}', "``代码``")]:
-        if re.search(pat, content):
+        if re.search(pat, clean_text):
             artifacts.append(name)
     if artifacts:
         issues.append(f"含残留标记: {', '.join(artifacts)}")
@@ -195,6 +217,51 @@ def check_t4(episode_dir: str) -> GateResult:
         pages_covered = len(set(s.get("page", 0) for s in slot_list if isinstance(s, dict)))
         pages_total = len(list(Path(episode_dir).glob("compositions/scene_*.html")))
     
+    # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
+    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    if os.path.exists(state_path):
+        import json as _json
+        with open(state_path) as _sf:
+            _state = _json.load(_sf)
+        _style = _state.get("design_style", "")
+        _expected_color = {
+            "bilibili": "#FB7299",
+            "claude": "#cc785c",
+            "dark-teal": "#4FC3A1",
+            "linear": "#5e6ad2",
+            "mintlify": "#00d4a4",
+            "stripe": "#635bff",
+            "vercel": "#0070f3",
+        }.get(_style, "")
+        if _expected_color and _expected_color not in html:
+            issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
+    
+    # 2B: 时长交叉验证
+    tl_path = os.path.join(episode_dir, "timeline.json")
+    audio_path = os.path.join(episode_dir, "audio", "narration.mp3")
+    if os.path.exists(tl_path) and os.path.exists(audio_path):
+        try:
+            import json as _json2, subprocess as _sp
+            with open(tl_path) as _tf:
+                _tl = _json2.load(_tf)
+            _tl_dur = _tl.get("total_duration", 0)
+            _r = _sp.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "csv=p=0", audio_path], capture_output=True, text=True, timeout=10)
+            if _r.stdout.strip():
+                _audio_dur = float(_r.stdout.strip())
+                if abs(_tl_dur - _audio_dur) > 1.0:
+                    issues.append(f"时长偏差: timeline={_tl_dur:.1f}s vs audio={_audio_dur:.1f}s")
+        except Exception:
+            pass
+    
+    # 1D: HTML 占位符检测
+    for pat in PLACEHOLDER_PATTERNS:
+        # Check in visible text content (not in src, href, etc.)
+        _text_only = re.sub(r'<[^>]+>', ' ', html)
+        if re.search(pat, _text_only):
+            issues.append(f"HTML含占位符: [{pat}]")
+            break
+    
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T4")
@@ -291,6 +358,51 @@ def check_t6(episode_dir: str) -> GateResult:
         issues.append("缺少进度条")
     if not re.search(r'<audio', html):
         issues.append("缺少音频")
+    
+    # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
+    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    if os.path.exists(state_path):
+        import json as _json
+        with open(state_path) as _sf:
+            _state = _json.load(_sf)
+        _style = _state.get("design_style", "")
+        _expected_color = {
+            "bilibili": "#FB7299",
+            "claude": "#cc785c",
+            "dark-teal": "#4FC3A1",
+            "linear": "#5e6ad2",
+            "mintlify": "#00d4a4",
+            "stripe": "#635bff",
+            "vercel": "#0070f3",
+        }.get(_style, "")
+        if _expected_color and _expected_color not in html:
+            issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
+    
+    # 2B: 时长交叉验证
+    tl_path = os.path.join(episode_dir, "timeline.json")
+    audio_path = os.path.join(episode_dir, "audio", "narration.mp3")
+    if os.path.exists(tl_path) and os.path.exists(audio_path):
+        try:
+            import json as _json2, subprocess as _sp
+            with open(tl_path) as _tf:
+                _tl = _json2.load(_tf)
+            _tl_dur = _tl.get("total_duration", 0)
+            _r = _sp.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "csv=p=0", audio_path], capture_output=True, text=True, timeout=10)
+            if _r.stdout.strip():
+                _audio_dur = float(_r.stdout.strip())
+                if abs(_tl_dur - _audio_dur) > 1.0:
+                    issues.append(f"时长偏差: timeline={_tl_dur:.1f}s vs audio={_audio_dur:.1f}s")
+        except Exception:
+            pass
+    
+    # 1D: HTML 占位符检测
+    for pat in PLACEHOLDER_PATTERNS:
+        # Check in visible text content (not in src, href, etc.)
+        _text_only = re.sub(r'<[^>]+>', ' ', html)
+        if re.search(pat, _text_only):
+            issues.append(f"HTML含占位符: [{pat}]")
+            break
     
     if not issues:
         return GateResult(True, [], "")
@@ -434,6 +546,51 @@ def check_t5(episode_dir: str) -> GateResult:
                 issues.append("{0}: too small ({1} bytes)".format(fn, fsize))
         except Exception as e:
             issues.append("{0}: unreadable ({1})".format(fn, e))
+    # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
+    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    if os.path.exists(state_path):
+        import json as _json
+        with open(state_path) as _sf:
+            _state = _json.load(_sf)
+        _style = _state.get("design_style", "")
+        _expected_color = {
+            "bilibili": "#FB7299",
+            "claude": "#cc785c",
+            "dark-teal": "#4FC3A1",
+            "linear": "#5e6ad2",
+            "mintlify": "#00d4a4",
+            "stripe": "#635bff",
+            "vercel": "#0070f3",
+        }.get(_style, "")
+        if _expected_color and _expected_color not in html:
+            issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
+    
+    # 2B: 时长交叉验证
+    tl_path = os.path.join(episode_dir, "timeline.json")
+    audio_path = os.path.join(episode_dir, "audio", "narration.mp3")
+    if os.path.exists(tl_path) and os.path.exists(audio_path):
+        try:
+            import json as _json2, subprocess as _sp
+            with open(tl_path) as _tf:
+                _tl = _json2.load(_tf)
+            _tl_dur = _tl.get("total_duration", 0)
+            _r = _sp.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                "-of", "csv=p=0", audio_path], capture_output=True, text=True, timeout=10)
+            if _r.stdout.strip():
+                _audio_dur = float(_r.stdout.strip())
+                if abs(_tl_dur - _audio_dur) > 1.0:
+                    issues.append(f"时长偏差: timeline={_tl_dur:.1f}s vs audio={_audio_dur:.1f}s")
+        except Exception:
+            pass
+    
+    # 1D: HTML 占位符检测
+    for pat in PLACEHOLDER_PATTERNS:
+        # Check in visible text content (not in src, href, etc.)
+        _text_only = re.sub(r'<[^>]+>', ' ', html)
+        if re.search(pat, _text_only):
+            issues.append(f"HTML含占位符: [{pat}]")
+            break
+    
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T4")
