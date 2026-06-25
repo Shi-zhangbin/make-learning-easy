@@ -2,11 +2,13 @@
 
 > AI 视频全自动生产线 — 从一句话到成品视频
 > 专注于技术教程和知识科普内容
+> 🧑‍💻 `codex/bilibili-video-making` 分支具有完整 B站风格改造
 
 ## 快速开始
 
 ```bash
 # 安装依赖
+node -v                     # 需要 Node.js 18+（HyperFrames 要求）
 pip install -r requirements.txt
 
 # 配置 API 密钥
@@ -15,7 +17,41 @@ cp .env.example .env
 
 # 一键全自动
 bash go.sh create --name "第N期_主题" --topic "..." --auto
+
+# 分步控制
+bash go.sh run --episode "第N期_主题" --step T0
 ```
+
+---
+
+## B站风格 & 脱口秀模式（分支特色）
+
+`codex/bilibili-video-making` 分支在主干基础上增加了整套 B站特色改造：
+
+| 改造点 | 说明 |
+|--------|------|
+| **talk-show 设计预设** | 暖橙 `#FF6B35` + 青蓝 `#00C4FF`，大字冲击，适合脱口秀、程序员内容 |
+| **T2 脱口秀脚本** | 提示词以"给傻子的X教程"语气产出，程序员翻车场景破题、段子穿插干货 |
+| **T4 二次元分镜** | 配图描述指向漫画/梗图风格，程序员场景抽象夸张化表达 |
+| **T5 配图风格化** | 根据预设自动追加风格前缀（bilibili→anime, talk-show→cartoon） |
+| **T6 弹幕浮层** | 8条 B站弹幕 CSS 浮动动画（"学到了"、"下次一定"等） |
+| **吐槽气泡** | 支持 `speech-bubble` 元素类型，画面中插入对话气泡 |
+| **代码标签** | 代码块右上角自动生成语言标签 |
+
+使用方式：
+```bash
+git switch codex/bilibili-video-making
+python3 -m v3.engine init "第N期_主题" --topic "..." --style talk-show
+```
+
+可选风格：
+```bash
+python3 -m v3.engine init "第N期_主题" --topic "..." --style bilibili   # 默认，二次元粉
+python3 -m v3.engine init "第N期_主题" --topic "..." --style dark-teal  # 深色科技
+# 全部预设: bash go.sh designs
+```
+
+---
 
 ## 管线流程
 
@@ -37,6 +73,8 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 | **T6** | **元素驱动 HyperFrames 引擎** | ✅ 全自动 + 门禁 |
 | T7 | HyperFrames 渲染 + 音视频合成 | ✅ 全自动 |
 
+---
+
 ## 核心能力
 
 ### 🎬 HyperFrames 渲染引擎
@@ -47,6 +85,7 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 - **逐元素 GSAP 动画** — badge、标题、卡片、图片各有不同的入场方向和缓动曲线
 - **呼吸光晕装饰** — 背景渐变呼吸，画面有层次感
 - **TTS 语音同步** — edge-tts 配音自动嵌入视频
+- **弹幕浮层 (分支)** — 画面叠加动态 B站弹幕
 
 ### 🧩 元素驱动布局
 
@@ -58,21 +97,21 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
     {"type": "badge", "text": "01 · 核心概念"},
     {"type": "heading", "text": "标题", "size": "xl"},
     {"type": "card-row", "cards": [
-      {"icon": "🧠", "title": "卡片一", "body": "描述"},
-      {"icon": "⚡", "title": "卡片二", "body": "描述"}
+      {"icon": ":brain:", "title": "卡片一", "body": "描述"},
+      {"icon": ":zap:", "title": "卡片二", "body": "描述"}
     ]},
-    {"type": "image", "src": "data:image/svg+xml;base64,...", "size": "large"}
+    {"type": "image", "src": "data:image/...", "size": "large"}
   ]
 }
 ```
 
-支持的 14 种元素类型：`badge`、`heading`(xl/lg/md/sm)、`paragraph`(lg/md/sm)、`card-row`、`card-alt`、`card-alt-row`、`grid-2x2`、`image`(small/medium/large/fill)、`split`(左右分栏)、`code`(代码块)、`fq-row`、`quote`、`chip-row`、`button`、`accent-line`、`spacer`。
+支持的 15 种元素类型：`badge`、`heading`(xl/lg/md/sm)、`paragraph`(lg/md/sm)、`card-row`、`card-alt`、`card-alt-row`、`grid-2x2`、`image`(small/medium/large/fill)、`split`、`code`、`fq-row`、`quote`、`chip-row`、`button`、`speech-bubble`(**分支**)、`accent-line`、`spacer`。
 
 ### 🎨 设计预设系统
 
 视频的颜色、字体、间距来自设计预设 YAML。换一个预设就换一套视觉风格，内容不用改。
 
-内置 7 套预设：
+内置 7+1 套预设：
 
 | 预设 | 底色 | 强调色 | 来源 |
 |------|------|--------|------|
@@ -83,32 +122,45 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 | vercel | 白 `#ffffff` | 蓝 `#0070f3` | [Vercel](https://vercel.com) |
 | dark-teal | 深灰 `#0A0C0E` | 青绿 `#4FC3A1` | 自定义 |
 | bilibili | 浅灰 `#F5F6F7` | 粉 `#FB7299` | [Bilibili](https://bilibili.com) |
+| **talk-show** (分支) | 浅灰 `#F0F2F5` | 暖橙 `#FF6B35` | 程序员脱口秀风格 |
+
+---
 
 ## 项目结构
 
 ```
 .
 ├── go.sh                  # 主入口：run / create / status / list / designs
+├── AGENTS.md              # Agent 与开发者协作准则
 ├── v3/
 │   ├── engine.py          # 管线编排引擎
+│   ├── config.py          # 配置
+│   ├── agent_steps.py     # Agent 内容生成提示词（分支含脱口秀/二次元指导）
+│   ├── imagegen.py        # 三级配图生成（分支含风格前缀）
+│   ├── subtitle.py        # 字幕处理
 │   ├── steps/
-│   │   ├── t6_compositions.py  # 元素驱动 HyperFrames 引擎
+│   │   ├── t6_compositions.py  # 元素驱动 HyperFrames 引擎（分支含弹幕/气泡）
 │   │   ├── tts.py              # edge-tts 配音 + 字幕
 │   │   └── t7_render.py        # HyperFrames 渲染
+│   ├── gates/
+│   │   └── gate_master.py  # 门禁检查器
 │   ├── designs/
 │   │   ├── base.py             # 设计预设加载器
-│   │   └── presets/*.yaml      # 7 套设计预设
-│   └── templates/              # (废弃) 旧 Jinja2 模板
-│       └── layouts/*.j2
+│   │   └── presets/*.yaml      # 7+1 套设计预设（分支含 talk-show）
+│   └── assets/
+│       └── gsap.min.js     # 本地化的 GSAP 动画库
 ├── episodes/               # 每期视频的内容目录
 │   └── 第N期_主题/
 │       ├── timeline.json   # 元素数组 + 时长
 │       ├── 配音稿_分段.txt # 口播稿
-│       ├── audio/          # TTS 生成的音频
-│       ├── images/         # AI 生成的配图
-│       └── renders/        # 渲染好的 MP4
-└── .codex_instructions.md  # AI 编码规则（视频必须走管线）
+│       ├── audio/          # TTS 音频 + .srt/.ass 字幕
+│       ├── images/         # AI 配图 + b64_cache
+│       ├── 成品/           # 最终 MP4
+│       └── renders/        # 渲染临时文件
+└── skills/                 # Agent 技能文件
 ```
+
+---
 
 ## 创建新期目
 
@@ -116,19 +168,30 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 # 完整管线
 bash go.sh create --name "第7期_主题" --topic "用通俗方式讲 Transformer" --auto
 
+# 分步控制
+bash go.sh run --episode "第N期_主题" --step T0
+
+# Agent 步骤（T0/T1/T2/T4）:
+# 1. engine 输出 "需要生成" 提示
+# 2. 读取 .step_prompt.json 获取 topic/outline/script
+# 3. 按 skills/ascend-video-pipeline.md 生成内容
+# 4. 写入输出文件，删除 .step_prompt.json
+# 5. 重新执行该步骤，门禁通过后自动推进
+
 # 查看状态
-bash go.sh status --episode "第7期_神经网络训练技巧"
-
-# 列出所有期目
+bash go.sh status --episode "第N期_主题"
 bash go.sh list
-
-# 查看可用设计预设
 bash go.sh designs
+
+# 切换 B站风格分支
+git switch codex/bilibili-video-making
 ```
+
+---
 
 ## 设计预设参考
 
-设计预设的设计 tokens 来源于 [awesome-design-md](https://github.com/awesome-design-md)，一个收集各大品牌设计系统的开源项目。
+设计预设的设计 tokens 来源于 [awesome-design-md](https://github.com/awesome-design-md)，一个收集各大品牌设计系统的开源项目。分支预设 talk-show 为自定义设计，基于 B站 bilibili 预设改造。
 
 ## 致谢
 
