@@ -8,7 +8,7 @@ from pathlib import Path
 from v3.config import (
     WUYINKEJI_KEY, WUYINKEJI_SUBMIT_URL, WUYINKEJI_DETAIL_URL,
     PEXELS_KEY, PIXABAY_KEY,
-    IMAGE_FALLBACK_CHAIN, VIDEO_WIDTH, VIDEO_HEIGHT, WUYINKEJI_SIZE_MAP,
+    IMAGE_FALLBACK_CHAIN, VIDEO_WIDTH, VIDEO_HEIGHT, WUYINKEJI_SIZE_MAP, IMAGE_JPEG_QUALITY, IMAGE_PNG_COMPRESSION,
 )
 
 try:
@@ -233,7 +233,7 @@ def resize_for_video(img_bytes: bytes, target_w: int = VIDEO_WIDTH,
             "ffmpeg", "-y", "-i", in_path,
             "-vf", f"scale='min({target_w},iw)':'min({target_h},ih)':force_original_aspect_ratio=decrease,"
                    f"pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:color={pad_color}",
-            "-q:v", "3", out_path
+            "-q:v", str(IMAGE_JPEG_QUALITY), out_path
         ], capture_output=True, timeout=30, check=True)
         with open(out_path, "rb") as f:
             return f.read()
@@ -277,6 +277,20 @@ def generate_all_images(slots: list[dict], output_dir: str,
 
     accent = (design or {}).get("colors", {}).get("primary", "#cc785c")
     canvas = (design or {}).get("colors", {}).get("canvas", "#faf9f5")
+    design_name = (design or {}).get("name", "")
+    style_hints = {
+        "bilibili": "anime style, vibrant illustration, digital art, cartoon, flat vector art, bright colors",
+        "talk-show": "cartoon illustration, comic book style, expressive, flat vector art, bold colors, exaggerated expressions",
+        "claude": "warm illustration, painterly style, soft edges, digital art",
+        "dark-teal": "cyberpunk style, neon accents, dark background, digital art",
+        "linear": "minimalist vector art, clean lines, geometric shapes, modern illustration",
+        "mintlify": "clean vector illustration, flat design, professional, modern",
+        "stripe": "clean vector art, isometric style, professional illustration",
+        "vercel": "minimalist vector art, clean lines, modern illustration, simple shapes",
+    }
+    default_hint = style_hints.get(design_name, "digital art, illustration, clear, professional")
+    style_prefix = f"{default_hint}. The image should be visually clear for a video presentation."
+
 
     results = {}
     existing = set()
@@ -298,7 +312,13 @@ def generate_all_images(slots: list[dict], output_dir: str,
         size = slot.get("size", "16:9")
         print(f"  🖼  Generating {fn} ({slot.get('slot','?')})...", end=" ", flush=True)
 
-        img_data, source = generate_image(prompt, accent, canvas, size)
+        # Apply style prefix to prompt based on design
+        styled_prompt = f"{prompt.strip()}. {style_prefix}"
+        if design_name in ("bilibili", "talk-show"):
+            styled_prompt = f"[{default_hint}] {prompt.strip()}"
+
+        img_data, source = generate_image(styled_prompt, accent, canvas, size)
+
         img_data = resize_for_video(img_data, pad_color=canvas)
 
         with open(out / fn, "wb") as f:

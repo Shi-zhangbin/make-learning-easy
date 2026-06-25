@@ -26,6 +26,13 @@ EDGE_TTS_VOICE = "zh-CN-XiaoxiaoNeural"
 EDGE_TTS_RATE = "+15%"
 TTS_EFFECTIVE_CHARS_PER_SEC = 4.2
 
+# ── Image Quality ──
+# ffmpeg -q:v scale: 2=best, 7=smallest, 6≈balanced
+IMAGE_JPEG_QUALITY = 6
+# PIL PNG compress level: 0-9, 6=default
+IMAGE_PNG_COMPRESSION = 6
+
+
 # ── Video ──
 VIDEO_WIDTH = 1920
 VIDEO_HEIGHT = 1080
@@ -38,7 +45,6 @@ WUYINKEJI_SIZE_MAP = {
 }
 
 # ── Project paths ──
-import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EPISODES_DIR = os.path.join(BASE_DIR, "episodes")
 V3_DIR = os.path.join(BASE_DIR, "v3")

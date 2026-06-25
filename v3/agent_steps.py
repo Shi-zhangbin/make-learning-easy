@@ -48,7 +48,7 @@ class TopicResearchHandler(StepHandler):
         prompt = {
             "step": "T0", "topic": topic, "feedback": feedback,
             "output": "选题研究报告.md",
-            "design_style": design_style,
+            "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
 
@@ -82,7 +82,7 @@ class OutlineHandler(StepHandler):
         prompt = {
             "step": "T1", "report": report[:500], "feedback": feedback,
             "output": "知识点大纲.md",
-            "design_style": design_style,
+            "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
 
@@ -107,15 +107,20 @@ class ScriptHandler(StepHandler):
         print(f"     来源: 知识点大纲.md")
         print(f"     输出: 配音稿_分段.txt")
         print(f"     参考 SKILL.md T2 章节")
+        print(f"     风格: 程序员脱口秀 — 用段子讲干货，自嘲式叙述")
         if feedback:
             print(f"     反馈: {feedback}")
         
         prompt = {
             "step": "T2", "outline": outline[:1000], "feedback": feedback,
             "output": "配音稿_分段.txt",
-            "design_style": design_style,
+            "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+            "tone_style": "standup_comedy",
+            "script_style_guide": (
+                "以程序员脱口秀的形式输出口播稿。具体要求：\n1. 开头用一个程序员日常翻车场景破题，比如修bug、上线事故、跟产品经理battle\n2. 每个知识点由一个程序员梗或自嘲引出，不要干巴巴直接讲概念\n3. 把技术概念类比成程序员日常（比如：Git分支就像你周五下午改完代码没commit就下班）\n4. 使用'咱就是说'、'你懂的'这种程序员社交语气\n5. 每段正文后可以跟一句吐槽或反省\n6. 干货内核必须保留，不能为了搞笑牺牲准确性\n7. 标题风格参考'给傻子的X教程'、'从入门到跑路'\n8. 用人类听得懂的方式讲技术故事"
+            ),
 
         }
         (self.episode_dir / ".step_prompt.json").write_text(
@@ -138,15 +143,20 @@ class StoryboardHandler(StepHandler):
         print(f"     来源: 配音稿_分段.txt")
         print(f"     输出: PPT大纲.md + image_slots.json")
         print(f"     参考 SKILL.md T4 章节")
+        print(f"     风格: 漫画/二次元视觉 — 每页像一帧梗图")
         if feedback:
             print(f"     反馈: {feedback}")
         
         prompt = {
             "step": "T4", "script": script[:1000], "feedback": feedback,
             "output": "PPT大纲.md + image_slots.json",
-            "design_style": design_style,
+            "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+            "tone_style": "standup_comedy",
+            "visual_style_guide": (
+                "设计分镜和配图描述时，采用漫画/二次元风格。具体要求：\n1. image_slots 中的 prompt 描述应指向插画/漫画风格，不要写实照片\n2. 每页视觉参考'梗图'的感觉：大字+夸张表情+简洁背景\n3. 程序员场景用抽象化、夸张化的视觉表达（比如：bug变成小怪兽）\n4. 代码截图页面保持清晰，但周围可以加吐槽标注\n5. 避免恐怖、血腥、恐怖谷等不适内容\n6. 每一页的视觉焦点要明确，配合脱口秀节奏"
+            ),
 
         }
         (self.episode_dir / ".step_prompt.json").write_text(

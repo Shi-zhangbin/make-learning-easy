@@ -233,8 +233,13 @@ def check_t4(episode_dir: str) -> GateResult:
             "stripe": "#635bff",
             "vercel": "#0070f3",
         }.get(_style, "")
-        if _expected_color and _expected_color not in html:
-            issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
+        if _expected_color:
+            _html_check_path = os.path.join(episode_dir, "index.html")
+            if os.path.exists(_html_check_path):
+                with open(_html_check_path) as _hf:
+                    _html_check = _hf.read()
+                if _expected_color not in _html_check:
+                    issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
     
     # 2B: 时长交叉验证
     tl_path = os.path.join(episode_dir, "timeline.json")
@@ -254,13 +259,17 @@ def check_t4(episode_dir: str) -> GateResult:
         except Exception:
             pass
     
-    # 1D: HTML 占位符检测
-    for pat in PLACEHOLDER_PATTERNS:
-        # Check in visible text content (not in src, href, etc.)
-        _text_only = re.sub(r'<[^>]+>', ' ', html)
-        if re.search(pat, _text_only):
-            issues.append(f"HTML含占位符: [{pat}]")
-            break
+    # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
+    import re as _re
+    _html_path = os.path.join(episode_dir, "index.html")
+    if os.path.exists(_html_path):
+        with open(_html_path) as _hf:
+            _html = _hf.read()
+        _text_only = _re.sub(r'<[^>]+>', ' ', _html)
+        for pat in PLACEHOLDER_PATTERNS:
+            if _re.search(pat, _text_only):
+                issues.append(f"HTML含占位符: [{pat}]")
+                break
     
     if not issues:
         return GateResult(True, [], "")
@@ -375,8 +384,13 @@ def check_t6(episode_dir: str) -> GateResult:
             "stripe": "#635bff",
             "vercel": "#0070f3",
         }.get(_style, "")
-        if _expected_color and _expected_color not in html:
-            issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
+        if _expected_color:
+            _html_check_path = os.path.join(episode_dir, "index.html")
+            if os.path.exists(_html_check_path):
+                with open(_html_check_path) as _hf:
+                    _html_check = _hf.read()
+                if _expected_color not in _html_check:
+                    issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
     
     # 2B: 时长交叉验证
     tl_path = os.path.join(episode_dir, "timeline.json")
@@ -396,13 +410,17 @@ def check_t6(episode_dir: str) -> GateResult:
         except Exception:
             pass
     
-    # 1D: HTML 占位符检测
-    for pat in PLACEHOLDER_PATTERNS:
-        # Check in visible text content (not in src, href, etc.)
-        _text_only = re.sub(r'<[^>]+>', ' ', html)
-        if re.search(pat, _text_only):
-            issues.append(f"HTML含占位符: [{pat}]")
-            break
+    # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
+    import re as _re
+    _html_path = os.path.join(episode_dir, "index.html")
+    if os.path.exists(_html_path):
+        with open(_html_path) as _hf:
+            _html = _hf.read()
+        _text_only = _re.sub(r'<[^>]+>', ' ', _html)
+        for pat in PLACEHOLDER_PATTERNS:
+            if _re.search(pat, _text_only):
+                issues.append(f"HTML含占位符: [{pat}]")
+                break
     
     if not issues:
         return GateResult(True, [], "")
@@ -562,8 +580,13 @@ def check_t5(episode_dir: str) -> GateResult:
             "stripe": "#635bff",
             "vercel": "#0070f3",
         }.get(_style, "")
-        if _expected_color and _expected_color not in html:
-            issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
+        if _expected_color:
+            _html_check_path = os.path.join(episode_dir, "index.html")
+            if os.path.exists(_html_check_path):
+                with open(_html_check_path) as _hf:
+                    _html_check = _hf.read()
+                if _expected_color not in _html_check:
+                    issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
     
     # 2B: 时长交叉验证
     tl_path = os.path.join(episode_dir, "timeline.json")
@@ -583,13 +606,17 @@ def check_t5(episode_dir: str) -> GateResult:
         except Exception:
             pass
     
-    # 1D: HTML 占位符检测
-    for pat in PLACEHOLDER_PATTERNS:
-        # Check in visible text content (not in src, href, etc.)
-        _text_only = re.sub(r'<[^>]+>', ' ', html)
-        if re.search(pat, _text_only):
-            issues.append(f"HTML含占位符: [{pat}]")
-            break
+    # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
+    import re as _re
+    _html_path = os.path.join(episode_dir, "index.html")
+    if os.path.exists(_html_path):
+        with open(_html_path) as _hf:
+            _html = _hf.read()
+        _text_only = _re.sub(r'<[^>]+>', ' ', _html)
+        for pat in PLACEHOLDER_PATTERNS:
+            if _re.search(pat, _text_only):
+                issues.append(f"HTML含占位符: [{pat}]")
+                break
     
     if not issues:
         return GateResult(True, [], "")

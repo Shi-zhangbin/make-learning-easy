@@ -149,6 +149,29 @@ def _render(design, slides, audio_path="", html_path=""):
     .bg-glow {{ position:absolute; border-radius:50%; pointer-events:none; }}
     .bg-glow-1 {{ width:800px; height:800px; background:radial-gradient(circle,var(--accent)08 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); }}
 
+
+    /* 3D: Ambient float particles — slow-moving decorative dots */
+    .ambient-overlay {{ position:absolute; top:0; left:0; width:1920px; height:1080px; overflow:hidden; pointer-events:none; z-index:50; }}
+    .ambient-dot {{ position:absolute; border-radius:50%; opacity:0.12; animation:ambientFloat var(--ad-dur,18s) ease-in-out infinite; }}
+    .ambient-dot:nth-child(1) {{ width:8px; height:8px; left:10%; top:20%; --ad-dur:22s; animation-delay:-0s; }}
+    .ambient-dot:nth-child(2) {{ width:14px; height:14px; left:80%; top:70%; --ad-dur:26s; animation-delay:-3s; }}
+    .ambient-dot:nth-child(3) {{ width:6px; height:6px; left:30%; top:80%; --ad-dur:19s; animation-delay:-7s; }}
+    .ambient-dot:nth-child(4) {{ width:10px; height:10px; left:65%; top:15%; --ad-dur:24s; animation-delay:-5s; }}
+    .ambient-dot:nth-child(5) {{ width:5px; height:5px; left:50%; top:50%; --ad-dur:21s; animation-delay:-11s; }}
+    .ambient-dot:nth-child(6) {{ width:12px; height:12px; left:88%; top:40%; --ad-dur:28s; animation-delay:-2s; }}
+    .ambient-dot:nth-child(7) {{ width:4px; height:4px; left:15%; top:60%; --ad-dur:17s; animation-delay:-8s; }}
+    .ambient-dot:nth-child(8) {{ width:9px; height:9px; left:42%; top:35%; --ad-dur:23s; animation-delay:-4s; }}
+    @keyframes ambientFloat {{
+        0% {{ transform: translate(0,0) scale(1); }}
+        25% {{ transform: translate(30px,-20px) scale(1.1); }}
+        50% {{ transform: translate(-10px,-40px) scale(0.9); }}
+        75% {{ transform: translate(-35px,10px) scale(1.05); }}
+        100% {{ transform: translate(0,0) scale(1); }}
+    }}
+    
+    /* 3D: Subtle vignette overlay */
+    .vignette {{ position:absolute; top:0; left:0; width:1920px; height:1080px; pointer-events:none; z-index:40; background:radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.20) 100%); }}
+    
     /* Danmaku / bullet comments overlay */
     .danmaku-overlay {{ position:absolute; top:0; left:0; width:1920px; height:1080px; overflow:hidden; pointer-events:none; z-index:500; }}
     .danmaku {{ position:absolute; white-space:nowrap; font-family:"Noto Sans SC",sans-serif; font-size:22px; font-weight:700; color:var(--accent); text-shadow:0 0 8px rgba(0,0,0,0.3),0 0 2px white; opacity:0.7; animation:danmakuFly 8s linear forwards; }}
@@ -262,32 +285,80 @@ def _render(design, slides, audio_path="", html_path=""):
             return f'<div style="display:flex;justify-content:center;margin-top:8px;"><div class="badge" style="border:2px solid var(--accent);background:transparent;padding:8px 28px;border-radius:999px;cursor:default;">{el.get("text","")}</div></div>'
         return ""
 
-    # Scene entrance animation map per element type
+    # Element entrance animation pool (3A) — deterministic variety per element type
     def entrance_for(elem, pg, t, idx):
+        """Generate a GSAP entrance animation with deterministic variety."""
         etype = elem.get("type", "")
         delay = t + 0.15 + idx * 0.08
-        mapping = {
-            "badge": f'y:12,opacity:0,duration:0.3',
-            "heading": f'y:25,opacity:0,duration:0.5',
-            "paragraph": f'y:15,opacity:0,duration:0.4',
-            "accent-line": f'scaleX:0,opacity:0,duration:0.4',
-            "spacer": f'opacity:0,duration:0.01',
-            "chip-row": f'y:12,opacity:0,duration:0.3',
-            "card-row": f'y:20,opacity:0,duration:0.45',
-            "card-alt": f'x:-15,opacity:0,duration:0.4',
-            "card-alt-row": f'y:15,opacity:0,duration:0.4',
-            "grid-2x2": f'y:15,opacity:0,duration:0.4',
-            "image": f'scale:0.95,opacity:0,duration:0.5',
-            "code": f'x:-15,opacity:0,duration:0.5',
-            "split": f'opacity:0,duration:0.4',
-            "fq-row": f'y:15,opacity:0,duration:0.4',
-            "quote": f'y:15,opacity:0,duration:0.5',
-            "button": f'scale:0.9,opacity:0,duration:0.4',
-            "speech-bubble": f'scale:0.85,opacity:0,duration:0.5',
+        # Deterministic seed from page and element index
+        _seed = (pg * 7 + idx * 13) % 3
+
+        # Each type has 3 animation variants; variant 0 = original single style
+        variants = {
+            "badge": [
+                'y:12,opacity:0,duration:0.3',
+                'x:-10,opacity:0,duration:0.3',
+                'scale:0.8,opacity:0,duration:0.35',
+            ],
+            "heading": [
+                'y:25,opacity:0,duration:0.5',
+                'x:-20,opacity:0,duration:0.45',
+                'scale:0.92,opacity:0,duration:0.45',
+            ],
+            "paragraph": [
+                'y:15,opacity:0,duration:0.4',
+                'x:12,opacity:0,duration:0.35',
+                'opacity:0,duration:0.3',
+            ],
+            "accent-line": [
+                'scaleX:0,opacity:0,duration:0.4',
+                'scaleX:0,opacity:0,duration:0.3,transformOrigin:"left center"',
+                'scaleX:0,opacity:0,duration:0.5',
+            ],
+            "spacer": ['opacity:0,duration:0.01'] * 3,
+            "chip-row": [
+                'y:12,opacity:0,duration:0.3',
+                'x:-10,opacity:0,duration:0.3',
+                'scale:0.9,opacity:0,duration:0.3',
+            ],
+            "image": [
+                'scale:0.95,opacity:0,duration:0.5',
+                'opacity:0,rotation:-2,duration:0.5',
+                'scale:0.9,opacity:0,duration:0.4,transformOrigin:"center center"',
+            ],
+            "code": [
+                'x:-15,opacity:0,duration:0.5',
+                'y:10,opacity:0,duration:0.4',
+                'scale:0.95,opacity:0,duration:0.4',
+            ],
+            "split": [
+                'opacity:0,duration:0.4',
+                'x:-10,opacity:0,duration:0.35',
+                'opacity:0,scale:0.98,duration:0.35',
+            ],
+            "fq-row": [
+                'y:15,opacity:0,duration:0.4',
+                'x:10,opacity:0,duration:0.35',
+                'scale:0.95,opacity:0,duration:0.35',
+            ],
+            "quote": [
+                'y:15,opacity:0,duration:0.5',
+                'x:-10,opacity:0,duration:0.4',
+                'scale:0.95,opacity:0,duration:0.4',
+            ],
+            "button": [
+                'scale:0.9,opacity:0,duration:0.4',
+                'y:10,opacity:0,duration:0.35',
+                'opacity:0,duration:0.3',
+            ],
+            "speech-bubble": [
+                'scale:0.85,opacity:0,duration:0.5',
+                'y:10,opacity:0,duration:0.4',
+                'x:-8,opacity:0,duration:0.4',
+            ],
         }
-        props = mapping.get(etype)
-        if not props:
-            return ""
+        pool = variants.get(etype, ['y:12,opacity:0,duration:0.3'])
+        props = pool[_seed] if _seed < len(pool) else pool[0]
         ease = "power2.out" if etype in ("badge", "paragraph", "chip-row", "card-alt", "fq-row") else "power3.out" if etype in ("card-row", "grid-2x2") else "expo.out" if etype in ("heading",) else "power2.out"
         if etype == "card-row":
             return f'    tl.from("#s{pg} .card", {{ y:20, opacity:0, duration:0.4, ease:"power3.out", stagger:0.08 }}, {delay});\n'
@@ -321,6 +392,18 @@ def _render(design, slides, audio_path="", html_path=""):
   <div id="s{pg}" class="sc">
     <div class="sci">
       {inner}
+      <!-- 3D: Ambient float particles + vignette overlay -->
+      <div class="ambient-overlay">
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+        <div class="ambient-dot" style="background:var(--accent);"></div>
+      </div>
+      <div class="vignette"></div>
       <div style="display:none;"></div>
     </div>
   </div>"""
