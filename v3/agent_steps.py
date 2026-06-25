@@ -47,7 +47,11 @@ class TopicResearchHandler(StepHandler):
         # 写入 prompt 文件供 Codex 读取
         prompt = {
             "step": "T0", "topic": topic, "feedback": feedback,
-            "output": "选题研究报告.md"
+            "output": "选题研究报告.md",
+            "design_style": design_style,
+            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
+            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+
         }
         (self.episode_dir / ".step_prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))
@@ -77,7 +81,11 @@ class OutlineHandler(StepHandler):
         
         prompt = {
             "step": "T1", "report": report[:500], "feedback": feedback,
-            "output": "知识点大纲.md"
+            "output": "知识点大纲.md",
+            "design_style": design_style,
+            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
+            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+
         }
         (self.episode_dir / ".step_prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))
@@ -104,7 +112,11 @@ class ScriptHandler(StepHandler):
         
         prompt = {
             "step": "T2", "outline": outline[:1000], "feedback": feedback,
-            "output": "配音稿_分段.txt"
+            "output": "配音稿_分段.txt",
+            "design_style": design_style,
+            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
+            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+
         }
         (self.episode_dir / ".step_prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))
@@ -131,7 +143,11 @@ class StoryboardHandler(StepHandler):
         
         prompt = {
             "step": "T4", "script": script[:1000], "feedback": feedback,
-            "output": "PPT大纲.md + image_slots.json"
+            "output": "PPT大纲.md + image_slots.json",
+            "design_style": design_style,
+            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
+            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+
         }
         (self.episode_dir / ".step_prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))

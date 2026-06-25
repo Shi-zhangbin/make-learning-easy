@@ -72,7 +72,7 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 
 视频的颜色、字体、间距来自设计预设 YAML。换一个预设就换一套视觉风格，内容不用改。
 
-内置 6 套预设：
+内置 7 套预设：
 
 | 预设 | 底色 | 强调色 | 来源 |
 |------|------|--------|------|
@@ -82,6 +82,7 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 | stripe | 白 `#ffffff` | 蓝紫 `#635bff` | [Stripe](https://stripe.com) |
 | vercel | 白 `#ffffff` | 蓝 `#0070f3` | [Vercel](https://vercel.com) |
 | dark-teal | 深灰 `#0A0C0E` | 青绿 `#4FC3A1` | 自定义 |
+| bilibili | 浅灰 `#F5F6F7` | 粉 `#FB7299` | [Bilibili](https://bilibili.com) |
 
 ## 项目结构
 
@@ -96,7 +97,7 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 │   │   └── t7_render.py        # HyperFrames 渲染
 │   ├── designs/
 │   │   ├── base.py             # 设计预设加载器
-│   │   └── presets/*.yaml      # 6 套设计预设
+│   │   └── presets/*.yaml      # 7 套设计预设
 │   └── templates/              # (废弃) 旧 Jinja2 模板
 │       └── layouts/*.j2
 ├── episodes/               # 每期视频的内容目录

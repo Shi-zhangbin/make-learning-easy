@@ -9,6 +9,11 @@ import json, os
 from pathlib import Path
 from v3.steps.base import StepHandler, StepResult
 from v3.designs.base import load_preset
+from pathlib import Path
+
+# Load GSAP locally to avoid CDN dependency
+_GSAP_PATH = Path(__file__).resolve().parent.parent / "assets" / "gsap.min.js"
+_GSAP_INLINE = _GSAP_PATH.read_text(encoding="utf-8") if _GSAP_PATH.exists() else ""
 
 
 def _load_design(episode_dir):
@@ -106,7 +111,7 @@ def _render(design, slides, audio_path="", html_path=""):
     .split-r {{ flex:1; }}
 
     .img-wrap {{ display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:12px; background:color-mix(in srgb,var(--canvas)60%,black); border:1px solid var(--border); }}
-    .img-wrap img {{ width:100%; height:100%; object-fit:cover; padding:4px; }}
+    .img-wrap img {{ width:100%; height:100%; object-fit:contain; padding:4px; }}
 
     .code-w {{ background:var(--code-bg); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }}
     .code-w .ch {{ background:#16161e; height:32px; display:flex; align-items:center; padding:0 14px; gap:6px; flex-shrink:0; }}
@@ -230,22 +235,22 @@ def _render(design, slides, audio_path="", html_path=""):
         etype = elem.get("type", "")
         delay = t + 0.15 + idx * 0.08
         mapping = {
-            "badge": f'y:12,opacity:0,dur:0.3',
-            "heading": f'y:25,opacity:0,dur:0.5',
-            "paragraph": f'y:15,opacity:0,dur:0.4',
-            "accent-line": f'scaleX:0,opacity:0,dur:0.4',
-            "spacer": f'opacity:0,dur:0.01',
-            "chip-row": f'y:12,opacity:0,dur:0.3',
-            "card-row": f'y:20,opacity:0,dur:0.45',
-            "card-alt": f'x:-15,opacity:0,dur:0.4',
-            "card-alt-row": f'y:15,opacity:0,dur:0.4',
-            "grid-2x2": f'y:15,opacity:0,dur:0.4',
-            "image": f'scale:0.95,opacity:0,dur:0.5',
-            "code": f'x:-15,opacity:0,dur:0.5',
-            "split": f'opacity:0,dur:0.4',
-            "fq-row": f'y:15,opacity:0,dur:0.4',
-            "quote": f'y:15,opacity:0,dur:0.5',
-            "button": f'scale:0.9,opacity:0,dur:0.4',
+            "badge": f'y:12,opacity:0,duration:0.3',
+            "heading": f'y:25,opacity:0,duration:0.5',
+            "paragraph": f'y:15,opacity:0,duration:0.4',
+            "accent-line": f'scaleX:0,opacity:0,duration:0.4',
+            "spacer": f'opacity:0,duration:0.01',
+            "chip-row": f'y:12,opacity:0,duration:0.3',
+            "card-row": f'y:20,opacity:0,duration:0.45',
+            "card-alt": f'x:-15,opacity:0,duration:0.4',
+            "card-alt-row": f'y:15,opacity:0,duration:0.4',
+            "grid-2x2": f'y:15,opacity:0,duration:0.4',
+            "image": f'scale:0.95,opacity:0,duration:0.5',
+            "code": f'x:-15,opacity:0,duration:0.5',
+            "split": f'opacity:0,duration:0.4',
+            "fq-row": f'y:15,opacity:0,duration:0.4',
+            "quote": f'y:15,opacity:0,duration:0.5',
+            "button": f'scale:0.9,opacity:0,duration:0.4',
         }
         props = mapping.get(etype)
         if not props:
@@ -316,7 +321,8 @@ def _render(design, slides, audio_path="", html_path=""):
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=1920, height=1080" />
 {gf_link}
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<script>/* inlined: assets/gsap.min.js */
+_GSAP_INLINE</script>
 <style>{css_vars}{common_css}{scene_css}</style>
 </head>
 <body>
