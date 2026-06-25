@@ -106,7 +106,7 @@ def _render(design, slides, audio_path="", html_path=""):
     .split-r {{ flex:1; }}
 
     .img-wrap {{ display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:12px; background:color-mix(in srgb,var(--canvas)60%,black); border:1px solid var(--border); }}
-    .img-wrap img {{ width:100%; height:100%; object-fit:cover; padding:4px; }}
+    .img-wrap img {{ width:100%; height:100%; object-fit:contain; padding:4px; }}
 
     .code-w {{ background:var(--code-bg); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }}
     .code-w .ch {{ background:#16161e; height:32px; display:flex; align-items:center; padding:0 14px; gap:6px; flex-shrink:0; }}
