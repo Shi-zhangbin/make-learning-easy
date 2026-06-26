@@ -1,7 +1,0 @@
-file '/Users/shizhangbin/Desktop/ascend-pipeline/episodes/第2期_昇腾部署Qwen3-VL-8B概念讲解/03_音频/page_01_accel.mp3'
-file '/Users/shizhangbin/Desktop/ascend-pipeline/episodes/第2期_昇腾部署Qwen3-VL-8B概念讲解/03_音频/page_02_accel.mp3'
-file '/Users/shizhangbin/Desktop/ascend-pipeline/episodes/第2期_昇腾部署Qwen3-VL-8B概念讲解/03_音频/page_03_accel.mp3'
-file '/Users/shizhangbin/Desktop/ascend-pipeline/episodes/第2期_昇腾部署Qwen3-VL-8B概念讲解/03_音频/page_04_accel.mp3'
-file '/Users/shizhangbin/Desktop/ascend-pipeline/episodes/第2期_昇腾部署Qwen3-VL-8B概念讲解/03_音频/page_05_accel.mp3'
-file '/Users/shizhangbin/Desktop/ascend-pipeline/episodes/第2期_昇腾部署Qwen3-VL-8B概念讲解/03_音频/page_06_accel.mp3'
-file '/Users/shizhangbin/Desktop/ascend-pipeline/episodes/第2期_昇腾部署Qwen3-VL-8B概念讲解/03_音频/page_07_accel.mp3'
