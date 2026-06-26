@@ -11,24 +11,84 @@
  
  - **管线入口**: `bash go.sh`
  - **引擎代码**: `v3/engine.py`
- - **期目目录**: `episodes/第N期_主题/`
+ - **期目目录**: `episodes/YYYY-MM-DD_主题_[Agent]/`
  - **设计预设**: `v3/designs/presets/` (7 套)
  - **主语言**: Python 3.14+, Node.js (HyperFrames)
  
- ## 快速开始
+ 
+## 命名规范 — 统一期目 & 文件命名
+
+所有 agent（Codex / Claude Code / Hermes）必须遵循同一命名规范，以便横向对比。
+
+### 期目目录命名
+
+```
+YYYY-MM-DD_主题_[Agent]
+```
+
+示例: `2026-06-26_云服务的前世今生_[Codex]`
+
+- **日期前缀**: 按时间排序，快速定位近期产出
+- **主题居中**: 一眼识别内容
+- **Agent 后缀**: 区分制作者，方便同主题对比
+- Agent 可选值: `Codex`, `Claude-Code`, `Hermes`
+- 旧格式 `YYYY-MM-DD_主题_[Agent]` 已废弃，新项目必须用新格式
+
+### 期目内部文件
+
+每个期目使用 **步骤序号 + 语义名** 的统一格式。所有文件名在 `v3/config.py` 的 `FILE_NAMES` 中定义。
+
+```
+00-topic.md                ← T0 选题报告
+01-outline.md              ← T1 知识点大纲
+02-script.txt              ← T2 口播稿
+03-audio/narration.mp3     ← T3 TTS 产物
+03-timeline.json           ← T3 时间线
+04-storyboard.md           ← T4 分镜方案
+04-image-slots.json        ← T4 配图需求
+05-images/                 ← T5 AI 配图
+06-composition.html        ← T6 合成结果 (HyperFrames 入口)
+07-final/final.mp4         ← T7 最终视频
+pipeline-state.json        ← 管线状态
+.agent.json                ← agent 元数据
+```
+
+注: `compositions/` 和 `renders/` 由 HyperFrames 外部引擎管理，不在 FILE_NAMES 中。
+
+### Agent 元数据
+
+每个期目根目录下的 `.agent.json` 记录制作者信息：
+
+```json
+{
+  "agent": "Codex",
+  "engine": "v3",
+  "created": "2026-06-26T10:00:00",
+  "topic": "...",
+  "design_style": "bilibili"
+}
+```
+
+### 创建新期目
+
+```bash
+python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bilibili
+```
+
+## 快速开始
  
  ```bash
  # 创建新期目
- python3 -m v3.engine init "第N期_主题" --topic "..." --style bilibili
+ python3 -m v3.engine init "YYYY-MM-DD_主题_[Agent]" --topic "..." --style bilibili
  
  # 查看已创建期目
  bash go.sh list
  
  # 查看期目状态
- bash go.sh status --episode "第N期_主题"
+ bash go.sh status --episode "YYYY-MM-DD_主题_[Agent]"
  
  # 运行单个步骤
- bash go.sh run --episode "第N期_主题" --step T0
+ bash go.sh run --episode "YYYY-MM-DD_主题_[Agent]" --step T0
  
  # 查看可用的设计预设
  bash go.sh designs
@@ -207,7 +267,7 @@
  │   ├── designs/presets/   # 7 套设计预设 YAML
  │   └── assets/            # 静态资源（如 gsap.min.js）
  ├── episodes/              # 所有期目
- │   └── 第N期_主题/
+ │   └── YYYY-MM-DD_主题_[Agent]/
  │       ├── timeline.json
  │       ├── 配音稿_分段.txt
  │       ├── audio/         # TTS 产物
@@ -221,7 +281,7 @@
  ### 创建新期目
  
  ```bash
- python3 -m v3.engine init "第N期_主题" --topic "..." --style bilibili
+ python3 -m v3.engine init "YYYY-MM-DD_主题_[Agent]" --topic "..." --style bilibili
  ```
  
  ### 手动运行 Agent 步骤 (T0/T1/T2/T4)
@@ -241,7 +301,7 @@
  T7 渲染较长视频（>5min）时，可在 `renders/` 目录下观察进度：
  
  ```bash
- ls episodes/第N期_主题/renders/work-*/captured-frames/ | wc -l
+ ls episodes/YYYY-MM-DD_主题_[Agent]/renders/work-*/captured-frames/ | wc -l
  # 应能看到不断增长的数字，采集完毕后自动进入 FFmpeg 编码
  ```
  
@@ -250,7 +310,7 @@
  T6 完成后，可直接在浏览器打开 index.html 预览：
  
  ```bash
- open episodes/第N期_主题/index.html
+ open episodes/YYYY-MM-DD_主题_[Agent]/index.html
  ```
  
  ---
