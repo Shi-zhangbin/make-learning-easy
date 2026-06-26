@@ -9,7 +9,7 @@ Uses HyperFrames to render composition to video, then:
 import os, subprocess, json
 from pathlib import Path
 from v3.steps.base import StepHandler, StepResult
-from v3.config import VIDEO_FPS
+from v3.config import VIDEO_FPS, FILE_NAMES, resolve_episode_path
 from v3.subtitle import burn_subtitles
 
 
@@ -19,11 +19,11 @@ class RenderHandler(StepHandler):
 
     def execute(self) -> StepResult:
         episode_dir = self.episode_dir
-        video_dir = episode_dir / "成品"
+        video_dir = episode_dir / FILE_NAMES["final_dir"]
         video_dir.mkdir(exist_ok=True)
 
         # Step 1: HyperFrames render
-        raw_video = str(video_dir / "raw.mp4")
+        raw_video = str(episode_dir / FILE_NAMES["raw_video"])
         print(f"  Rendering with HyperFrames (fps={VIDEO_FPS})...")
         r = subprocess.run(
             ["npx", "hyperframes", "render"],
@@ -57,8 +57,8 @@ class RenderHandler(StepHandler):
         print(f"  Raw video: {raw_size_mb:.1f}MB")
 
         # Step 2: Add audio
-        audio_path = episode_dir / "audio" / "narration.mp3"
-        video_with_audio = str(video_dir / "with_audio.mp4")
+        audio_path = Path(resolve_episode_path(str(episode_dir), "audio_narration"))
+        video_with_audio = str(episode_dir / FILE_NAMES["video_with_audio"])
         if audio_path.exists():
             print("  Adding audio...")
             subprocess.run([
@@ -69,8 +69,8 @@ class RenderHandler(StepHandler):
             ], capture_output=True, timeout=300, check=True)
 
             # Step 3: Burn subtitles
-            ass_path = episode_dir / "audio" / "narration.ass"
-            final_video = str(video_dir / "final.mp4")
+            ass_path = Path(resolve_episode_path(str(episode_dir), "audio_ass"))
+            final_video = str(episode_dir / FILE_NAMES["final_video"])
             if ass_path.exists():
                 print("  Burning subtitles...")
                 try:
@@ -82,7 +82,7 @@ class RenderHandler(StepHandler):
             else:
                 subprocess.run(["cp", video_with_audio, final_video], check=True)
         else:
-            final_video = str(video_dir / "final.mp4")
+            final_video = str(episode_dir / FILE_NAMES["final_video"])
             subprocess.run(["cp", raw_video, final_video], check=True)
             print("  No audio found — video will be silent")
 

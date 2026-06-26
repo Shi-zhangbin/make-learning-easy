@@ -6,6 +6,7 @@ fallback chain: wuyinkeji → pexels → pixabay → svg
 """
 import json, os
 from pathlib import Path
+from v3.config import FILE_NAMES
 from v3.steps.base import StepHandler, StepResult
 from v3.imagegen import generate_all_images
 
@@ -17,9 +18,15 @@ class ImageHandler(StepHandler):
     def _find_slots(self) -> list[dict]:
         """Find and parse image_slots.json in the episode directory."""
         json_path = None
-        for f in self.episode_dir.rglob("image_slots.json"):
-            json_path = f
-            break
+        # Try new naming first
+        new_path = self.episode_dir / FILE_NAMES["image_slots"]
+        if new_path.exists():
+            json_path = new_path
+        else:
+            # Legacy fallback
+            for f in self.episode_dir.rglob("image_slots.json"):
+                json_path = f
+                break
         if not json_path:
             raise FileNotFoundError("No image_slots.json found in episode directory")
 
@@ -45,7 +52,7 @@ class ImageHandler(StepHandler):
             print("  No AI image slots found. Skipping T5.")
             return StepResult(True, {"generated": 0, "images": {}})
 
-        img_dir = str(self.episode_dir / "images")
+        img_dir = str(self.episode_dir / FILE_NAMES["images_dir"])
         print(f"  Generating {len(ai_slots)} images -> {img_dir}")
 
         images = generate_all_images(ai_slots, img_dir, self.design)
@@ -54,7 +61,7 @@ class ImageHandler(StepHandler):
         b64_cache = {}
         for fn in images:
             b64_cache[fn] = images[fn]
-        cache_path = self.episode_dir / "images" / "b64_cache.json"
+        cache_path = self.episode_dir / FILE_NAMES["image_cache"]
         with open(cache_path, "w") as f:
             json.dump(b64_cache, f, ensure_ascii=False)
 

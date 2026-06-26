@@ -41,9 +41,9 @@ def check_t0(episode_dir: str) -> GateResult:
     """选题报告完整吗？"""
     import os
     issues = []
-    md_path = os.path.join(episode_dir, "选题研究报告.md")
+    md_path = os.path.join(episode_dir, FILE_NAMES["topic_report"])
     if not os.path.exists(md_path):
-        return GateResult(False, ["选题研究报告.md 不存在"], "T0")
+        return GateResult(False, [f"{FILE_NAMES['topic_report']} 不存在"], "T0")
     with open(md_path, encoding="utf-8") as f:
         content = f.read()
     if len(content) < 200:
@@ -61,9 +61,9 @@ def check_t1(episode_dir: str) -> GateResult:
     """大纲结构合理吗？"""
     import os
     issues = []
-    md_path = os.path.join(episode_dir, "知识点大纲.md")
+    md_path = os.path.join(episode_dir, FILE_NAMES["outline"])
     if not os.path.exists(md_path):
-        return GateResult(False, ["知识点大纲.md 不存在"], "T1")
+        return GateResult(False, [f"{FILE_NAMES['outline']} 不存在"], "T1")
     with open(md_path, encoding="utf-8") as f:
         content = f.read()
     if len(content) < 300:
@@ -87,13 +87,14 @@ def check_t2(episode_dir: str) -> GateResult:
     import os, re
     issues = []
     
-    candidates = ["配音稿_分段.txt", "配音稿.txt", "口播稿.txt"]
-    script_path = None
-    for c in candidates:
-        p = os.path.join(episode_dir, c)
-        if os.path.exists(p):
-            script_path = p
-            break
+    script_path = os.path.join(episode_dir, FILE_NAMES["script"])
+    if not os.path.exists(script_path):
+        # Fallback for old-format episodes
+        for c in ["配音稿_分段.txt", "配音稿.txt", "口播稿.txt"]:
+            p = os.path.join(episode_dir, c)
+            if os.path.exists(p):
+                script_path = p
+                break
     
     if not script_path:
         return GateResult(False, ["口播稿文件不存在"], "T2")
@@ -111,7 +112,7 @@ def check_t2(episode_dir: str) -> GateResult:
     
     # B009: 时长估算校验
     chars = len(re.findall(r'[\u4e00-\u9fff\w]', clean_text))
-    from v3.config import TTS_EFFECTIVE_CHARS_PER_SEC
+    from v3.config import TTS_EFFECTIVE_CHARS_PER_SEC, FILE_NAMES, resolve_episode_path
     estimated_sec = chars / TTS_EFFECTIVE_CHARS_PER_SEC
     if estimated_sec < 300:
         issues.append(f"估计音频仅 {estimated_sec:.0f}s ({chars}字)，不足 5 分钟（阈值 300s/{int(300*TTS_EFFECTIVE_CHARS_PER_SEC)}字）")
@@ -150,7 +151,9 @@ def check_t3(episode_dir: str) -> GateResult:
     import os, json, subprocess
     issues = []
     
-    audio_path = os.path.join(episode_dir, "audio", "narration.mp3")
+    audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
+    if not os.path.exists(audio_path):
+        audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if not os.path.exists(audio_path):
         return GateResult(False, ["配音音频不存在"], "T3")
     
@@ -162,11 +165,13 @@ def check_t3(episode_dir: str) -> GateResult:
     audio_dur = float(r.stdout.strip())
     
     # 获取口播稿字数
-    candidates = ["配音稿_纯文字.txt", "配音稿_分段.txt", "口播稿.txt"]
-    script_path = None
-    for c in candidates:
-        p = os.path.join(episode_dir, c)
-        if os.path.exists(p): script_path = p; break
+    script_path = os.path.join(episode_dir, FILE_NAMES.get("script_raw", "02-script-raw.txt"))
+    if not os.path.exists(script_path):
+        script_path = os.path.join(episode_dir, FILE_NAMES["script"])
+    if not os.path.exists(script_path):
+        for c in ["配音稿_纯文字.txt", "配音稿_分段.txt", "口播稿.txt"]:
+            p = os.path.join(episode_dir, c)
+            if os.path.exists(p): script_path = p; break
     if not script_path:
         return GateResult(True, [], "")  # 没有口播稿就跳过
     
@@ -199,11 +204,12 @@ def check_t4(episode_dir: str) -> GateResult:
     from pathlib import Path
     issues = []
     
-    slots_path = None
-    for root, dirs, files in os.walk(episode_dir):
-        if "image_slots.json" in files:
-            slots_path = os.path.join(root, "image_slots.json")
-            break
+    slots_path = os.path.join(episode_dir, FILE_NAMES["image_slots"])
+    if not os.path.exists(slots_path):
+        for root, dirs, files in os.walk(episode_dir):
+            if "image_slots.json" in files:
+                slots_path = os.path.join(root, "image_slots.json")
+                break
     
     if not slots_path:
         issues.append("image_slots.json 不存在（至少需要 SVG 兜底插槽）")
@@ -218,7 +224,7 @@ def check_t4(episode_dir: str) -> GateResult:
         pages_total = len(list(Path(episode_dir).glob("compositions/scene_*.html")))
     
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
-    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
     if os.path.exists(state_path):
         import json as _json
         with open(state_path) as _sf:
@@ -234,7 +240,7 @@ def check_t4(episode_dir: str) -> GateResult:
             "vercel": "#0070f3",
         }.get(_style, "")
         if _expected_color:
-            _html_check_path = os.path.join(episode_dir, "index.html")
+            _html_check_path = os.path.join(episode_dir, FILE_NAMES["composition"])
             if os.path.exists(_html_check_path):
                 with open(_html_check_path) as _hf:
                     _html_check = _hf.read()
@@ -242,8 +248,10 @@ def check_t4(episode_dir: str) -> GateResult:
                     issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
     
     # 2B: 时长交叉验证
-    tl_path = os.path.join(episode_dir, "timeline.json")
-    audio_path = os.path.join(episode_dir, "audio", "narration.mp3")
+    tl_path = os.path.join(episode_dir, FILE_NAMES["timeline"])
+    audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
+    if not os.path.exists(audio_path):
+        audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if os.path.exists(tl_path) and os.path.exists(audio_path):
         try:
             import json as _json2, subprocess as _sp
@@ -261,7 +269,7 @@ def check_t4(episode_dir: str) -> GateResult:
     
     # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
     import re as _re
-    _html_path = os.path.join(episode_dir, "index.html")
+    _html_path = resolve_episode_path(episode_dir, "composition")
     if os.path.exists(_html_path):
         with open(_html_path) as _hf:
             _html = _hf.read()
@@ -286,9 +294,9 @@ def check_content_accuracy(step: str, episode_dir: str) -> GateResult:
     issues = []
     
     files_to_check = {
-        "T1": ["知识点大纲.md"],
-        "T2": ["配音稿_分段.txt", "口播稿.txt"],
-        "T4": ["PPT大纲.md"],
+        "T1": [FILE_NAMES["outline"]],
+        "T2": [FILE_NAMES["script"]],
+        "T4": [FILE_NAMES["storyboard"]],
     }
     
     for fname in files_to_check.get(step, []):
@@ -301,15 +309,15 @@ def check_content_accuracy(step: str, episode_dir: str) -> GateResult:
         with open(fpath, encoding="utf-8", errors="replace") as f:
             c = f.read()
         
-        if fname == "知识点大纲.md":
+        if fname == FILE_NAMES["outline"]:
             if not re.search(r'[一二三四五六七八九十]+、|\d+\.', c):
                 issues.append("大纲缺少结构化编号")
             if len(c) < 200:
                 issues.append("大纲内容过短")
-        if fname in ("配音稿_分段.txt", "口播稿.txt"):
+        if fname in [FILE_NAMES["script"], "配音稿_分段.txt", "口播稿.txt"]:
             if not re.findall(r"---\s*P\d+.*?---", c):
                 issues.append("口播稿缺少分页标记")
-        if fname == "PPT大纲.md":
+        if fname == FILE_NAMES["storyboard"]:
             if not re.search(r'布局|layout|配图', c, re.IGNORECASE):
                 issues.append("分镜方案缺少布局定义")
     
@@ -326,9 +334,9 @@ def check_t6(episode_dir: str) -> GateResult:
     from pathlib import Path
     
     ep = Path(episode_dir)
-    idx = ep / "index.html"
+    idx = Path(str(episode_dir)) / FILE_NAMES["composition"]
     if not idx.exists():
-        return GateResult(False, ["index.html 不存在"], "T4")
+        return GateResult(False, ["composition file 不存在"], "T4")
     
     html = idx.read_text(encoding="utf-8")
     issues = []
@@ -369,7 +377,7 @@ def check_t6(episode_dir: str) -> GateResult:
         issues.append("缺少音频")
     
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
-    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
     if os.path.exists(state_path):
         import json as _json
         with open(state_path) as _sf:
@@ -385,7 +393,7 @@ def check_t6(episode_dir: str) -> GateResult:
             "vercel": "#0070f3",
         }.get(_style, "")
         if _expected_color:
-            _html_check_path = os.path.join(episode_dir, "index.html")
+            _html_check_path = os.path.join(episode_dir, FILE_NAMES["composition"])
             if os.path.exists(_html_check_path):
                 with open(_html_check_path) as _hf:
                     _html_check = _hf.read()
@@ -393,8 +401,10 @@ def check_t6(episode_dir: str) -> GateResult:
                     issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
     
     # 2B: 时长交叉验证
-    tl_path = os.path.join(episode_dir, "timeline.json")
-    audio_path = os.path.join(episode_dir, "audio", "narration.mp3")
+    tl_path = os.path.join(episode_dir, FILE_NAMES["timeline"])
+    audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
+    if not os.path.exists(audio_path):
+        audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if os.path.exists(tl_path) and os.path.exists(audio_path):
         try:
             import json as _json2, subprocess as _sp
@@ -412,7 +422,7 @@ def check_t6(episode_dir: str) -> GateResult:
     
     # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
     import re as _re
-    _html_path = os.path.join(episode_dir, "index.html")
+    _html_path = resolve_episode_path(episode_dir, "composition")
     if os.path.exists(_html_path):
         with open(_html_path) as _hf:
             _html = _hf.read()
@@ -440,7 +450,9 @@ def check_t7(episode_dir: str) -> GateResult:
     issues = []
     
     # 找最终视频
-    finals = list(ep.glob("成品/*final*")) + list(ep.glob("成品/*最终*"))
+    finals = list(ep.glob(FILE_NAMES["final_dir"] + "/*final*"))
+    if not finals:
+        finals = list(ep.glob("成品/*final*")) + list(ep.glob("成品/*最终*"))
     final = None
     for f in finals:
         if f.suffix in (".mp4", ".mkv"):
@@ -455,7 +467,7 @@ def check_t7(episode_dir: str) -> GateResult:
     vid_dur = float(r.stdout.strip()) if r.stdout.strip() else 0.0
     
     # Video duration vs timeline
-    tl_path = ep / "timeline_v3.json"
+    tl_path = Path(str(episode_dir)) / FILE_NAMES["timeline"]
     if tl_path.exists() and vid_dur > 0:
         with open(tl_path) as f:
             tl = json.load(f)
@@ -473,7 +485,7 @@ def check_t7(episode_dir: str) -> GateResult:
         issues.append("视频无音频流")
     
     # 字幕偏差
-    tl_path = ep / "audio" / "narration.srt"
+    tl_path = Path(str(episode_dir)) / FILE_NAMES["audio_srt"]
     if tl_path.exists() and final.suffix == ".mkv":
         with open(tl_path, encoding="utf-8") as f:
             srt = f.read()
@@ -535,7 +547,7 @@ def check_t5(episode_dir: str) -> GateResult:
     import os
     from PIL import Image
     issues = []
-    img_dir = os.path.join(episode_dir, "images")
+    img_dir = os.path.join(episode_dir, FILE_NAMES["images_dir"])
     if not os.path.isdir(img_dir):
         return GateResult(False, ["images/ directory missing"], "T4")
     pngs = sorted([f for f in os.listdir(img_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
@@ -565,7 +577,7 @@ def check_t5(episode_dir: str) -> GateResult:
         except Exception as e:
             issues.append("{0}: unreadable ({1})".format(fn, e))
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
-    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
     if os.path.exists(state_path):
         import json as _json
         with open(state_path) as _sf:
@@ -581,7 +593,7 @@ def check_t5(episode_dir: str) -> GateResult:
             "vercel": "#0070f3",
         }.get(_style, "")
         if _expected_color:
-            _html_check_path = os.path.join(episode_dir, "index.html")
+            _html_check_path = os.path.join(episode_dir, FILE_NAMES["composition"])
             if os.path.exists(_html_check_path):
                 with open(_html_check_path) as _hf:
                     _html_check = _hf.read()
@@ -589,8 +601,10 @@ def check_t5(episode_dir: str) -> GateResult:
                     issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
     
     # 2B: 时长交叉验证
-    tl_path = os.path.join(episode_dir, "timeline.json")
-    audio_path = os.path.join(episode_dir, "audio", "narration.mp3")
+    tl_path = os.path.join(episode_dir, FILE_NAMES["timeline"])
+    audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
+    if not os.path.exists(audio_path):
+        audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if os.path.exists(tl_path) and os.path.exists(audio_path):
         try:
             import json as _json2, subprocess as _sp
@@ -608,7 +622,7 @@ def check_t5(episode_dir: str) -> GateResult:
     
     # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
     import re as _re
-    _html_path = os.path.join(episode_dir, "index.html")
+    _html_path = resolve_episode_path(episode_dir, "composition")
     if os.path.exists(_html_path):
         with open(_html_path) as _hf:
             _html = _hf.read()

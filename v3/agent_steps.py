@@ -6,11 +6,14 @@ v3/agent_steps.py — 内容生成步骤（Codex 直接生成）
 """
 import json, os, re
 from pathlib import Path
+from v3.config import FILE_NAMES
 from v3.steps.base import StepHandler, StepResult
 
 
 def _get_feedback(episode_dir: str) -> str:
-    fp = Path(episode_dir) / ".gate_feedback.json"
+    fp = Path(episode_dir) / "gate-feedback.json"
+    if not fp.exists():
+        fp = Path(episode_dir) / ".gate_feedback.json"
     if fp.exists():
         try:
             with open(fp, encoding="utf-8") as f:
@@ -37,9 +40,9 @@ class TopicResearchHandler(StepHandler):
         feedback = _get_feedback(str(self.episode_dir))
         
         # 打印提示供 Codex 使用
-        print(f"\n  📝 需要生成选题研究报告")
+        print(f"\n  📝 需要生成选题报告")
         print(f"     主题: {topic}")
-        print(f"     输出: 选题研究报告.md")
+        print(f"     输出: {FILE_NAMES["topic_report"]}")
         print(f"     参考 SKILL.md T0 章节")
         if feedback:
             print(f"     反馈: {feedback}")
@@ -47,17 +50,17 @@ class TopicResearchHandler(StepHandler):
         # 写入 prompt 文件供 Codex 读取
         prompt = {
             "step": "T0", "topic": topic, "feedback": feedback,
-            "output": "选题研究报告.md",
+            "output": FILE_NAMES["topic_report"],
             "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
 
         }
-        (self.episode_dir / ".step_prompt.json").write_text(
+        (self.episode_dir / "step-prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))
         
         return StepResult(True, {
-            "prompt": str(self.episode_dir / ".step_prompt.json"),
+            "prompt": str(self.episode_dir / "step-prompt.json"),
             "topic": topic
         })
 
@@ -68,29 +71,29 @@ class OutlineHandler(StepHandler):
     description = "Generate knowledge outline"
 
     def execute(self) -> StepResult:
-        report_path = self.episode_dir / "选题研究报告.md"
+        report_path = self.episode_dir / FILE_NAMES["topic_report"]
         report = report_path.read_text(encoding="utf-8") if report_path.exists() else ""
         feedback = _get_feedback(str(self.episode_dir))
         
         print(f"\n  📝 需要生成知识点大纲")
-        print(f"     来源: 选题研究报告.md")
-        print(f"     输出: 知识点大纲.md")
+        print(f"     来源: {FILE_NAMES["topic_report"]}")
+        print(f"     输出: {FILE_NAMES["outline"]}")
         print(f"     参考 SKILL.md T1 章节")
         if feedback:
             print(f"     反馈: {feedback}")
         
         prompt = {
             "step": "T1", "report": report[:500], "feedback": feedback,
-            "output": "知识点大纲.md",
+            "output": FILE_NAMES["outline"],
             "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
 
         }
-        (self.episode_dir / ".step_prompt.json").write_text(
+        (self.episode_dir / "step-prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))
         
-        return StepResult(True, {"prompt": str(self.episode_dir / ".step_prompt.json")})
+        return StepResult(True, {"prompt": str(self.episode_dir / "step-prompt.json")})
 
 
 class ScriptHandler(StepHandler):
@@ -99,13 +102,13 @@ class ScriptHandler(StepHandler):
     description = "Generate narration script"
 
     def execute(self) -> StepResult:
-        outline_path = self.episode_dir / "知识点大纲.md"
+        outline_path = self.episode_dir / FILE_NAMES["outline"]
         outline = outline_path.read_text(encoding="utf-8") if outline_path.exists() else ""
         feedback = _get_feedback(str(self.episode_dir))
         
         print(f"\n  📝 需要生成口播稿")
-        print(f"     来源: 知识点大纲.md")
-        print(f"     输出: 配音稿_分段.txt")
+        print(f"     来源: {FILE_NAMES["outline"]}")
+        print(f"     输出: {FILE_NAMES["script"]}")
         print(f"     参考 SKILL.md T2 章节")
         print(f"     风格: 程序员脱口秀 — 用段子讲干货，自嘲式叙述")
         if feedback:
@@ -113,7 +116,7 @@ class ScriptHandler(StepHandler):
         
         prompt = {
             "step": "T2", "outline": outline[:1000], "feedback": feedback,
-            "output": "配音稿_分段.txt",
+            "output": FILE_NAMES["script"],
             "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
@@ -123,10 +126,10 @@ class ScriptHandler(StepHandler):
             ),
 
         }
-        (self.episode_dir / ".step_prompt.json").write_text(
+        (self.episode_dir / "step-prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))
         
-        return StepResult(True, {"prompt": str(self.episode_dir / ".step_prompt.json")})
+        return StepResult(True, {"prompt": str(self.episode_dir / "step-prompt.json")})
 
 
 class StoryboardHandler(StepHandler):
@@ -135,13 +138,13 @@ class StoryboardHandler(StepHandler):
     description = "Design storyboard and image slots"
 
     def execute(self) -> StepResult:
-        script_path = self.episode_dir / "配音稿_分段.txt"
+        script_path = self.episode_dir / FILE_NAMES["script"]
         script = script_path.read_text(encoding="utf-8") if script_path.exists() else ""
         feedback = _get_feedback(str(self.episode_dir))
         
         print(f"\n  📝 需要生成分镜方案")
-        print(f"     来源: 配音稿_分段.txt")
-        print(f"     输出: PPT大纲.md + image_slots.json")
+        print(f"     来源: {FILE_NAMES["script"]}")
+        print(f"     输出: {FILE_NAMES["storyboard"]} + {FILE_NAMES["image_slots"]}")
         print(f"     参考 SKILL.md T4 章节")
         print(f"     风格: 漫画/二次元视觉 — 每页像一帧梗图")
         if feedback:
@@ -149,7 +152,7 @@ class StoryboardHandler(StepHandler):
         
         prompt = {
             "step": "T4", "script": script[:1000], "feedback": feedback,
-            "output": "PPT大纲.md + image_slots.json",
+            "output": FILE_NAMES["storyboard"] + " + " + FILE_NAMES["image_slots"],
             "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
@@ -159,10 +162,10 @@ class StoryboardHandler(StepHandler):
             ),
 
         }
-        (self.episode_dir / ".step_prompt.json").write_text(
+        (self.episode_dir / "step-prompt.json").write_text(
             json.dumps(prompt, ensure_ascii=False, indent=2))
         
-        return StepResult(True, {"prompt": str(self.episode_dir / ".step_prompt.json")})
+        return StepResult(True, {"prompt": str(self.episode_dir / "step-prompt.json")})
 
 
 class AuditHandler(StepHandler):
@@ -172,7 +175,7 @@ class AuditHandler(StepHandler):
 
     def execute(self) -> StepResult:
         artifacts = {}
-        for fname in ["选题研究报告.md", "知识点大纲.md", "配音稿_分段.txt", "PPT大纲.md"]:
+        for fname in [FILE_NAMES["topic_report"], FILE_NAMES["outline"], FILE_NAMES["script"], FILE_NAMES["storyboard"]]:
             path = self.episode_dir / fname
             if path.exists():
                 artifacts[fname] = path.read_text(encoding="utf-8")[:300]
