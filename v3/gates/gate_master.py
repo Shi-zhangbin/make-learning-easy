@@ -40,6 +40,7 @@ PLACEHOLDER_PATTERNS = [
 def check_t0(episode_dir: str) -> GateResult:
     """选题报告完整吗？"""
     import os
+    from v3.config import FILE_NAMES
     issues = []
     md_path = os.path.join(episode_dir, FILE_NAMES["topic_report"])
     if not os.path.exists(md_path):
@@ -60,6 +61,7 @@ def check_t0(episode_dir: str) -> GateResult:
 def check_t1(episode_dir: str) -> GateResult:
     """大纲结构合理吗？"""
     import os
+    from v3.config import FILE_NAMES
     issues = []
     md_path = os.path.join(episode_dir, FILE_NAMES["outline"])
     if not os.path.exists(md_path):
@@ -85,6 +87,7 @@ def check_t1(episode_dir: str) -> GateResult:
 def check_t2(episode_dir: str) -> GateResult:
     """口播稿无残留标记、无空页、字数合理、无占位符。"""
     import os, re
+    from v3.config import FILE_NAMES
     issues = []
     
     script_path = os.path.join(episode_dir, FILE_NAMES["script"])
@@ -202,6 +205,7 @@ def check_t4(episode_dir: str) -> GateResult:
     """分镜方案完整吗？image_slots 有吗？"""
     import os, json
     from pathlib import Path
+    from v3.config import FILE_NAMES, resolve_episode_path
     issues = []
     
     slots_path = os.path.join(episode_dir, FILE_NAMES["image_slots"])
@@ -332,6 +336,7 @@ def check_t6(episode_dir: str) -> GateResult:
     """Check composition has actual scene content in index.html."""
     import re, os
     from pathlib import Path
+    from v3.config import FILE_NAMES, resolve_episode_path
     
     ep = Path(episode_dir)
     idx = Path(str(episode_dir)) / FILE_NAMES["composition"]
@@ -445,6 +450,7 @@ def check_t7(episode_dir: str) -> GateResult:
     """视频时长对齐、音频存在、字幕偏差。"""
     import os, json, subprocess, re
     from pathlib import Path
+    from v3.config import FILE_NAMES, resolve_episode_path
     
     ep = Path(episode_dir)
     issues = []
@@ -546,6 +552,7 @@ def check_t5(episode_dir: str) -> GateResult:
     """Check images are not blank/black."""
     import os
     from PIL import Image
+    from v3.config import FILE_NAMES
     issues = []
     img_dir = os.path.join(episode_dir, FILE_NAMES["images_dir"])
     if not os.path.isdir(img_dir):

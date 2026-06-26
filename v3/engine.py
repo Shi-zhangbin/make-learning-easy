@@ -7,7 +7,7 @@ Entry point: v3/engine.py or go.sh
 import json, os, sys, time
 from pathlib import Path
 from datetime import datetime
-from v3.config import EPISODES_DIR, PRESETS_DIR, FILE_NAMES, validate_episode_name, parse_episode_name, get_agent_default
+from v3.config import EPISODES_DIR, PRESETS_DIR, FILE_NAMES, validate_episode_name, parse_episode_name, get_agent_default, resolve_episode_path
 from v3.designs.base import load_preset, list_presets
 
 # ── Step registry ──
