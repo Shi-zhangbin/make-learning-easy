@@ -124,67 +124,11 @@ def wuyinkeji_generate(prompt, filename, out_dir):
             return False
     print(f"  - {filename}: timeout")
     return False
-def openai_generate(prompt, filename, out_dir, size="1792x1024"):
-    """Generate a single image via OpenAI API."""
-    api_key = os.environ.get("OPENAI_API_KEY", "")
-    if not api_key:
-        print(f"  ⚠️  OPENAI_API_KEY 未设置，跳过 {filename}")
-        return False
-    if not HAS_REQUESTS:
-        print(f"  ⚠️  requests 未安装，跳过 {filename}")
-        return False
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "model": "dall-e-3",
-        "prompt": prompt,
-        "n": 1,
-        "size": size,
-        "quality": "standard",
-        "response_format": "b64_json",
-    }
-
-    try:
-        r = requests.post(
-            "https://api.openai.com/v1/images/generations",
-            headers=headers,
-            json=payload,
-            timeout=120,
-        )
-        r.raise_for_status()
-        data = r.json()
-        b64 = data["data"][0]["b64_json"]
-        img_bytes = base64.b64decode(b64)
-
-        # 保存
-        out_path = os.path.join(out_dir, filename)
-        with open(out_path, "wb") as f:
-            f.write(img_bytes)
-
-        # 压缩 if PIL
-        if HAS_PIL:
-            img = Image.open(io.BytesIO(img_bytes))
-            if img.mode in ("RGBA", "P"):
-                img = img.convert("RGB")
-            w, h = img.size
-            # Keep resolution for HD video
-            if w > 3840:
-                r = 3840 / w
-                img = img.resize((int(w * r), int(h * r)), Image.LANCZOS)
-            img.save(out_path, "JPEG", quality=95, optimize=True)
-
-        print(f"  ✅ 生成: {filename} ({os.path.getsize(out_path)//1024}KB)")
-        return True
-
-    except Exception as e:
-        print(f"  ❌ {filename}: {e}")
-        return False
+# def openai_generate(...) 已移除 — 管线仅使用 wuyinkeji (image2) API
+# 如需恢复 OpenAI DALL-E 回退，可参考 git history 恢复此函数
 
 
-def generate_images(project, api="openai", dry_run=False):
+def generate_images(project, api="wuyinkeji", dry_run=False):
     """Main generation logic."""
     slots_path = find_slots(project)
     if not slots_path:
@@ -242,10 +186,8 @@ def generate_images(project, api="openai", dry_run=False):
             }
             api_size = size_map.get(size, "1792x1024")
 
-            if api == "wuyinkeji":
-                ok = wuyinkeji_generate(prompt, fn, img_dir)
-            else:
-                ok = openai_generate(prompt, fn, img_dir, api_size)
+            # 仅使用 wuyinkeji (image2) API，无需 OPENAI_API_KEY
+            ok = wuyinkeji_generate(prompt, fn, img_dir)
             if ok:
                 success += 1
 
@@ -270,7 +212,7 @@ def generate_images(project, api="openai", dry_run=False):
 def main():
     p = argparse.ArgumentParser(description="从 image_slots.json 生成配图")
     p.add_argument("project", help="项目目录路径或名称")
-    p.add_argument("--api", default="wuyinkeji", choices=["openai", "wuyinkeji"], help="图片生成 API")
+    p.add_argument("--api", default="wuyinkeji", choices=["wuyinkeji"], help="图片生成 API（仅 wuyinkeji）")
     p.add_argument("--dry-run", action="store_true", help="只列出，不生成")
 
     args = p.parse_args()
@@ -288,7 +230,7 @@ def main():
         print(f"❌ 项目目录不存在: {args.project}")
         sys.exit(1)
 
-    ok = generate_images(project, args.api, args.dry_run)
+    ok = generate_images(project, "wuyinkeji", args.dry_run)
     sys.exit(0 if ok else 1)
 
 
