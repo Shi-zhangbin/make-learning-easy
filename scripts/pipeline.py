@@ -561,11 +561,11 @@ def run_t5(ed, state):
     if r.returncode != 0:
         mark(ed, "T5", "failed", "dry-run\u5931\u8d25")
         return
-    # API Key check
-    api_key = os.environ.get("WUYINKEJI_KEY", os.environ.get("OPENAI_API_KEY", ""))
+    # API Key check \u2014 \u4ec5\u4f7f\u7528 wuyinkeji (image2), \u4e0d\u518d\u56de\u9000 OPENAI_API_KEY
+    api_key = os.environ.get("WUYINKEJI_KEY", "")
     if not api_key:
-        print("\n\u26a0\ufe0f  OPENAI_API_KEY \u672a\u8bbe\u7f6e")
-        print("   A) export OPENAI_API_KEY=sk-xxx \u540e\u91cd\u8bd5")
+        print("\n\u26a0\ufe0f  WUYINKEJI_KEY \u672a\u8bbe\u7f6e")
+        print("   A) \u5728 .env \u4e2d\u914d\u7f6e WUYINKEJI_KEY \u540e\u91cd\u8bd5")
         print(f"   B) python3 scripts/pipeline.py skip --episode \"{os.path.basename(ed)}\" --step T5")
         return
     # \u751f\u6210
