@@ -7,7 +7,7 @@ Entry point: v3/engine.py or go.sh
 import json, os, sys, time
 from pathlib import Path
 from datetime import datetime
-from v3.config import EPISODES_DIR, PRESETS_DIR
+from v3.config import EPISODES_DIR, PRESETS_DIR, FILE_NAMES, validate_episode_name, parse_episode_name, get_agent_default
 from v3.designs.base import load_preset, list_presets
 
 # ── Step registry ──
@@ -53,7 +53,7 @@ def get_episode_dir(name: str) -> str:
 
 def load_state(episode_dir: str) -> dict:
     """Load pipeline state from episode directory."""
-    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    state_path = resolve_episode_path(episode_dir, "pipeline_state")
     if os.path.exists(state_path):
         with open(state_path) as f:
             return json.load(f)
@@ -69,9 +69,13 @@ def load_state(episode_dir: str) -> dict:
 def save_state(episode_dir: str, state: dict):
     """Save pipeline state."""
     state["updated_at"] = datetime.now().isoformat()
-    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
     with open(state_path, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=2)
+    # Clean up old-format state file if it exists
+    old_path = os.path.join(episode_dir, "pipeline_state.json")
+    if old_path != state_path and os.path.exists(old_path):
+        os.remove(old_path)
 
 
 def can_run_step(state: dict, step: str) -> tuple[bool, str]:
@@ -178,12 +182,14 @@ def _get_handler(step: str, episode_dir: str, design: dict | None):
     from v3.agent_steps import TopicResearchHandler, OutlineHandler, ScriptHandler, StoryboardHandler
     
     t0_topic = ""
-    state_path = os.path.join(episode_dir, "pipeline_state.json")
-    if os.path.exists(state_path):
-        import json
-        with open(state_path) as f:
-            s = json.load(f)
-        t0_topic = s.get("topic", "")
+    for fname in [FILE_NAMES["pipeline_state"], "pipeline_state.json"]:
+        state_path = os.path.join(episode_dir, fname)
+        if os.path.exists(state_path):
+            import json
+            with open(state_path) as f:
+                s = json.load(f)
+            t0_topic = s.get("topic", "")
+            break
     
     handlers = {
         "T0": lambda ed, d: TopicResearchHandler(ed, d, t0_topic),
@@ -269,11 +275,34 @@ def cmd_run(args):
     run_step(episode_dir, step, design)
 
 
+
+def write_agent_json(episode_dir: str, agent: str, topic: str, style: str):
+    """Write .agent.json metadata file for the episode."""
+    import json
+    from datetime import datetime
+    from v3.config import FILE_NAMES
+    meta = {
+        "agent": agent,
+        "engine": "v3",
+        "created": datetime.now().isoformat(),
+        "topic": topic,
+        "design_style": style,
+    }
+    path = os.path.join(episode_dir, FILE_NAMES["agent_info"])
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
+
 def cmd_init(args):
     """Initialize a new episode project."""
     name = args.name
     topic = args.topic or name
     style = args.style or "bilibili"
+
+    # Validate naming convention
+    valid, err = validate_episode_name(name)
+    if not valid:
+        print(f"  ❌ {err}")
+        return
 
     # Create episode directory
     episode_dir = os.path.join(EPISODES_DIR, name)
@@ -281,10 +310,11 @@ def cmd_init(args):
         print(f"  ❌ Episode already exists: {episode_dir}")
         return
 
-    os.makedirs(os.path.join(episode_dir, "audio"), exist_ok=True)
-    os.makedirs(os.path.join(episode_dir, "images"), exist_ok=True)
+    # Parse name parts
+    parts = parse_episode_name(name)
+
+    # Create episode subdirectories (step handlers create their own dirs on-demand)
     os.makedirs(os.path.join(episode_dir, "compositions"), exist_ok=True)
-    os.makedirs(os.path.join(episode_dir, "成品"), exist_ok=True)
 
     # Verify design preset exists
     try:
@@ -299,12 +329,14 @@ def cmd_init(args):
     state = {
         "episode": name,
         "topic": topic,
+        "agent": parts.get("agent") or get_agent_default(),
         "current_step": "T0",
         "steps": {},
         "design_style": style,
         "created_at": datetime.now().isoformat(),
     }
     save_state(episode_dir, state)
+    write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style)
 
     print(f"\n  ✅ Created: {name}")
     print(f"     📁 {episode_dir}")
@@ -324,7 +356,8 @@ def cmd_list(args):
             state = load_state(ep_dir)
             step = state.get("current_step", "?")
             style = state.get("design_style", "?")
-            print(f"  {ep:40s} {step:4s} 🎨{style}")
+            agent = state.get("agent", "-")
+            print(f"  {ep:45s} {step:4s} 🎨{style:12s} 🤖{agent}")
 
 
 
@@ -335,6 +368,14 @@ def cmd_create(args):
     name = args.name
     topic = args.topic
     style = args.style or "bilibili"
+
+    # Validate naming convention
+    valid, err = validate_episode_name(name)
+    if not valid:
+        print(f"  ❌ {err}")
+        return
+
+    parts = parse_episode_name(name)
     
     # Step 1: init project
     print(f"\n{'='*60}")
@@ -346,6 +387,10 @@ def cmd_create(args):
     episode_dir = os.path.join(EPISODES_DIR, name)
     if os.path.exists(episode_dir):
         print(f"  ⚠️  项目已存在，将追加内容")
+        # Refresh .agent.json if not exists
+        agent_path = os.path.join(episode_dir, FILE_NAMES["agent_info"])
+        if not os.path.exists(agent_path):
+            write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style)
     else:
         os.makedirs(os.path.join(episode_dir, "audio"), exist_ok=True)
         os.makedirs(os.path.join(episode_dir, "images"), exist_ok=True)
@@ -366,6 +411,7 @@ def cmd_create(args):
             "created_at": __import__("datetime").datetime.now().isoformat(),
         }
         save_state(episode_dir, state)
+        write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style)
     
     # Load design preset
     try:
@@ -471,9 +517,11 @@ def cmd_create(args):
             print(f"\n  管线停在 {step}。修复后运行: bash go.sh run --episode \"{name}\" --step {step}")
             return
     
+    parts = parse_episode_name(name)
+    _final = FILE_NAMES["final_video"] if not parts.get("legacy") else "成品/final.mp4"
     print(f"\n{'='*60}")
     print(f"  🎉 {name} 完成!")
-    print(f"  📁 {episode_dir}/成品/final.mp4")
+    print(f"  📁 {episode_dir}/{_final}")
     print(f"{'='*60}")
 
 def cmd_designs(args):

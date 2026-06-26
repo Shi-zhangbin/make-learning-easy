@@ -6,6 +6,7 @@ from audio files.
 """
 import os, subprocess, json, re
 from pathlib import Path
+from v3.config import FILE_NAMES
 from v3.models import SubtitleSegment, SubtitleArtifact
 
 

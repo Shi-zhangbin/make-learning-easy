@@ -7,6 +7,7 @@ All in one HyperFrames composition with push transitions + ambient.
 """
 import json, os
 from pathlib import Path
+from v3.config import FILE_NAMES, resolve_episode_path
 from v3.steps.base import StepHandler, StepResult
 from v3.designs.base import load_preset
 from pathlib import Path
@@ -17,7 +18,7 @@ _GSAP_INLINE = _GSAP_PATH.read_text(encoding="utf-8") if _GSAP_PATH.exists() els
 
 
 def _load_design(episode_dir):
-    state_path = os.path.join(episode_dir, "pipeline_state.json")
+    state_path = resolve_episode_path(episode_dir, "pipeline_state")
     style = "claude"
     if os.path.exists(state_path):
         with open(state_path) as f:
@@ -499,7 +500,7 @@ class CompositionHandler(StepHandler):
     description = "Element-driven HyperFrames composition"
 
     def execute(self):
-        tl_path = self.episode_dir / "timeline.json"
+        tl_path = self.episode_dir / FILE_NAMES["timeline"]
         if not tl_path.exists():
             return StepResult(False, errors=[f"No timeline.json in {self.episode_dir}"])
         with open(tl_path) as f:
@@ -509,8 +510,8 @@ class CompositionHandler(StepHandler):
             slides = timeline
         design = _load_design(str(self.episode_dir))
         total_dur = timeline.get("total_duration", sum(s.get("duration", 8) for s in slides))
-        audio_path = str(self.episode_dir / "audio" / "narration.mp3")
-        idx_path = self.episode_dir / "index.html"
+        audio_path = str(self.episode_dir / FILE_NAMES["audio_narration"])
+        idx_path = self.episode_dir / FILE_NAMES["composition"]
         html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)

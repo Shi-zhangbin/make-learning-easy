@@ -10,7 +10,7 @@ Generates:
 import os, json, subprocess, tempfile, re
 from pathlib import Path
 from v3.steps.base import StepHandler, StepResult
-from v3.config import EDGE_TTS_VOICE, EDGE_TTS_RATE, VIDEO_FPS
+from v3.config import EDGE_TTS_VOICE, EDGE_TTS_RATE, VIDEO_FPS, FILE_NAMES
 from v3.subtitle import generate_srt, srt_to_ass
 
 
@@ -20,6 +20,11 @@ class TTSHandler(StepHandler):
 
     def _get_script(self) -> str:
         """Find the narration script file in the episode directory."""
+        # Try new naming first
+        p = self.episode_dir / FILE_NAMES["script"]
+        if p.exists():
+            return str(p)
+        # Try legacy names
         candidates = [
             "配音稿_分段.txt", "配音稿.txt", "narration.txt",
             "口播稿.txt", "02_口播稿/口播稿.txt", "03_口播稿.txt",
@@ -60,7 +65,11 @@ class TTSHandler(StepHandler):
 
     def execute(self) -> StepResult:
         script_path = self._get_script()
-        audio_dir = self.episode_dir / "audio"
+        audio_dir = self.episode_dir / "03-audio"
+        audio_dir.mkdir(exist_ok=True)
+        # Legacy compat: also ensure audio/ exists
+        legacy_audio = self.episode_dir / "audio"
+        legacy_audio.mkdir(exist_ok=True)
         audio_dir.mkdir(exist_ok=True)
 
         with open(script_path, encoding="utf-8") as f:
@@ -82,7 +91,7 @@ class TTSHandler(StepHandler):
         full_script = "\n".join(clean_lines)
         
         # Write a clean version for reference
-        clean_path = script_path.replace('.txt', '_纯文字.txt')
+        clean_path = str(self.episode_dir / FILE_NAMES['script_raw'])
         with open(clean_path, 'w', encoding='utf-8') as f:
             f.write(full_script)
 
@@ -92,7 +101,7 @@ class TTSHandler(StepHandler):
         print(f"  TTS rate: {rate:.2f} chars/sec (sample: '{sample[:30]}...')")
 
         # Generate full TTS
-        audio_path = str(audio_dir / "narration.mp3")
+        audio_path = str(audio_dir / FILE_NAMES["audio_narration"].split("/")[-1])
         print(f"  Generating TTS audio ({len(full_script)} chars)...")
         subprocess.run([
             "python3", "-m", "edge_tts",
@@ -101,6 +110,7 @@ class TTSHandler(StepHandler):
             "-f", clean_path,
             "--write-media", audio_path,
         ], capture_output=True, timeout=600, check=True)
+
 
         # Measure duration
         r = subprocess.run([
@@ -116,7 +126,7 @@ class TTSHandler(StepHandler):
         sub_art = generate_srt(audio_path, str(audio_dir))
 
         # Generate ASS subtitles for embedding
-        ass_path = str(audio_dir / "narration.ass")
+        ass_path = str(audio_dir / FILE_NAMES["audio_ass"].split("/")[-1])
         srt_to_ass(sub_art.srt_path, ass_path)
 
         print(f"  Subtitles: {len(sub_art.segments)} segments → {ass_path}")
@@ -146,7 +156,7 @@ class TTSHandler(StepHandler):
         # Write timeline.json
         timeline = {"total_duration": round(total_dur, 2), "slides": pages,
                      "effective_rate": round(rate, 2)}
-        tl_path = self.episode_dir / "timeline.json"
+        tl_path = self.episode_dir / FILE_NAMES["timeline"]
         with open(tl_path, "w", encoding="utf-8") as f:
             json.dump(timeline, f, ensure_ascii=False, indent=2)
         print(f"  Timeline: {tl_path} ({len(pages)} slides)")
