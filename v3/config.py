@@ -86,6 +86,9 @@ FILE_NAMES = {
     # T5
     "images_dir": "05-images",
     "image_cache": "05-image-cache.json",
+    # Sprites (progress bar runner)
+    "sprites_dir": "sprites",
+    "sprite_runner": "sprites/runner.png",
     # T6
     "composition": "06-composition.html",
     # T7

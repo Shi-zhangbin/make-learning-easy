@@ -120,6 +120,11 @@ make-learning-easy/
 
 - **main**: 核心管线，通用风格
 - **codex/bilibili-video-making**: 完整 B站风格改造（弹幕浮层、吐槽气泡、talk-show 预设、二次元分镜提示词）
+- **codex/bottom-progress-bar**: 底部进度条改造（当前工作分支）
+
+### 分支工作规范
+
+不要自动同步远程仓库。切换分支时只用 `git checkout`，不附带 `git pull` / `git fetch`，除非用户明确要求。用户在本地开发期间，所有操作限制在本地，推送由用户自己决定。
 
 ## Known Risks
 

@@ -5,11 +5,12 @@ No fixed layouts. Each scene is an array of elements.
 Each element type maps to a renderer + GSAP entrance animation.
 All in one HyperFrames composition with push transitions + ambient.
 """
-import json, os
+import json, os, shutil
 from pathlib import Path
 from v3.config import FILE_NAMES, resolve_episode_path
 from v3.steps.base import StepHandler, StepResult
 from v3.designs.base import load_preset
+from v3.sprite_runner import get_runner_path, SPRITES_DIR_NAME, SPRITE_FILE_NAME
 from pathlib import Path
 
 # Load GSAP locally to avoid CDN dependency
@@ -141,9 +142,13 @@ def _render(design, slides, audio_path="", html_path=""):
     .progress-bg {{ height:100%; background:color-mix(in srgb,var(--accent)20%,transparent); border-radius:2px; width:100%; overflow:hidden; }}
     .progress-fill {{ height:3px; background:var(--accent); border-radius:2px; width:0%; position:relative; }}
     .progress-label {{ font-size:12px; font-weight:500; color:var(--muted); white-space:nowrap; min-width:30px; text-align:right; font-feature-settings:'tnum'; }}
-  0% {{ background-position: 0px 0px; }}
-  100% {{ background-position: -540px 0px; }}
-}}
+
+    /* Sprite runner on progress bar */
+    .dancer {{ position:absolute; bottom:-6px; left:-30px; width:60px; height:60px; background-image:url("sprites/runner.png"); background-size:540px 60px; image-rendering:auto; animation:spriteRun 0.8s steps(9) infinite; z-index:1000; pointer-events:none; }}
+    @keyframes spriteRun {{
+        0% {{ background-position: 0px 0px; }}
+        100% {{ background-position: -540px 0px; }}
+    }}
 
     .bg-glow {{ position:absolute; border-radius:50%; pointer-events:none; }}
     .bg-glow-1 {{ width:800px; height:800px; background:radial-gradient(circle,var(--accent)08 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); }}
@@ -465,9 +470,8 @@ def _render(design, slides, audio_path="", html_path=""):
   <div class="progress-bar">
     <div class="progress-track">
       <div class="progress-bg"></div>
-      <div class="progress-fill" id="pf">
-        <div class="dancer" id="pr"></div>
-      </div>
+      <div class="progress-fill" id="pf"></div>
+      <div class="dancer" id="pr"></div>
     </div>
     <span class="progress-label" id="pl">1/{n}</span>
   </div>
@@ -488,6 +492,7 @@ window.__timelines = window.__timelines || {{}};
 const tl = gsap.timeline({{ paused: true }});
 tl.to(".bg-glow-1", {{ scale:1.1, opacity:0.6, duration:3, ease:"sine.inOut", yoyo:true, repeat:15 }}, 0);
 tl.to("#pf", {{ width:'100%', duration:{total_dur}, ease:'linear' }}, 0);
+tl.to("#pr", {{ left:'calc(100% - 30px)', duration:{total_dur}, ease:'linear' }}, 0);
 {all_js}
 window.__timelines["main"] = tl;
 </script>
@@ -512,6 +517,18 @@ class CompositionHandler(StepHandler):
         total_dur = timeline.get("total_duration", sum(s.get("duration", 8) for s in slides))
         audio_path = str(self.episode_dir / FILE_NAMES["audio_narration"])
         idx_path = self.episode_dir / FILE_NAMES["composition"]
+
+        # Copy sprite runner to episode directory
+        sprites_dir = self.episode_dir / SPRITES_DIR_NAME
+        sprites_dir.mkdir(parents=True, exist_ok=True)
+        src_sprite = get_runner_path(str(self.episode_dir))
+        dst_sprite = sprites_dir / SPRITE_FILE_NAME
+        if os.path.exists(src_sprite) and src_sprite != str(dst_sprite):
+            shutil.copy2(src_sprite, dst_sprite)
+            print(f"  🏃 Sprite runner: {dst_sprite.name}")
+        elif not os.path.exists(src_sprite):
+            print(f"  ⚠️ No sprite runner found at {src_sprite}")
+
         html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)
