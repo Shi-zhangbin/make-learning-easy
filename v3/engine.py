@@ -337,6 +337,7 @@ def cmd_init(args):
         style = "bilibili"
 
     # Write initial state
+    sprite_style = getattr(args, "sprite_style", "") or "boy"
     state = {
         "episode": name,
         "topic": topic,
@@ -344,6 +345,7 @@ def cmd_init(args):
         "current_step": "T0",
         "steps": {},
         "design_style": style,
+        "sprite_style": sprite_style,
         "created_at": datetime.now().isoformat(),
     }
     save_state(episode_dir, state)
@@ -352,6 +354,7 @@ def cmd_init(args):
     print(f"\n  ✅ Created: {name}")
     print(f"     📁 {episode_dir}")
     print(f"     🎨 {style}")
+    print(f"     🏃 {sprite_style}")
     print(f"     → Next: python3 -m v3.engine run --episode \"{name}\"")
 
 
@@ -413,12 +416,14 @@ def cmd_create(args):
             f.write(f"# {name}\n\n{topic}\n")
         
         # Init state
+        sprite_style = getattr(args, "sprite_style", "") or "boy"
         state = {
             "episode": name,
             "topic": topic,
             "current_step": "T0",
             "steps": {},
             "design_style": style,
+            "sprite_style": sprite_style,
             "created_at": __import__("datetime").datetime.now().isoformat(),
         }
         save_state(episode_dir, state)
@@ -552,6 +557,7 @@ def main():
     sp.add_argument("name", help="Episode name")
     sp.add_argument("--topic", help="Topic description")
     sp.add_argument("--style", default="bilibili", help="Design preset")
+    sp.add_argument("--sprite-style", default="", help='Runner sprite style (boy/dino/walk/cycle/skateboard/jump/moonwalk/dance/fly)')
 
     sp = s.add_parser("run")
     sp.add_argument("--episode", required=True)
@@ -567,6 +573,7 @@ def main():
     sp.add_argument("name", help='Episode name (e.g. 2026-06-27_什么是API_[Codex])')
     sp.add_argument("--topic", required=True, help="Topic description")
     sp.add_argument("--style", default="bilibili", help="Design preset")
+    sp.add_argument("--sprite-style", default="", help='Runner sprite style (boy/dino/walk/cycle/skateboard/jump/moonwalk/dance/fly)')
     sp.add_argument("--auto", action="store_true", default=True, help="Auto-run all steps")
 
     args = p.parse_args()
