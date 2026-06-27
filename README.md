@@ -2,7 +2,8 @@
 
 > AI 视频全自动生产线 — 从一句话到成品视频
 > 专注于技术教程和知识科普内容
-> 🧑‍💻 `codex/bilibili-video-making` 分支具有完整 B站风格改造
+> 🧑‍💻 `codex/bilibili-video-making` 分支 — B站风格改造
+> 🏃 `codex/bottom-progress-bar` 分支 — 底部进度条跑步小人
 
 ## 快速开始
 
@@ -86,6 +87,31 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 - **呼吸光晕装饰** — 背景渐变呼吸，画面有层次感
 - **TTS 语音同步** — edge-tts 配音自动嵌入视频
 - **弹幕浮层 (分支)** — 画面叠加动态 B站弹幕
+- **🏃 底部进度条跑步小人** — AI 生成的精灵图角色在进度条上奔跑
+
+### 🏃 进度条跑步小人
+
+视频底部进度条上有一个 **AI 生成的小角色在奔跑**，自身做帧动画，位置随视频进度从左到右推进。
+
+**预制风格：**
+
+| 预设 | 形象 | 使用 |
+|------|------|------|
+| 🦕 **dino**（默认） | 小蓝恐龙，Q版像素风 | `pipeline-state.json` 中设置 `"sprite_style": "dino"` |
+| 🧒 **boy** | 小男孩，chibi 风 | `pipeline-state.json` 中设置 `"sprite_style": "boy"` |
+
+**技术实现：**
+
+- 3×3 网格 AI 生成 → 自动去底 → 内容居中 → 拼接成 9 帧水平 strip（540×60px）
+- GSAP onUpdate 逐帧驱动，与 HyperFrames 渲染同步（1.2s/循环）
+- 每帧独立做视觉中心对齐，避免角色跳动
+- 支持扩展：在 `v3/sprite_runner.py` 的 `SPRITE_PRESETS` 字典加条目即可新增风格
+
+**手动生成精灵图：**
+```bash
+python3 -m v3.sprite_runner preset --style dino --out sprites/runner.png   # 小恐龙
+python3 -m v3.sprite_runner preset --style boy --out sprites/runner.png    # 小男孩
+```
 
 ### 🧩 元素驱动布局
 
@@ -147,8 +173,11 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 │   ├── designs/
 │   │   ├── base.py             # 设计预设加载器
 │   │   └── presets/*.yaml      # 7+1 套设计预设（分支含 talk-show）
+│   ├── sprite_runner.py      # 精灵图生成 + 预处理管线（dino/boy 预设）
 │   └── assets/
-│       └── gsap.min.js     # 本地化的 GSAP 动画库
+│       ├── gsap.min.js       # 本地化的 GSAP 动画库
+│       ├── sprite_runner.png # 默认跑步精灵（小恐龙）
+│       └── sprite_dino.png   # 小恐龙精灵（独立文件）
 ├── episodes/               # 每期视频的内容目录
 │   └── 第N期_主题/
 │       ├── timeline.json   # 元素数组 + 时长
