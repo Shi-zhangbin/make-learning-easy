@@ -63,6 +63,118 @@ SPRITE_PRESETS = {
             "Simple flat vector art, clear running motion, identical character size in every cell."
         ),
     },
+    "walk": {
+        "name": "散步",
+        "desc": "Cute chibi boy walking casually",
+        "grid_prompt": (
+            "A precise 3x3 sprite sheet of ONE cute chibi boy walking animation, "
+            "side view, game sprite pixel art style, white background. "
+            "Exact same character design in all 9 cells, same as running boy but slower pace. "
+            "Row 1 (left to right): left foot stepping forward lazily, "
+            "both feet flat on ground in mid-stride, right foot beginning to lift. "
+            "Row 2 (left to right): right foot stepping forward, "
+            "both feet together brief pause, left foot starting forward. "
+            "Row 3 (left to right): left foot landing forward, "
+            "both feet momentarily together, right foot dragging forward. "
+            "Relaxed posture, arms swinging casually, simple flat vector art."
+        ),
+    },
+    "cycle": {
+        "name": "骑车",
+        "desc": "Cute chibi boy riding a bicycle",
+        "grid_prompt": (
+            "A precise 3x3 sprite sheet of ONE cute chibi boy riding a bicycle animation, "
+            "side view, game sprite pixel art style, white background. "
+            "Exact same character and bicycle design in all 9 cells. "
+            "Row 1 (left to right): left pedal down pushing, "
+            "both pedals horizontal mid-rotation, right pedal pushing down. "
+            "Row 2 (left to right): right pedal down, "
+            "both pedals level cruising, left foot pushing down. "
+            "Row 3 (left to right): left pedal down, "
+            "pedals level smooth rotation, right pedal starting down. "
+            "Small bicycle with visible wheels and pedal rotation, simple flat vector art."
+        ),
+    },
+    "skateboard": {
+        "name": "滑板",
+        "desc": "Cool chibi boy skateboarding",
+        "grid_prompt": (
+            "A precise 3x3 sprite sheet of ONE cool chibi boy skateboarding animation, "
+            "side view, game sprite pixel art style, white background. "
+            "Exact same character and skateboard design in all 9 cells. "
+            "Row 1 (left to right): crouched low pushing off with left foot, "
+            "both feet on board gliding, right foot dragging to brake. "
+            "Row 2 (left to right): standing tall cruising, "
+            "slight crouch absorbing bump, leaning forward accelerating. "
+            "Row 3 (left to right): pushing off with right foot, "
+            "both feet on board coasting, landing after small ollie. "
+            "Skateboard with visible wheels, relaxed cool posture, flat vector art."
+        ),
+    },
+    "jump": {
+        "name": "跳跃",
+        "desc": "Bouncy chibi boy jumping/hopping forward",
+        "grid_prompt": (
+            "A precise 3x3 sprite sheet of ONE cute chibi boy hopping forward animation, "
+            "side view, game sprite pixel art style, white background. "
+            "Exact same character design in all 9 cells. "
+            "Row 1 (left to right): crouching down arms back preparing to jump, "
+            "springing upward arms rising, fully airborne legs tucked. "
+            "Row 2 (left to right): mid-air reaching peak height, "
+            "starting descent legs extending, landing on both feet crouching. "
+            "Row 3 (left to right): bouncing up again arms up, "
+            "full airborne star jump, landing softly bending knees. "
+            "Expressive jumping motion, happy expression, simple flat vector art."
+        ),
+    },
+    "moonwalk": {
+        "name": "太空步",
+        "desc": "Funny chibi moonwalking backward",
+        "grid_prompt": (
+            "A precise 3x3 sprite sheet of ONE cute chibi boy moonwalking animation, "
+            "side view, game sprite pixel art style, white background. "
+            "Exact same character design in all 9 cells. "
+            "Row 1 (left to right): gliding backward left foot flat, "
+            "right foot sliding back heel down, left foot pulling back. "
+            "Row 2 (left to right): both feet sliding back smoothly, "
+            "right foot flat gliding, left foot sliding back toe. "
+            "Row 3 (left to right): left foot flat sliding back, "
+            "both feet gliding together, right foot toe slide. "
+            "Cool confident expression, Michael Jackson style, flat vector art."
+        ),
+    },
+    "dance": {
+        "name": "跳舞",
+        "desc": "Groovy chibi boy dancing in place while moving forward",
+        "grid_prompt": (
+            "A precise 3x3 sprite sheet of ONE cute chibi boy dancing animation, "
+            "side view, game sprite pixel art style, white background. "
+            "Exact same character design in all 9 cells. "
+            "Row 1 (left to right): arms up grooving left foot out, "
+            "both arms down swaying hips, right arm up pointing. "
+            "Row 2 (left to right): twisting body left arms out, "
+            "spin move arms wide, body wave leaning back. "
+            "Row 3 (left to right): stepping side to side arms low, "
+            "both arms up cheering, groove pose knee up. "
+            "Fun energetic dancing, star sunglasses, simple flat vector art."
+        ),
+    },
+    "fly": {
+        "name": "飞翔",
+        "desc": "Superhero chibi boy flying forward",
+        "grid_prompt": (
+            "A precise 3x3 sprite sheet of ONE cute chibi boy superhero flying animation, "
+            "side view, game sprite pixel art style, white background. "
+            "Exact same character design in all 9 cells, cape flowing. "
+            "Row 1 (left to right): both arms forward diving down, "
+            "one arm forward gliding level, cape billowing behind. "
+            "Row 2 (left to right): arms spread wide soaring up, "
+            "both fists forward speeding up, banking turn one arm up. "
+            "Row 3 (left to right): diving again arms tucked, "
+            "level flight cruising, pulling up arms wide. "
+            "Superhero pose with flowing cape, determined expression, flat vector art."
+        ),
+    },
 }
 
 
