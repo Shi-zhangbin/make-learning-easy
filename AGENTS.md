@@ -32,7 +32,7 @@ YYYY-MM-DD_主题_[Agent]
 - **主题居中**: 一眼识别内容
 - **Agent 后缀**: 区分制作者，方便同主题对比
 - Agent 可选值: `Codex`, `Claude-Code`, `Hermes`
-- 旧格式 `YYYY-MM-DD_主题_[Agent]` 已废弃，新项目必须用新格式
+- 旧格式 `第N期_主题` 已废弃，新项目必须用 `YYYY-MM-DD_主题_[Agent]`
 
 ### 期目内部文件
 
@@ -138,12 +138,12 @@ python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bili
  
  ✅ **遵守示例**
  ```bash
- python3 -m v3.engine init "第N期_Docker入门" --topic "..." --style bilibili
+ python3 -m v3.engine init "2026-06-27_Docker入门_[Codex]" --topic "..." --style bilibili
  ```
  
  ❌ **违规示例**
  ```bash
- python3 -m v3.engine init "第N期_Docker入门" --topic "..." --style dark-teal
+ python3 -m v3.engine init "2026-06-27_Docker入门_[Codex]" --topic "..." --style dark-teal
  # 擅自选择非默认风格，需要用户明确要求才能这样做
  ```
  
