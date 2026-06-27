@@ -32,7 +32,7 @@ YYYY-MM-DD_主题_[Agent]
 - **主题居中**: 一眼识别内容
 - **Agent 后缀**: 区分制作者，方便同主题对比
 - Agent 可选值: `Codex`, `Claude-Code`, `Hermes`
-- 旧格式 `第N期_主题` 已废弃，新项目必须用 `YYYY-MM-DD_主题_[Agent]`
+- 统一命名格式 `YYYY-MM-DD_主题_[Agent]`
 
 ### 期目内部文件
 

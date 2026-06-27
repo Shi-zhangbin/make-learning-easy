@@ -17,10 +17,10 @@ cp .env.example .env
 # 编辑 .env 填入你的 key（wuyinkeji 配图 + 可选 Pexels/Pixabay 兜底）
 
 # 一键全自动
-bash go.sh create --name "第N期_主题" --topic "..." --auto
+bash go.sh create "2026-06-27_主题_[Codex]" --topic "..." --auto
 
 # 分步控制
-bash go.sh run --episode "第N期_主题" --step T0
+bash go.sh run --episode "2026-06-27_主题_[Codex]" --step T0
 ```
 
 ---
@@ -42,13 +42,13 @@ bash go.sh run --episode "第N期_主题" --step T0
 使用方式：
 ```bash
 git switch codex/bilibili-video-making
-python3 -m v3.engine init "第N期_主题" --topic "..." --style talk-show
+python3 -m v3.engine init "2026-06-27_主题_[Codex]" --topic "..." --style talk-show
 ```
 
 可选风格：
 ```bash
-python3 -m v3.engine init "第N期_主题" --topic "..." --style bilibili   # 默认，二次元粉
-python3 -m v3.engine init "第N期_主题" --topic "..." --style dark-teal  # 深色科技
+python3 -m v3.engine init "2026-06-27_主题_[Codex]" --topic "..." --style bilibili   # 默认，二次元粉
+python3 -m v3.engine init "2026-06-27_主题_[Codex]" --topic "..." --style dark-teal  # 深色科技
 # 全部预设: bash go.sh designs
 ```
 
@@ -179,7 +179,7 @@ python3 -m v3.sprite_runner preset --style boy --out sprites/runner.png    # 小
 │       ├── sprite_runner.png # 默认跑步精灵（小恐龙）
 │       └── sprite_dino.png   # 小恐龙精灵（独立文件）
 ├── episodes/               # 每期视频的内容目录
-│   └── 第N期_主题/
+│   └── 2026-06-27_主题_[Codex]/
 │       ├── timeline.json   # 元素数组 + 时长
 │       ├── 配音稿_分段.txt # 口播稿
 │       ├── audio/          # TTS 音频 + .srt/.ass 字幕
@@ -198,7 +198,7 @@ python3 -m v3.sprite_runner preset --style boy --out sprites/runner.png    # 小
 bash go.sh create --name "第7期_主题" --topic "用通俗方式讲 Transformer" --auto
 
 # 分步控制
-bash go.sh run --episode "第N期_主题" --step T0
+bash go.sh run --episode "2026-06-27_主题_[Codex]" --step T0
 
 # Agent 步骤（T0/T1/T2/T4）:
 # 1. engine 输出 "需要生成" 提示
@@ -208,7 +208,7 @@ bash go.sh run --episode "第N期_主题" --step T0
 # 5. 重新执行该步骤，门禁通过后自动推进
 
 # 查看状态
-bash go.sh status --episode "第N期_主题"
+bash go.sh status --episode "2026-06-27_主题_[Codex]"
 bash go.sh list
 bash go.sh designs
 
