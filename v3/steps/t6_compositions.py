@@ -10,7 +10,7 @@ from pathlib import Path
 from v3.config import FILE_NAMES, resolve_episode_path
 from v3.steps.base import StepHandler, StepResult
 from v3.designs.base import load_preset
-from v3.sprite_runner import get_runner_path, SPRITES_DIR_NAME, SPRITE_FILE_NAME
+from v3.sprite_runner import get_runner_path, SPRITES_DIR_NAME, SPRITE_FILE_NAME, list_presets, make_preset_runner
 from pathlib import Path
 
 # Load GSAP locally to avoid CDN dependency
@@ -144,11 +144,7 @@ def _render(design, slides, audio_path="", html_path=""):
     .progress-label {{ font-size:12px; font-weight:500; color:var(--muted); white-space:nowrap; min-width:30px; text-align:right; font-feature-settings:'tnum'; }}
 
     /* Sprite runner on progress bar */
-    .dancer {{ position:absolute; bottom:-6px; left:-30px; width:60px; height:60px; background-image:url("sprites/runner.png"); background-size:540px 60px; image-rendering:auto; animation:spriteRun 0.8s steps(9) infinite; z-index:1000; pointer-events:none; }}
-    @keyframes spriteRun {{
-        0% {{ background-position: 0px 0px; }}
-        100% {{ background-position: -540px 0px; }}
-    }}
+    .dancer {{ position:absolute; bottom:-6px; left:-30px; width:60px; height:60px; background-image:url("sprites/runner.png"); background-size:540px 60px; image-rendering:auto; z-index:1000; pointer-events:none; }}
 
     .bg-glow {{ position:absolute; border-radius:50%; pointer-events:none; }}
     .bg-glow-1 {{ width:800px; height:800px; background:radial-gradient(circle,var(--accent)08 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); }}
@@ -493,6 +489,8 @@ const tl = gsap.timeline({{ paused: true }});
 tl.to(".bg-glow-1", {{ scale:1.1, opacity:0.6, duration:3, ease:"sine.inOut", yoyo:true, repeat:15 }}, 0);
 tl.to("#pf", {{ width:'100%', duration:{total_dur}, ease:'linear' }}, 0);
 tl.to("#pr", {{ left:'calc(100% - 30px)', duration:{total_dur}, ease:'linear' }}, 0);
+const _sc = 1.2, _sf = 9;
+tl.to("#pr", {{ duration:{total_dur}, ease:'none', onUpdate:function(){{ let f=Math.floor((this.time()%_sc)/_sc*_sf); this.targets()[0].style.backgroundPosition='-'+f*60+'px 0px'; }} }}, 0);
 {all_js}
 window.__timelines["main"] = tl;
 </script>
@@ -518,16 +516,31 @@ class CompositionHandler(StepHandler):
         audio_path = str(self.episode_dir / FILE_NAMES["audio_narration"])
         idx_path = self.episode_dir / FILE_NAMES["composition"]
 
-        # Copy sprite runner to episode directory
+        # Resolve sprite runner for the episode
         sprites_dir = self.episode_dir / SPRITES_DIR_NAME
         sprites_dir.mkdir(parents=True, exist_ok=True)
-        src_sprite = get_runner_path(str(self.episode_dir))
         dst_sprite = sprites_dir / SPRITE_FILE_NAME
-        if os.path.exists(src_sprite) and src_sprite != str(dst_sprite):
-            shutil.copy2(src_sprite, dst_sprite)
-            print(f"  🏃 Sprite runner: {dst_sprite.name}")
-        elif not os.path.exists(src_sprite):
-            print(f"  ⚠️ No sprite runner found at {src_sprite}")
+
+        # Check if pipeline state specifies a sprite style
+        sprite_style = None
+        state_path_resolved = resolve_episode_path(str(self.episode_dir), "pipeline_state")
+        if os.path.exists(state_path_resolved):
+            with open(state_path_resolved) as _sf:
+                _state = json.load(_sf)
+            sprite_style = _state.get("sprite_style")
+
+        if sprite_style and sprite_style in list_presets():
+            # Generate sprite for this style
+            print(f"  🎨 Generating sprite style: {sprite_style}")
+            make_preset_runner(sprite_style, str(dst_sprite), timeout=300)
+        else:
+            # Use existing sprite (from asset or previous generation)
+            src_sprite = get_runner_path(str(self.episode_dir))
+            if os.path.exists(src_sprite) and src_sprite != str(dst_sprite):
+                shutil.copy2(src_sprite, dst_sprite)
+                print(f"  🏃 Sprite runner: {dst_sprite.name}")
+            elif not os.path.exists(src_sprite):
+                print(f"  ⚠️ No sprite runner found at {src_sprite}")
 
         html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
