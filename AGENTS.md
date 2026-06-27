@@ -33,6 +33,8 @@ YYYY-MM-DD_主题_-Agent
 - **Agent 后缀**: 区分制作者，方便同主题对比
 - Agent 可选值: `Claude-Code`, `Codex`, `Hermes`
 - 统一命名格式 `YYYY-MM-DD_主题_-Agent`
+- Agent 可选值: `Codex`, `Claude-Code`, `Hermes`
+- 统一命名格式 `YYYY-MM-DD_主题_[Agent]`
 
 ### 期目内部文件
 
