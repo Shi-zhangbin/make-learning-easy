@@ -253,15 +253,20 @@ def _render(design, slides, audio_path="", html_path=""):
             return f'<div class="grid-2x2">{cards}</div>'
         elif t == "image":
             sz = el.get("size", "medium")
-            height = {"small": "120px", "medium": "240px", "large": "400px", "fill": "1"}.get(sz, "240px")
             src = el.get("src", "")
             # Resolve legacy "images/" paths to the configured images_dir (e.g. "05-images/")
             images_dir = FILE_NAMES.get("images_dir", "05-images")
             if src.startswith("images/"):
                 src = images_dir + src[len("images"):]
+            # Adaptive container: width determined by flex layout, height auto-calculated
+            # from 16:9 aspect ratio so images fill available space without blank gaps
+            size_css = {"small": "flex:0.6; aspect-ratio:16/9;",
+                        "medium": "flex:1; aspect-ratio:16/9;",
+                        "large": "flex:1.5; aspect-ratio:16/9;",
+                        "fill": "flex:1; min-height:100px;"}.get(sz, "flex:1; aspect-ratio:16/9;")
             if sz == "fill":
-                return f'<div class="img-wrap" style="flex:1;min-height:100px;"><img src="{src}" alt=""></div>'
-            return f'<div class="img-wrap" style="flex-shrink:0;height:{height};"><img src="{src}" alt=""></div>'
+                return f'<div class="img-wrap" style="{size_css}"><img src="{src}" alt=""></div>'
+            return f'<div class="img-wrap" style="{size_css}"><img src="{src}" alt=""></div>'
         elif t == "code":
             lines = el.get("code", el.get("text", ""))
             tag = el.get("lang", "")
