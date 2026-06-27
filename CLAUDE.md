@@ -10,18 +10,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # 一键全自动创建期目
-bash go.sh create --name "第N期_主题" --topic "..." --auto
+bash go.sh create "2026-06-27_什么是API_[Codex]" --topic "..." --auto
 
 # 分步运行
-bash go.sh run --episode "第N期_主题" --step T5
+bash go.sh run --episode "2026-06-27_什么是API_[Codex]" --step T5
 
 # 查看状态
-bash go.sh status --episode "第N期_主题"
+bash go.sh status --episode "2026-06-27_什么是API_[Codex]"
 bash go.sh list
 bash go.sh designs
 
 # 分步创建（参数：name, --topic）
-python3 -m v3.engine init "第N期_主题" --topic "..." --style bilibili
+python3 -m v3.engine init "2026-06-27_什么是API_[Codex]" --topic "..." --style bilibili
 
 # 依赖安装
 pip install -r requirements.txt

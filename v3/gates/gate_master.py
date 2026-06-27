@@ -152,11 +152,10 @@ def check_t2(episode_dir: str) -> GateResult:
 def check_t3(episode_dir: str) -> GateResult:
     """配音时长 vs 口播字数偏差是否在合理范围。"""
     import os, json, subprocess
+    from v3.config import FILE_NAMES
     issues = []
-    
+
     audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
-    if not os.path.exists(audio_path):
-        audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if not os.path.exists(audio_path):
         return GateResult(False, ["配音音频不存在"], "T3")
     
@@ -295,6 +294,7 @@ def check_t4(episode_dir: str) -> GateResult:
 def check_content_accuracy(step: str, episode_dir: str) -> GateResult:
     """内容准确性审核 — 检查基本知识性错误。纯 Python，无 agent 依赖。"""
     import os, re
+    from v3.config import FILE_NAMES
     issues = []
     
     files_to_check = {

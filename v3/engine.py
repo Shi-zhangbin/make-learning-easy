@@ -393,7 +393,7 @@ def cmd_create(args):
             write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style)
     else:
         os.makedirs(os.path.join(episode_dir, "audio"), exist_ok=True)
-        os.makedirs(os.path.join(episode_dir, "images"), exist_ok=True)
+        os.makedirs(os.path.join(episode_dir, FILE_NAMES["images_dir"]), exist_ok=True)
         os.makedirs(os.path.join(episode_dir, "compositions"), exist_ok=True)
         os.makedirs(os.path.join(episode_dir, "成品"), exist_ok=True)
         
@@ -553,7 +553,7 @@ def main():
     sp = s.add_parser("designs")
     
     sp = s.add_parser("create")
-    sp.add_argument("name", help="Episode name (e.g. 第7期_主题)")
+    sp.add_argument("name", help='Episode name (e.g. 2026-06-27_什么是API_[Codex])')
     sp.add_argument("--topic", required=True, help="Topic description")
     sp.add_argument("--style", default="bilibili", help="Design preset")
     sp.add_argument("--auto", action="store_true", default=True, help="Auto-run all steps")

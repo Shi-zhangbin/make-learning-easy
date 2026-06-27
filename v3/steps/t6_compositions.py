@@ -254,9 +254,14 @@ def _render(design, slides, audio_path="", html_path=""):
         elif t == "image":
             sz = el.get("size", "medium")
             height = {"small": "120px", "medium": "240px", "large": "400px", "fill": "1"}.get(sz, "240px")
+            src = el.get("src", "")
+            # Resolve legacy "images/" paths to the configured images_dir (e.g. "05-images/")
+            images_dir = FILE_NAMES.get("images_dir", "05-images")
+            if src.startswith("images/"):
+                src = images_dir + src[len("images"):]
             if sz == "fill":
-                return f'<div class="img-wrap" style="flex:1;min-height:100px;"><img src="{el.get("src","")}" alt=""></div>'
-            return f'<div class="img-wrap" style="flex-shrink:0;height:{height};"><img src="{el.get("src","")}" alt=""></div>'
+                return f'<div class="img-wrap" style="flex:1;min-height:100px;"><img src="{src}" alt=""></div>'
+            return f'<div class="img-wrap" style="flex-shrink:0;height:{height};"><img src="{src}" alt=""></div>'
         elif t == "code":
             lines = el.get("code", el.get("text", ""))
             tag = el.get("lang", "")
