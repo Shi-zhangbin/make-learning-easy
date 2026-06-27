@@ -31,8 +31,17 @@ def _load_design(episode_dir):
         return load_preset("claude")
 
 
-def _render(design, slides, audio_path="", html_path=""):
+def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
     """Element-driven HyperFrames composition generator."""
+
+    # Sprite animation cycle speed per style (seconds per full frame cycle)
+    SPRITE_CYCLE = {
+        "boy": 1.2, "dino": 1.2, "walk": 1.8, "cycle": 0.9,
+        "skateboard": 1.0, "jump": 0.7, "moonwalk": 1.5,
+        "dance": 0.6, "fly": 0.8,
+    }
+    cycle_speed = SPRITE_CYCLE.get(sprite_style, 1.2)
+
     ld = design.get("layout_defaults", {})
     c = design.get("colors", {})
     bg = ld.get("canvas_bg", "#faf9f5")
@@ -499,7 +508,7 @@ const tl = gsap.timeline({{ paused: true }});
 tl.to(".bg-glow-1", {{ scale:1.1, opacity:0.6, duration:3, ease:"sine.inOut", yoyo:true, repeat:15 }}, 0);
 tl.to("#pf", {{ width:'100%', duration:{total_dur}, ease:'linear' }}, 0);
 tl.to("#pr", {{ left:'calc(100% - 30px)', duration:{total_dur}, ease:'linear' }}, 0);
-const _sc = 1.2, _sf = 9;
+const _sc = {cycle_speed}, _sf = 9;
 tl.to("#pr", {{ duration:{total_dur}, ease:'none', onUpdate:function(){{ let f=Math.floor((this.time()%_sc)/_sc*_sf); this.targets()[0].style.backgroundPosition='-'+f*60+'px 0px'; }} }}, 0);
 {all_js}
 window.__timelines["main"] = tl;
@@ -572,7 +581,7 @@ class CompositionHandler(StepHandler):
             elif not os.path.exists(src_sprite):
                 print(f"  ⚠️ No sprite runner found at {src_sprite}")
 
-        html = _render(design, slides, audio_path, str(idx_path))
+        html = _render(design, slides, audio_path, str(idx_path), sprite_style)
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)
         # Create index.html symlink/copy for HyperFrames compatibility
