@@ -10,18 +10,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # 一键全自动创建期目
-bash go.sh create "2026-06-27_什么是API_[Codex]" --topic "..." --auto
+bash go.sh create "2026-06-27_什么是API_-Claude-Code" --topic "..." --auto
 
 # 分步运行
-bash go.sh run --episode "2026-06-27_什么是API_[Codex]" --step T5
+bash go.sh run --episode "2026-06-27_什么是API_-Claude-Code" --step T5
 
 # 查看状态
-bash go.sh status --episode "2026-06-27_什么是API_[Codex]"
+bash go.sh status --episode "2026-06-27_什么是API_-Claude-Code"
 bash go.sh list
 bash go.sh designs
 
 # 分步创建（参数：name, --topic）
-python3 -m v3.engine init "2026-06-27_什么是API_[Codex]" --topic "..." --style bilibili
+python3 -m v3.engine init "2026-06-27_什么是API_-Claude-Code" --topic "..." --style bilibili
 
 # 依赖安装
 pip install -r requirements.txt
@@ -113,8 +113,30 @@ make-learning-easy/
 1. **默认 bilibili 风格**: 创建期目时一律 `--style bilibili`，除非用户明确指定其他
 2. **视频时长校验**: T2 口播稿后估算 `字符数 / 4.2` 秒数 < 目标分钟×60×0.85 则退回加内容
 3. **禁止占位符**: 内容文件不得含"卡片、图片、图表、TKTK、TODO、此处插入"等
-4. **只处理用户指定的期目**: 不扫描 `episodes/` 做推测性工作
-5. **所有产出必须在期目目录内**: 不向 `episodes/` 根目录、仓库根目录写文件
+4. **配音稿纯口播**: `02-script.txt` 只含口播文字，无元数据/舞台指示/章节标题/分隔线
+5. **只处理用户指定的期目**: 不扫描 `episodes/` 做推测性工作
+6. **所有产出必须在期目目录内**: 不向 `episodes/` 根目录、仓库根目录写文件
+
+## Pipeline 反馈机制
+
+### Gate 反馈闭环
+
+Gate 失败时引擎会写 `gate-feedback.json` 到期目目录，里面包含 `issues`（问题列表）和 `feedback_target`（退回步骤）。重新运行同一步骤时，Agent 应先读取此文件，修复内容后重试。Gate 通过后文件自动删除。
+
+### Pre-Condition 快速失败
+
+部分步骤在 `execute()` 前会跑 `pre_condition()` 前置检查，拦截常见错误：
+
+| 步骤 | Pre-condition 检查 |
+|------|-------------------|
+| T3 | 脚本必须有 ≥2 个 `--- Px` 分页标记 |
+| T5 | `image_slots.json` 每个 slot 必须有 `filename/prompt/page/slot_index` |
+| T6 | `timeline.json` 必须有 ≥5 个 slide |
+| T7 | Composition HTML 必须存在（缺 `index.html` 则自动补） |
+
+### Step-prompt 校验规则
+
+T2/T4 的 `step-prompt.json` 含 `validation_rules` 字段，明确告诉 Agent 内容必须满足什么条件、禁止出现什么模式。Agent 写内容前应先读这个字段自检。
 
 ## Branches
 
@@ -133,4 +155,7 @@ make-learning-easy/
 | T7 渲染慢 | GSAP + HyperFrames 长视频并行帧采集可能超时，降级到单 worker |
 | 中文路径字幕 | ffmpeg subtitles filter 在 Homebrew 默认不含 libass |
 | 配图质量 | JPEG 压缩默认 -q:v 3，图片约 50-80KB |
+| T2 脚本格式 | T2 gate 新增检测舞台指示/章节标题/分隔线/分页标记，防止 TTS 念废词 |
+| T4 image_slots | 新增每个 slot 必填字段校验（filename/prompt/page/slot_index），T5 pre_condition 拦截 |
+| 目录名 `[` `]` | 命名已改为 `-Agent` 格式，不再使用方括号，避免 `glob.glob()` 语法错误 |
 | HyperFrames 闭源 | 渲染引擎 proprietary npm 包，核心逻辑不可修改 |

@@ -18,6 +18,28 @@ class TTSHandler(StepHandler):
     name = "TTS"
     description = "Generate TTS audio + subtitles + timeline"
 
+
+    def pre_condition(self):
+        """Verify script has page markers for multi-slide timeline."""
+        err = super().pre_condition()
+        if err:
+            return err
+        try:
+            script_path = self._get_script()
+        except FileNotFoundError as e:
+            return str(e)
+        with open(script_path, encoding="utf-8") as f:
+            content = f.read()
+        import re
+        page_markers = re.findall(r'^---+\s*P\d+', content, re.MULTILINE)
+        if len(page_markers) < 2:
+            return (
+                f"脚本只有 {len(page_markers)} 个分页标记，需要至少 2 个。\n"
+                f"口播稿必须包含 --- P1, --- P2 格式的分页标记。\n"
+                f"文件: {script_path}"
+            )
+        return None
+
     def _get_script(self) -> str:
         """Find the narration script file in the episode directory."""
         # Try new naming first
@@ -83,10 +105,24 @@ class TTSHandler(StepHandler):
         # Strip page markers for TTS
         clean_lines = []
         for line in raw_script.split("\n"):
-            if re.match(r'^---+\s*P\d+', line.strip()):
+            stripped = line.strip()
+            # Page markers
+            if re.match(r'^---+\s*P\d+', stripped):
                 continue
-            if line.strip() == '---':
+            # Separators
+            if re.match(r'^[-═=]{3,}$', stripped):
                 continue
+            # Stage directions in parentheses: （开场）（停顿）（完）
+            if re.match(r'^[（(][^）)]{1,10}[）)]\s*$', stripped):
+                continue
+            # Numbered section headers: 一、xxx, 二、xxx, 三、xxx
+            if re.match(r'^[一二三四五六七八九十]+[、.．]\s*\S', stripped):
+                continue
+            # Standalone section header like "收尾"
+            if stripped in ("收尾", "开场白", "结束语", "结语"):
+                continue
+            # Metadata header lines: first 3 lines that look like metadata
+            # (handled by pattern above for specific cases)
             clean_lines.append(line)
         full_script = "\n".join(clean_lines)
         

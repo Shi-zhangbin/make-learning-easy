@@ -57,11 +57,11 @@ LAYOUTS_DIR = os.path.join(TEMPLATES_DIR, "layouts")
 # Naming Convention Constants (v2 规范)
 # ══════════════════════════════════════════════════════════════
 
-# Episode directory naming: YYYY-MM-DD_主题_[Agent]
+# Episode directory naming: YYYY-MM-DD_主题_-Agent
 EPISODE_NAME_PATTERN = re.compile(
-    r'^(\d{4})-(\d{2})-(\d{2})_(.+?)_\[(\w+(?:-\w+)*)\]$'
+    r'^(\d{4})-(\d{2})-(\d{2})_(.+?)_-(\w+(?:-\w+)*)$'
 )
-AGENT_NAMES = ["Codex", "Claude-Code", "Hermes"]
+AGENT_NAMES = ["Claude-Code", "Codex", "Hermes"]
 
 # Standardized internal filenames (new pipeline)
 # Each step's output files are defined here, so all code references the same name.
@@ -160,7 +160,7 @@ def migrate_episode_to_new_naming(episode_dir: str) -> list[str]:
 
 
 def validate_episode_name(name: str) -> tuple[bool, str]:
-    """Validate new-style episode name: YYYY-MM-DD_主题_[Agent].
+    """Validate new-style episode name: YYYY-MM-DD_主题_-Agent.
     Returns (is_valid, error_message).
     """
     if EPISODE_NAME_PATTERN.match(name):
@@ -169,8 +169,8 @@ def validate_episode_name(name: str) -> tuple[bool, str]:
     if re.match(r'^第\d+期_', name):
         return True, ""
     return False, (
-        f"Episode name must match 'YYYY-MM-DD_主题_[Agent]'\n"
-        f"  Example: 2026-06-26_云服务的前世今生_[Codex]\n"
+        f"Episode name must match 'YYYY-MM-DD_主题_-Agent'\n"
+        f"  Example: 2026-06-26_云服务的前世今生_-Claude-Code\n"
         f"  Agent: {', '.join(AGENT_NAMES)}\n"
         f"  Or legacy format: 第N期_主题"
     )
@@ -195,5 +195,5 @@ def parse_episode_name(name: str) -> dict:
 
 
 def get_agent_default() -> str:
-    """Detect which agent is calling. Falls back to 'Codex'."""
-    return os.environ.get("CODEX_AGENT", "Codex")
+    """Detect which agent is calling. Defaults to 'Claude-Code'."""
+    return os.environ.get("CODEX_AGENT", "Claude-Code")

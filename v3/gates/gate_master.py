@@ -7,6 +7,10 @@ v3/gates/gate_master.py — 统一门禁调度
   - passed: bool — 是否通过
 """
 from dataclasses import dataclass, field
+import json, os, re, subprocess, tempfile
+from pathlib import Path
+from PIL import Image
+from v3.config import FILE_NAMES, resolve_episode_path, TTS_EFFECTIVE_CHARS_PER_SEC
 
 
 @dataclass
@@ -39,8 +43,6 @@ PLACEHOLDER_PATTERNS = [
 
 def check_t0(episode_dir: str) -> GateResult:
     """选题报告完整吗？"""
-    import os
-    from v3.config import FILE_NAMES
     issues = []
     md_path = os.path.join(episode_dir, FILE_NAMES["topic_report"])
     if not os.path.exists(md_path):
@@ -60,8 +62,6 @@ def check_t0(episode_dir: str) -> GateResult:
 
 def check_t1(episode_dir: str) -> GateResult:
     """大纲结构合理吗？"""
-    import os
-    from v3.config import FILE_NAMES
     issues = []
     md_path = os.path.join(episode_dir, FILE_NAMES["outline"])
     if not os.path.exists(md_path):
@@ -71,7 +71,6 @@ def check_t1(episode_dir: str) -> GateResult:
     if len(content) < 300:
         issues.append(f"知识点大纲仅 {len(content)} 字，内容不足")
     # 检查是否有知识点编号（一、二、三 或 1. 2. 3.）
-    import re
     has_structure = bool(re.search(r'[一二三四五六七八九十]+、|\d+\.', content))
     if not has_structure:
         issues.append("大纲缺少结构化编号（一、二、三…）")
@@ -86,40 +85,52 @@ def check_t1(episode_dir: str) -> GateResult:
 
 def check_t2(episode_dir: str) -> GateResult:
     """口播稿无残留标记、无空页、字数合理、无占位符。"""
-    import os, re
-    from v3.config import FILE_NAMES
     issues = []
-    
+
     script_path = os.path.join(episode_dir, FILE_NAMES["script"])
     if not os.path.exists(script_path):
-        # Fallback for old-format episodes
         for c in ["配音稿_分段.txt", "配音稿.txt", "口播稿.txt"]:
             p = os.path.join(episode_dir, c)
             if os.path.exists(p):
                 script_path = p
                 break
-    
+
     if not script_path:
         return GateResult(False, ["口播稿文件不存在"], "T2")
-    
+
     with open(script_path, encoding="utf-8") as f:
         content = f.read()
-    
+
     clean_text = re.sub(r'---.*?---\s*\n', '', content)
-    
+
     # 1D: 占位符检测
     for pat in PLACEHOLDER_PATTERNS:
         if re.search(pat, clean_text):
             issues.append(f"含占位符文本: [{pat}]")
             break
-    
+
+    # 非口播内容检测
+    stage_dirs = re.findall(r'[（(](?:开场|停顿|完|音乐|掌声|笑|沉默|过渡|转场|结束)[）)]', clean_text)
+    if stage_dirs:
+        issues.append(f"含舞台指示: {', '.join(set(stage_dirs))}。口播稿不应出现（开场）（停顿）等")
+
+    if re.search(r'^[一-鿿]+[、.．]\s*\S', clean_text, re.MULTILINE):
+        issues.append("含章节标题（一、二、三…），口播稿不应出现章节编号")
+
+    for label in ["收尾", "开场白", "结束语", "结语", "开场", "前言", "后记", "附录"]:
+        if re.search(rf'^{re.escape(label)}\s*$', clean_text, re.MULTILINE):
+            issues.append(f"含章节标签: {label}")
+            break
+
+    if re.search(r'^[═=*]{3,}\s*$', clean_text, re.MULTILINE):
+        issues.append("含分隔线（===/***），口播稿不应出现分隔线")
+
     # B009: 时长估算校验
-    chars = len(re.findall(r'[\u4e00-\u9fff\w]', clean_text))
-    from v3.config import TTS_EFFECTIVE_CHARS_PER_SEC, FILE_NAMES, resolve_episode_path
+    chars = len(re.findall(r'[一-鿿\w]', clean_text))
     estimated_sec = chars / TTS_EFFECTIVE_CHARS_PER_SEC
     if estimated_sec < 300:
         issues.append(f"估计音频仅 {estimated_sec:.0f}s ({chars}字)，不足 5 分钟（阈值 300s/{int(300*TTS_EFFECTIVE_CHARS_PER_SEC)}字）")
-    
+
     # 标记残留
     artifacts = []
     for pat, name in [(r'#{2,}', "##标题"), (r'\*{2,}', "**加粗**"), (r'`{2,}', "``代码``")]:
@@ -127,28 +138,24 @@ def check_t2(episode_dir: str) -> GateResult:
             artifacts.append(name)
     if artifacts:
         issues.append(f"含残留标记: {', '.join(artifacts)}")
-    
-    # 空页
+
+    # 分页标记检查
+    page_markers = re.findall(r'^---+\s*P\d+', content, re.MULTILINE)
+    if not page_markers:
+        issues.append("口播稿缺少分页标记（--- P1, --- P2…），T3 无法生成多页时间线")
+    elif len(page_markers) < 5:
+        issues.append(f"仅 {len(page_markers)} 个分页标记（阈值 5 页），视频时长可能不足")
+
     page_pattern = re.compile(r"---\s*P(\d+).*?---\s*\n(.*?)(?=\n---\s*P|\Z)", re.DOTALL)
     pages = list(page_pattern.finditer(content))
-    if not pages:
-        issues.append("无法解析分页标记")
-    else:
+    if pages:
         empty = [m.group(1) for m in pages if not m.group(2).strip()]
         if empty:
             issues.append(f"空页: P{', '.join(empty)}")
-        if len(pages) < 5:
-            issues.append(f"仅 {len(pages)} 页，视频太短")
-    
+
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T2")
-
-
-# ══════════════════════════════════════════════════════════════
-# T3 Gate — 配音+字幕
-# ══════════════════════════════════════════════════════════════
-
 def check_t3(episode_dir: str) -> GateResult:
     """配音时长 vs 口播字数偏差是否在合理范围。"""
     import os, json, subprocess
@@ -226,12 +233,26 @@ def check_t4(episode_dir: str) -> GateResult:
         pages_covered = len(set(s.get("page", 0) for s in slot_list if isinstance(s, dict)))
         pages_total = len(list(Path(episode_dir).glob("compositions/scene_*.html")))
     
+
+    # 每个 slot 必填字段校验
+    required_fields = ["filename", "prompt", "page", "slot_index"]
+    for i, slot in enumerate(slot_list):
+        if not isinstance(slot, dict):
+            issues.append(f"Slot[{i}]: 不是字典类型")
+            continue
+        missing = [f for f in required_fields if f not in slot or (isinstance(slot[f], str) and not slot[f].strip())]
+        if missing:
+            issues.append(f"Slot[{i}] (page {slot.get("page", "?")}): 缺少必填字段: {', '.join(missing)}")
+        if slot.get("source") == "ai" and not slot.get("prompt", "").strip():
+            issues.append(f"Slot[{i}] (AI源): prompt为空")
+        if not slot.get("filename", "").strip():
+            issues.append(f"Slot[{i}]: filename为空")
+
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
     state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
     if os.path.exists(state_path):
-        import json as _json
         with open(state_path) as _sf:
-            _state = _json.load(_sf)
+            _state = json.load(_sf)
         _style = _state.get("design_style", "")
         _expected_color = {
             "bilibili": "#FB7299",
@@ -257,11 +278,10 @@ def check_t4(episode_dir: str) -> GateResult:
         audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if os.path.exists(tl_path) and os.path.exists(audio_path):
         try:
-            import json as _json2, subprocess as _sp
             with open(tl_path) as _tf:
-                _tl = _json2.load(_tf)
+                _tl = json.load(_tf)
             _tl_dur = _tl.get("total_duration", 0)
-            _r = _sp.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+            _r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                 "-of", "csv=p=0", audio_path], capture_output=True, text=True, timeout=10)
             if _r.stdout.strip():
                 _audio_dur = float(_r.stdout.strip())
@@ -271,14 +291,13 @@ def check_t4(episode_dir: str) -> GateResult:
             pass
     
     # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
-    import re as _re
     _html_path = resolve_episode_path(episode_dir, "composition")
     if os.path.exists(_html_path):
         with open(_html_path) as _hf:
             _html = _hf.read()
-        _text_only = _re.sub(r'<[^>]+>', ' ', _html)
+        _text_only = re.sub(r'<[^>]+>', ' ', _html)
         for pat in PLACEHOLDER_PATTERNS:
-            if _re.search(pat, _text_only):
+            if re.search(pat, _text_only):
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
     
@@ -384,9 +403,8 @@ def check_t6(episode_dir: str) -> GateResult:
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
     state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
     if os.path.exists(state_path):
-        import json as _json
         with open(state_path) as _sf:
-            _state = _json.load(_sf)
+            _state = json.load(_sf)
         _style = _state.get("design_style", "")
         _expected_color = {
             "bilibili": "#FB7299",
@@ -412,11 +430,10 @@ def check_t6(episode_dir: str) -> GateResult:
         audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if os.path.exists(tl_path) and os.path.exists(audio_path):
         try:
-            import json as _json2, subprocess as _sp
             with open(tl_path) as _tf:
-                _tl = _json2.load(_tf)
+                _tl = json.load(_tf)
             _tl_dur = _tl.get("total_duration", 0)
-            _r = _sp.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+            _r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                 "-of", "csv=p=0", audio_path], capture_output=True, text=True, timeout=10)
             if _r.stdout.strip():
                 _audio_dur = float(_r.stdout.strip())
@@ -426,14 +443,13 @@ def check_t6(episode_dir: str) -> GateResult:
             pass
     
     # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
-    import re as _re
     _html_path = resolve_episode_path(episode_dir, "composition")
     if os.path.exists(_html_path):
         with open(_html_path) as _hf:
             _html = _hf.read()
-        _text_only = _re.sub(r'<[^>]+>', ' ', _html)
+        _text_only = re.sub(r'<[^>]+>', ' ', _html)
         for pat in PLACEHOLDER_PATTERNS:
-            if _re.search(pat, _text_only):
+            if re.search(pat, _text_only):
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
     
@@ -506,7 +522,6 @@ def check_t7(episode_dir: str) -> GateResult:
                 issues.append(f"字幕末句偏差 {abs(last_end-vid_dur):.1f}s")
     
     # Frame black-check: sample at 25%, 50%, 75%
-    import tempfile
     for frac in [0.25, 0.5, 0.75]:
         ts = vid_dur * frac
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
@@ -555,6 +570,7 @@ def check_t5(episode_dir: str) -> GateResult:
     from v3.config import FILE_NAMES
     issues = []
     img_dir = os.path.join(episode_dir, FILE_NAMES["images_dir"])
+    from v3.config import resolve_episode_path
     if not os.path.isdir(img_dir):
         return GateResult(False, ["images/ directory missing"], "T4")
     pngs = sorted([f for f in os.listdir(img_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
@@ -586,9 +602,8 @@ def check_t5(episode_dir: str) -> GateResult:
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
     state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
     if os.path.exists(state_path):
-        import json as _json
         with open(state_path) as _sf:
-            _state = _json.load(_sf)
+            _state = json.load(_sf)
         _style = _state.get("design_style", "")
         _expected_color = {
             "bilibili": "#FB7299",
@@ -614,11 +629,10 @@ def check_t5(episode_dir: str) -> GateResult:
         audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
     if os.path.exists(tl_path) and os.path.exists(audio_path):
         try:
-            import json as _json2, subprocess as _sp
             with open(tl_path) as _tf:
-                _tl = _json2.load(_tf)
+                _tl = json.load(_tf)
             _tl_dur = _tl.get("total_duration", 0)
-            _r = _sp.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+            _r = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                 "-of", "csv=p=0", audio_path], capture_output=True, text=True, timeout=10)
             if _r.stdout.strip():
                 _audio_dur = float(_r.stdout.strip())
@@ -628,14 +642,13 @@ def check_t5(episode_dir: str) -> GateResult:
             pass
     
     # 1D: HTML 占位符检测 (仅 T6 后有 HTML 时生效)
-    import re as _re
     _html_path = resolve_episode_path(episode_dir, "composition")
     if os.path.exists(_html_path):
         with open(_html_path) as _hf:
             _html = _hf.read()
-        _text_only = _re.sub(r'<[^>]+>', ' ', _html)
+        _text_only = re.sub(r'<[^>]+>', ' ', _html)
         for pat in PLACEHOLDER_PATTERNS:
-            if _re.search(pat, _text_only):
+            if re.search(pat, _text_only):
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
     

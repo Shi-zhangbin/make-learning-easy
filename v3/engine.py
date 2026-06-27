@@ -132,7 +132,15 @@ def run_step(episode_dir: str, step: str, design: dict | None = None):
         gate = run_gate(step, episode_dir)
         
         if not gate:
-            # Gate failed — don't mark done, print feedback
+            # Gate failed — write feedback file, don't mark done
+            fb_path = os.path.join(episode_dir, "gate-feedback.json")
+            with open(fb_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "issues": gate.issues,
+                    "feedback_target": gate.feedback_target,
+                    "step": step,
+                    "timestamp": datetime.now().isoformat(),
+                }, f, ensure_ascii=False, indent=2)
             state["steps"][step] = {
                 "status": "failed",
                 "ts": datetime.now().isoformat(),
@@ -143,8 +151,11 @@ def run_step(episode_dir: str, step: str, design: dict | None = None):
             print(f"\n  ❌ {step} 门禁未通过")
             print(f'\n  → 请修改后重试: bash go.sh run --episode \"{os.path.basename(episode_dir)}\" --step {step}')
             return False
-        
-        # Success — gate passed
+
+        # Success — gate passed, clean up old feedback
+        fb_path = os.path.join(episode_dir, "gate-feedback.json")
+        if os.path.exists(fb_path):
+            os.remove(fb_path)
         state["steps"][step] = {
             "status": "done",
             "ts": datetime.now().isoformat(),

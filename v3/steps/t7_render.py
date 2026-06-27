@@ -17,6 +17,22 @@ class RenderHandler(StepHandler):
     name = "T7"
     description = "Render compositions to video + add audio + subtitles"
 
+
+    def pre_condition(self):
+        """Verify composition exists and HyperFrames can find entry point."""
+        err = super().pre_condition()
+        if err:
+            return err
+        comp_path = self.episode_dir / FILE_NAMES["composition"]
+        if not comp_path.exists():
+            return f"Composition file {comp_path} 不存在。请先运行 T6。"
+        idx_path = self.episode_dir / "index.html"
+        if not idx_path.exists():
+            import shutil
+            shutil.copy2(str(comp_path), str(idx_path))
+            print(f"  🔗 Created index.html for HyperFrames")
+        return None
+
     def execute(self) -> StepResult:
         episode_dir = self.episode_dir
         video_dir = episode_dir / FILE_NAMES["final_dir"]
@@ -31,11 +47,14 @@ class RenderHandler(StepHandler):
         if r.returncode != 0:
             return StepResult(False, errors=[f"HyperFrames render failed: {r.stderr[:500]}"])
         # npx hyperframes render saves to renders/ dir, find the latest
-        import glob
-        renders = sorted(glob.glob(str(episode_dir / "renders" / "*.mp4")))
+        renders_dir = episode_dir / "renders"
+        if renders_dir.exists():
+            renders = sorted(renders_dir.glob("*.mp4"))
+        else:
+            renders = []
         if not renders:
             return StepResult(False, errors=["Render produced no MP4 output"])
-        latest = renders[-1]
+        latest = str(renders[-1])
         subprocess.run(["cp", latest, raw_video], check=True)
 
         if r.returncode != 0:

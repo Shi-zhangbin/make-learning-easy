@@ -44,6 +44,27 @@ class ImageHandler(StepHandler):
                 s["source"] = "ai"
         return slots
 
+
+    def pre_condition(self):
+        """Validate all slots before any generation."""
+        err = super().pre_condition()
+        if err:
+            return err
+        try:
+            slots = self._find_slots()
+        except FileNotFoundError as e:
+            return str(e)
+        required_fields = ["filename", "prompt", "page", "slot_index"]
+        for i, slot in enumerate(slots):
+            missing = [f for f in required_fields if f not in slot or (isinstance(slot.get(f), str) and not slot[f].strip())]
+            if missing:
+                page = slot.get("page", "?")
+                return (
+                    f"image_slots.json slot[{i}] (page={page}): "
+                    f"缺少必填字段: {', '.join(missing)}"
+                )
+        return None
+
     def execute(self) -> StepResult:
         slots = self._find_slots()
         ai_slots = [s for s in slots if isinstance(s, dict) and s.get("source") == "ai"]

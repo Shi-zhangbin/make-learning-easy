@@ -512,6 +512,26 @@ class CompositionHandler(StepHandler):
     name = "T6"
     description = "Element-driven HyperFrames composition"
 
+
+    def pre_condition(self):
+        """Verify timeline has enough slides for composition."""
+        err = super().pre_condition()
+        if err:
+            return err
+        tl_path = self.episode_dir / FILE_NAMES["timeline"]
+        if not tl_path.exists():
+            return f"timeline.json 不存在 ({tl_path})。请先运行 T3 生成配音和时间线。"
+        import json
+        with open(tl_path) as f:
+            timeline = json.load(f)
+        slides = timeline.get("slides", [])
+        if len(slides) < 5:
+            return (
+                f"timeline.json 只有 {len(slides)} 个 slide，需要至少 5 个。\n"
+                f"脚本中的分页标记不足，请检查 02-script.txt 中的 --- P1, --- P2 等标记。"
+            )
+        return None
+
     def execute(self):
         tl_path = self.episode_dir / FILE_NAMES["timeline"]
         if not tl_path.exists():
@@ -555,5 +575,11 @@ class CompositionHandler(StepHandler):
         html = _render(design, slides, audio_path, str(idx_path))
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)
+        # Create index.html symlink/copy for HyperFrames compatibility
+        idx_link = self.episode_dir / "index.html"
+        if not idx_link.exists():
+            import shutil
+            shutil.copy2(str(idx_path), str(idx_link))
+            print(f"  🔗 Created index.html -> 06-composition.html")
         print(f"  ✅ Element-driven composition: {len(slides)} scenes, {total_dur}s")
         return StepResult(True, {"pages": len(slides), "total_duration": total_dur, "path": str(idx_path)})

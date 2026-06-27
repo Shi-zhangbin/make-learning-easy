@@ -11,7 +11,7 @@
  
  - **管线入口**: `bash go.sh`
  - **引擎代码**: `v3/engine.py`
- - **期目目录**: `episodes/YYYY-MM-DD_主题_[Agent]/`
+ - **期目目录**: `episodes/YYYY-MM-DD_主题_-Agent/`
  - **设计预设**: `v3/designs/presets/` (7 套)
  - **主语言**: Python 3.14+, Node.js (HyperFrames)
  
@@ -23,16 +23,16 @@
 ### 期目目录命名
 
 ```
-YYYY-MM-DD_主题_[Agent]
+YYYY-MM-DD_主题_-Agent
 ```
 
-示例: `2026-06-26_云服务的前世今生_[Codex]`
+示例: `2026-06-26_云服务的前世今生_-Codex`
 
 - **日期前缀**: 按时间排序，快速定位近期产出
 - **主题居中**: 一眼识别内容
 - **Agent 后缀**: 区分制作者，方便同主题对比
-- Agent 可选值: `Codex`, `Claude-Code`, `Hermes`
-- 统一命名格式 `YYYY-MM-DD_主题_[Agent]`
+- Agent 可选值: `Claude-Code`, `Codex`, `Hermes`
+- 统一命名格式 `YYYY-MM-DD_主题_-Agent`
 
 ### 期目内部文件
 
@@ -72,23 +72,23 @@ pipeline-state.json        ← 管线状态
 ### 创建新期目
 
 ```bash
-python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bilibili
+python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilibili
 ```
 
 ## 快速开始
  
  ```bash
  # 创建新期目
- python3 -m v3.engine init "YYYY-MM-DD_主题_[Agent]" --topic "..." --style bilibili
+ python3 -m v3.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
  
  # 查看已创建期目
  bash go.sh list
  
  # 查看期目状态
- bash go.sh status --episode "YYYY-MM-DD_主题_[Agent]"
+ bash go.sh status --episode "YYYY-MM-DD_主题_-Agent"
  
  # 运行单个步骤
- bash go.sh run --episode "YYYY-MM-DD_主题_[Agent]" --step T0
+ bash go.sh run --episode "YYYY-MM-DD_主题_-Agent" --step T0
  
  # 查看可用的设计预设
  bash go.sh designs
@@ -138,12 +138,12 @@ python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bili
  
  ✅ **遵守示例**
  ```bash
- python3 -m v3.engine init "2026-06-27_Docker入门_[Codex]" --topic "..." --style bilibili
+ python3 -m v3.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style bilibili
  ```
- 
+
  ❌ **违规示例**
  ```bash
- python3 -m v3.engine init "2026-06-27_Docker入门_[Codex]" --topic "..." --style dark-teal
+ python3 -m v3.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style dark-teal
  # 擅自选择非默认风格，需要用户明确要求才能这样做
  ```
  
@@ -195,7 +195,38 @@ python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bili
  此处插入 | 这里放 | 请插入 | 示例文本
  ```
  
- ### 规则 4：只处理用户指定的期目
+ ### 规则 4：配音稿必须纯口播文字
+
+`02-script.txt` 是直接喂给 TTS 配音引擎的，**只能包含口播文字**。不得包含：
+- 元数据行（如 `音频配音稿 — xxx`、`目标时长：X 分钟`）
+- 舞台指示（如 `（开场）`、`（停顿）`、`（完）`）
+- 章节标题（如 `一、B站的前世今生`、`二、创始人`）
+- 分隔线（如 `===`、`---`）
+
+如果需标记分段，使用 `--- P1` 格式（仅 `v3/steps/tts.py` 能识别的分页标记）。
+
+✅ **遵守示例**
+```
+（文件内容第一行就是口播正文）
+前两天我在工位上改一个祖传 bug，改到怀疑人生...
+...（全文只有口播文字）
+```
+
+❌ **违规示例**
+```
+音频配音稿 — 走进B站
+目标时长：10分钟
+
+===
+（开场）
+...正文内容...
+（停顿）
+---
+二、下一章
+...
+```
+
+### 规则 5：只处理用户指定的期目
  
  不要扫描 `episodes/` 目录做推测性工作。只创建/修改用户明确要求的那一期。
  
@@ -213,7 +244,7 @@ python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bili
  产生非目标期目，浪费 token 和渲染时间
  ```
  
- ### 规则 5：所有产出必须在期目目录内
+ ### 规则 6：所有产出必须在期目目录内
  
  不允许向 `episodes/` 根目录、仓库根目录或 `v3/` 引擎目录写入任何文件。
  
@@ -267,7 +298,7 @@ python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bili
  │   ├── designs/presets/   # 7 套设计预设 YAML
  │   └── assets/            # 静态资源（如 gsap.min.js）
  ├── episodes/              # 所有期目
- │   └── YYYY-MM-DD_主题_[Agent]/
+ │   └── YYYY-MM-DD_主题_-Agent/
  │       ├── timeline.json
  │       ├── 配音稿_分段.txt
  │       ├── audio/         # TTS 产物
@@ -281,27 +312,46 @@ python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bili
  ### 创建新期目
  
  ```bash
- python3 -m v3.engine init "YYYY-MM-DD_主题_[Agent]" --topic "..." --style bilibili
+ python3 -m v3.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
  ```
  
  ### 手动运行 Agent 步骤 (T0/T1/T2/T4)
- 
+
  Agent 步骤需要你先写内容，再通过门禁：
- 
+
  1. 运行步骤，引擎输出"需要生成"提示
- 2. 读取 `.step_prompt.json` 获取 topic/outline/script 等信息
+ 2. 读取 `.step_prompt.json` 获取 topic/outline/script 等信息（含 `validation_rules` 字段说明必须满足的条件）
  3. 按 `skills/ascend-video-pipeline.md` 生成内容
  4. 写入指定的输出文件
  5. **删除 `.step_prompt.json`**
  6. 重新执行同一步骤
  7. 门禁通过后自动推进到下一步
+
+ ### 门禁反馈机制
+
+ 当门禁未通过时：
+ 1. 引擎在期目目录生成 `gate-feedback.json`，包含 `issues`（问题列表）和 `feedback_target`（退回步骤）
+ 2. `pipeline-state.json` 中该步骤标记为 `failed`
+ 3. 重新运行同一步骤时，Agent 应先读取 `gate-feedback.json` 了解错在哪里，再修复内容
+ 4. 修复后删除 `step-prompt.json` 重新运行
+ 5. 门禁通过后 `gate-feedback.json` 自动清理
+
+ ### Pre-Condition 快速失败
+
+ 部分步骤在 `execute()` 执行前会运行 `pre_condition()` 检查前置条件。如果检查不通过，步骤会立即失败而不执行实际工作，节省 API 调用和时间。
+
+ 常见 pre-condition 失败：
+ - **T3**: 脚本缺少 `--- P1` `--- P2` 分页标记（需要至少 2 个）
+ - **T5**: `image_slots.json` 的 slot 缺少必填字段（filename/prompt/page/slot_index）
+ - **T6**: `timeline.json` 只有不足 5 个 slide（脚本分页不足）
+ - **T7**: composition HTML 不存在（需要先跑 T6）
  
  ### 查看渲染进度
  
  T7 渲染较长视频（>5min）时，可在 `renders/` 目录下观察进度：
  
  ```bash
- ls episodes/YYYY-MM-DD_主题_[Agent]/renders/work-*/captured-frames/ | wc -l
+ ls episodes/YYYY-MM-DD_主题_-Agent/renders/work-*/captured-frames/ | wc -l
  # 应能看到不断增长的数字，采集完毕后自动进入 FFmpeg 编码
  ```
  
@@ -310,7 +360,7 @@ python3 -m v3.engine init "2026-06-26_主题_[Agent]" --topic "..." --style bili
  T6 完成后，可直接在浏览器打开 index.html 预览：
  
  ```bash
- open episodes/YYYY-MM-DD_主题_[Agent]/index.html
+ open episodes/YYYY-MM-DD_主题_-Agent/index.html
  ```
  
  ---
