@@ -912,6 +912,28 @@ class CompositionHandler(StepHandler):
                 print(f"  ⚠️ No sprite runner found at {src_sprite}")
 
         html = _render(design, slides, audio_path, str(idx_path), sprite_style)
+
+        # Inline images as base64 data URIs for robustness
+        # This eliminates all relative-path and cross-origin security issues
+        import base64 as _b64
+        import re as _re_img
+        def _inline_img(m):
+            src = m.group(1)
+            # Try to resolve the image path
+            candidates = [
+                os.path.join(str(self.episode_dir), src),
+                os.path.join(str(self.episode_dir), "05-images", os.path.basename(src)),
+            ]
+            for ip in candidates:
+                if os.path.exists(ip):
+                    with open(ip, "rb") as _f:
+                        b64 = _b64.b64encode(_f.read()).decode("ascii")
+                    ext = src.rsplit(".", 1)[-1].lower()
+                    mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg"}.get(ext, "image/png")
+                    return f'<img src="data:{mime};base64,{b64}" alt="">'
+            return m.group(0)
+        html = _re_img.sub(r'<img\s+src="([^"]+\.(png|jpg|jpeg))"', _inline_img, html)
+
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)
         # Create index.html symlink/copy for HyperFrames compatibility
