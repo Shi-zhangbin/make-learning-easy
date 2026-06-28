@@ -313,9 +313,9 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
 
 ```
 main                          主干分支 — 所有功能分支合并后的生产管线主开发线
-codex/bilibili-video-making   B站风格视频制作管线 — 精灵动画框架 + 命名规范统一 + talk-show 预设 + gate_master 导入修复
+codex/bilibili-video-making   B站风格视频制作管线 — 命名规范统一 + talk-show 预设 + gate_master 导入修复
 codex/bottom-progress-bar     底部进度条精灵系统 — 进度条跑动人动画 + 多组精灵动画 + 预览页 + aspect-ratio 自适应
-codex/visual-fix              视觉效果修复 — 图片容器自适应(fill/cover) + 导出路径修复 + gate_master 修复
+codex/visual-fix              画面改进与视觉效果修复 — 动画精灵优化 + 图片容器自适应 + 视觉增强与预览
 ```
 
 查看本地备注: `git config branch.<分支名>.description`
