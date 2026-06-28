@@ -567,7 +567,7 @@ def check_t5(episode_dir: str) -> GateResult:
     """Check images are not blank/black."""
     import os
     from PIL import Image
-    from v3.config import FILE_NAMES
+    from v3.config import FILE_NAMES, resolve_episode_path
     issues = []
     img_dir = os.path.join(episode_dir, FILE_NAMES["images_dir"])
     from v3.config import resolve_episode_path
