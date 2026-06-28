@@ -555,7 +555,6 @@ class CompositionHandler(StepHandler):
         audio_path = str(self.episode_dir / FILE_NAMES["audio_narration"])
         idx_path = self.episode_dir / FILE_NAMES["composition"]
 
-        # Resolve sprite runner for the episode
         sprites_dir = self.episode_dir / SPRITES_DIR_NAME
         sprites_dir.mkdir(parents=True, exist_ok=True)
         dst_sprite = sprites_dir / SPRITE_FILE_NAME
