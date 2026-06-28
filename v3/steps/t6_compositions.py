@@ -5,7 +5,7 @@ No fixed layouts. Each scene is an array of elements.
 Each element type maps to a renderer + GSAP entrance animation.
 All in one HyperFrames composition with push transitions + ambient.
 """
-import json, os, shutil
+import json, os, shutil, re
 from pathlib import Path
 from v3.config import FILE_NAMES, resolve_episode_path
 from v3.steps.base import StepHandler, StepResult
@@ -267,6 +267,8 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
             images_dir = FILE_NAMES.get("images_dir", "05-images")
             if src.startswith("images/"):
                 src = images_dir + src[len("images"):]
+            elif src and "/" not in src and not src.startswith("data:"):
+                src = images_dir + "/" + src
             # Adaptive container: width determined by flex layout, height auto-calculated
             # from 16:9 aspect ratio so images fill available space without blank gaps
             size_css = {"small": "flex:0.6; aspect-ratio:16/9;",
@@ -516,6 +518,288 @@ window.__timelines["main"] = tl;
 </body>
 </html>"""
 
+
+
+def _page_spec_to_elements(spec):
+    """Convert a PageSpec to element-list format for _render().
+    
+    Maps each of the 10 layouts (hero, concept, flipped, comparison, code_block,
+    flowchart, card_grid, quote, section_divider, outro) to distinct visual
+    element structures so every page has a unique layout.
+    """
+    from v3.pagespec import PageSpec, Section
+    elements = []
+
+    # ── Badge ──
+    if spec.badge:
+        elements.append({"type": "badge", "text": spec.badge})
+
+    # ── Title (xl for hero/divider, lg otherwise) ──
+    title_text = f"{spec.emoji} {spec.title}" if spec.emoji else spec.title
+    title_size = "xl" if spec.layout in ("hero", "section_divider") else "lg"
+    elements.append({"type": "heading", "size": title_size, "text": title_text})
+
+    # ── Subtitle ──
+    if spec.subtitle:
+        elements.append({"type": "paragraph", "text": spec.subtitle})
+
+    # ── Accent line for hero/section_divider ──
+    if spec.layout in ("hero", "section_divider"):
+        elements.append({"type": "accent-line"})
+
+    # ── Chip tags for hero ──
+    if spec.layout == "hero":
+        elements.append({"type": "chip-row", "chips": ["入门科普", "程序员日常", "10分钟"]})
+
+    # ── Layout-specific content ──
+
+    if spec.layout == "comparison":
+        for s in spec.sections:
+            if s.comparison:
+                left_items = []
+                for item in s.comparison.left_items:
+                    left_items.append({"type": "card-alt", "title": item, "desc": "", "icon": "\u2022", "tag": ""})
+                right_items = []
+                for item in s.comparison.right_items:
+                    right_items.append({"type": "card-alt", "title": item, "desc": "", "icon": "\u2022", "tag": ""})
+                elements.append({
+                    "type": "split",
+                    "left": [{"type": "heading", "size": "sm", "text": s.comparison.left_title}] + left_items,
+                    "right": [{"type": "heading", "size": "sm", "text": s.comparison.right_title}] + right_items,
+                })
+
+    elif spec.layout == "code_block":
+        code_text = ""
+        code_lang = "python"
+        cards = []
+        for s in spec.sections:
+            if s.code:
+                code_text = "\n".join(s.code.lines) if hasattr(s.code, 'lines') else str(s.code)
+            for c in s.cards:
+                cards.append({"icon": c.icon, "title": c.title, "desc": c.body, "tag": ""})
+        left = [{"type": "code", "code": code_text, "lang": code_lang}] if code_text else []
+        right = [{"type": "card-alt-row", "cards": cards}] if cards else []
+        if left or right:
+            elements.append({"type": "split", "left": left, "right": right,
+                             "left_weight": 1.4, "right_weight": 1})
+
+    elif spec.layout in ("concept", "flipped"):
+        cards = []
+        for s in spec.sections:
+            for c in s.cards:
+                cards.append({"icon": c.icon, "title": c.title, "body": c.body})
+
+        # image_position from PageSpec (set by page-plans or heuristic)
+        img_pos = getattr(spec, "image_position", "right") or "right"
+
+        if img_pos == "left":
+            # Image on left, cards on right (flipped-style)
+            left = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
+            alt_cards = [{"icon": c["icon"], "title": c["title"], "desc": c["body"], "tag": ""} for c in cards]
+            right = [{"type": "card-alt-row", "cards": alt_cards}] if alt_cards else []
+        elif img_pos == "bottom":
+            # Stack: cards on top, image below
+            if cards:
+                elements.append({"type": "card-row", "cards": cards[:3]})
+            if spec.image_slot:
+                elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
+            left, right = None, None  # skip split
+        elif img_pos == "background":
+            # Full-page background — not fully supported yet, fallback to right
+            left = [{"type": "card-row", "cards": cards[:3]}] if cards else []
+            right = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
+        else:
+            # Default: image on right (concept-style)
+            left = [{"type": "card-row", "cards": cards[:3]}] if cards else []
+            right = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
+
+        if left is not None and right is not None and (left or right):
+            elements.append({"type": "split", "left": left, "right": right})
+
+    elif spec.layout == "flowchart":
+        for s in spec.sections:
+            if s.cards:
+                elements.append({
+                    "type": "card-alt-row",
+                    "cards": [{"icon": c.icon, "title": c.title, "desc": c.body, "tag": f"Step{i+1}"}
+                              for i, c in enumerate(s.cards)]
+                })
+        if spec.image_slot:
+            elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
+
+    elif spec.layout == "card_grid":
+        for s in spec.sections:
+            if s.cards:
+                elements.append({
+                    "type": "grid-2x2",
+                    "cards": [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards[:4]]
+                })
+        if spec.image_slot:
+            elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
+
+    elif spec.layout == "quote":
+        for s in spec.sections:
+            if s.quote_text:
+                elements.append({
+                    "type": "quote",
+                    "text": s.quote_text,
+                    "author": s.quote_author or ""
+                })
+
+    elif spec.layout == "outro":
+        for s in spec.sections:
+            if s.cards:
+                elements.append({
+                    "type": "card-row",
+                    "cards": [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards[:3]]
+                })
+        elements.append({"type": "speech-bubble", "text": "我们下期见！"})
+
+    # ── Bottom image for hero/section_divider ──
+    if spec.layout in ("hero", "section_divider"):
+        if spec.image_slot:
+            elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
+
+    return elements
+
+
+
+def _try_load_page_plans(episode_dir, slides, images):
+    """Try to load 02-page-plans.json and convert to PageSpec list.
+    Returns None if file doesn't exist or is invalid (triggers fallback to heuristic)."""
+    from v3.config import FILE_NAMES
+    plans_path = Path(episode_dir) / FILE_NAMES.get("page_plans", "02-page-plans.json")
+
+    if not plans_path.exists():
+        return None
+
+    try:
+        raw = json.loads(plans_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, IOError):
+        print("  \u26a0\ufe0f  02-page-plans.json 解析失败，降级到 heuristic")
+        return None
+
+    pages_data = raw.get("pages", [])
+    if not pages_data:
+        return None
+
+    valid_layouts = {"hero", "concept", "flipped", "comparison", "code_block",
+                     "flowchart", "card_grid", "quote", "section_divider", "outro"}
+
+    from v3.pagespec import PageSpec, Section, Card as PSCard, CodeBlock, ComparisonGroup
+
+    specs = []
+    prev_surface = ""
+
+    surface_order = ["cream", "cream_soft", "cream_card", "cream_soft"]
+
+    for i, pg_data in enumerate(pages_data):
+        pg = pg_data.get("page", i + 1)
+        layout = pg_data.get("layout", "concept")
+        if layout not in valid_layouts:
+            layout = "concept"
+
+        slide = slides[i] if i < len(slides) else {}
+
+        # Match image file from 05-images/
+        img_fn = _match_image(pg, images)
+
+        # Build sections from page-plan data
+        sections = []
+        cards_data = pg_data.get("cards") or []
+        if cards_data:
+            cards = [PSCard(icon=c.get("icon", ""), title=c.get("title", ""),
+                            body=c.get("body", ""), style="light") for c in cards_data]
+            sections.append(Section(style="cream_card", cards=cards))
+
+        code_data = pg_data.get("code")
+        if code_data:
+            code_body = code_data.get("body", "")
+            code_lang = code_data.get("language", "python")
+            sections.append(Section(
+                style="dark",
+                code=CodeBlock(lines=code_body.split("\n"), language=code_lang)))
+
+        comparison_data = pg_data.get("comparison")
+        if comparison_data:
+            sections.append(Section(
+                style="cream_card",
+                comparison=ComparisonGroup(
+                    left_title=comparison_data.get("left_title", ""),
+                    left_items=comparison_data.get("left_items", []),
+                    right_title=comparison_data.get("right_title", ""),
+                    right_items=comparison_data.get("right_items", []),
+                )))
+
+        flow_data = pg_data.get("flow_steps")
+        if flow_data:
+            step_cards = [PSCard(icon=s.get("icon", ""), title=s.get("title", ""),
+                                 body=s.get("body", ""), style="light") for s in flow_data]
+            sections.append(Section(style="cream_card", cards=step_cards))
+
+        quote_data = pg_data.get("quote")
+        if quote_data:
+            if isinstance(quote_data, str):
+                sections.append(Section(style="dark", quote_text=quote_data, quote_author=""))
+            elif isinstance(quote_data, dict):
+                sections.append(Section(style="dark",
+                    quote_text=quote_data.get("text", ""),
+                    quote_author=quote_data.get("author", "")))
+
+        # Surface alternation
+        if not prev_surface or prev_surface == "dark":
+            surface = surface_order[0]
+        else:
+            idx = surface_order.index(prev_surface) if prev_surface in surface_order else 0
+            surface = surface_order[(idx + 1) % len(surface_order)]
+        prev_surface = surface
+
+        # Image position from page-plan
+        img_info = pg_data.get("image") or {}
+        img_pos = img_info.get("position", "right") if isinstance(img_info, dict) else "right"
+
+        # Emoji
+        emoji = pg_data.get("emoji", "")
+        if not emoji:
+            kw_map = {"概念": "\U0001f9e0", "对比": "\u2696\ufe0f", "流程": "\U0001f504",
+                      "代码": "\U0001f4bb", "总结": "\U0001f3af", "核心": "\U0001f4a1", "关键": "\U0001f511"}
+            title = pg_data.get("heading", "")
+            emoji = next((v for k, v in kw_map.items() if k in title), "\U0001f4a1")
+
+        # Badge label
+        badge_prefix = {"hero": "开场", "outro": "总结", "section_divider": "章节",
+                        "comparison": "对比", "code_block": "代码实践", "flowchart": "流程",
+                        "card_grid": "要点", "quote": "引述", "concept": "核心概念", "flipped": "深入理解"}
+        bp = badge_prefix.get(layout, "章节")
+        badge = pg_data.get("badge", f"{bp} {pg}")
+
+        spec = PageSpec(
+            layout=layout,
+            page_num=pg,
+            total_pages=len(pages_data),
+            duration=slide.get("duration", 10),
+            start=slide.get("start", 0),
+            surface=surface,
+            badge=badge,
+            title=pg_data.get("heading", ""),
+            subtitle=pg_data.get("subtitle") or "",
+            emoji=emoji,
+            sections=sections,
+            image_slot=img_fn,
+            image_position=img_pos,
+        )
+        specs.append(spec)
+
+    return specs
+
+
+def _match_image(page_num, images):
+    """Match an image filename to a page number, or return empty string."""
+    for fn in images:
+        if f"p{page_num:02d}" in fn.lower() or f"P{page_num:02d}" in fn:
+            return fn
+    return ""
+
 class CompositionHandler(StepHandler):
     """Element-driven HyperFrames composition engine."""
     name = "T6"
@@ -550,6 +834,52 @@ class CompositionHandler(StepHandler):
         slides = timeline.get("slides", [timeline] if isinstance(timeline, dict) else timeline)
         if isinstance(timeline, list):
             slides = timeline
+
+        # ══════════ PageSpec bridge: narration → layout → elements ══════════
+        # Ensure each slide has narration (fallback: parse script directly)
+        has_narration = any(s.get("narration") for s in slides)
+        if not has_narration:
+            script_path = self.episode_dir / FILE_NAMES["script"]
+            if script_path.exists():
+                raw = script_path.read_text(encoding="utf-8")
+                pp = re.compile(r"---\s*P(\d+).*?---\s*\n(.*?)(?=\n---\s*P|\Z)", re.DOTALL)
+                for m in pp.finditer(raw):
+                    pg = int(m.group(1))
+                    for slide in slides:
+                        if slide.get("page") == pg:
+                            slide["narration"] = m.group(2).strip()
+                            break
+
+        # Collect available images
+        images_dir = self.episode_dir / FILE_NAMES["images_dir"]
+        images = {}
+        if images_dir.exists():
+            for f in sorted(images_dir.iterdir()):
+                if f.suffix.lower() in ('.png', '.jpg', '.jpeg'):
+                    images[f.name] = f.name
+
+        # Try model-driven layout from 02-page-plans.json first
+        specs = _try_load_page_plans(str(self.episode_dir), slides, images)
+        if specs is not None:
+            print(f"  \U0001f4d0 Using model-driven layout from 02-page-plans.json")
+        else:
+            # Fallback: heuristic layout selection via pagespec
+            from v3.pagespec import build_all_pages
+            specs = build_all_pages(slides, images)
+            print(f"  \U0001f4d0 Using heuristic layout selection (no page-plans)")
+
+        # Convert PageSpecs to elements and attach to slides
+        for slide, spec in zip(slides, specs):
+            slide["elements"] = _page_spec_to_elements(spec)
+
+        # Print layout summary
+        layout_counts = {}
+        for spec in specs:
+            layout_counts[spec.layout] = layout_counts.get(spec.layout, 0) + 1
+        layout_summary = ", ".join(f"{k}:{v}" for k, v in sorted(layout_counts.items()))
+        print(f"  \U0001f4d0 Layouts: {layout_summary}")
+
+        # ══════════ end bridge ══════════
         design = _load_design(str(self.episode_dir))
         total_dur = timeline.get("total_duration", sum(s.get("duration", 8) for s in slides))
         audio_path = str(self.episode_dir / FILE_NAMES["audio_narration"])

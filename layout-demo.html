@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline 布局系统 — 10种布局视觉演示</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#F5F6F7; font-family:"Noto Sans SC","PingFang SC",sans-serif; }
+.page-container { max-width:1100px; margin:0 auto; padding:40px 20px; }
+.section-label { font-size:13px; font-weight:600; color:#FB7299; letter-spacing:2px; text-transform:uppercase; margin-top:60px; margin-bottom:8px; }
+.section-title { font-size:28px; font-weight:700; color:#18191C; margin-bottom:6px; }
+.section-desc { font-size:15px; color:#86909C; margin-bottom:24px; }
+.frame { width:100%; aspect-ratio:1920/1080; background:#F5F6F7; border-radius:16px; border:1px solid #E5E6EB; overflow:hidden; position:relative; display:flex; flex-direction:column; padding:40px 60px; margin-bottom:40px; }
+.frame .badge { display:inline-block; align-self:flex-start; background:rgba(251,114,153,0.12); color:#FB7299; border-radius:6px; padding:3px 14px; font-size:11px; font-weight:600; letter-spacing:0.3px; margin-bottom:8px; }
+.frame .accent-line { width:50px; height:3px; background:#FB7299; border-radius:2px; margin:4px 0 8px 0; }
+.h-xl { font-size:60px; font-weight:800; color:#18191C; line-height:1.05; }
+.h-lg { font-size:44px; font-weight:700; color:#18191C; line-height:1.1; }
+.h-md { font-size:34px; font-weight:700; color:#18191C; line-height:1.15; }
+.h-sm { font-size:24px; font-weight:600; color:#18191C; line-height:1.2; }
+.p-lg { font-size:18px; font-weight:400; color:#86909C; line-height:1.5; }
+.p-md { font-size:15px; font-weight:400; color:#4E5969; line-height:1.55; }
+.p-sm { font-size:13px; font-weight:400; color:#86909C; line-height:1.5; }
+.card-row { display:flex; gap:14px; }
+.card { background:#FFFFFF; border:1px solid #E5E6EB; border-radius:10px; padding:14px 18px; flex:1; display:flex; flex-direction:column; gap:4px; }
+.card .ci { font-size:22px; }
+.card .ct { font-size:16px; font-weight:600; color:#18191C; }
+.card .cb { font-size:14px; color:#4E5969; line-height:1.5; }
+.card-alt { border-left:3px solid #FB7299; border-radius:10px; background:#FFFFFF; padding:12px 16px; display:flex; align-items:center; gap:12px; }
+.card-alt .ci { font-size:20px; flex-shrink:0; }
+.card-alt .ca-name { font-size:16px; font-weight:600; color:#18191C; }
+.card-alt .ca-desc { font-size:13px; color:#4E5969; line-height:1.4; }
+.card-alt .ca-tag { font-family:"JetBrains Mono",monospace; font-size:11px; font-weight:500; color:#FB7299; margin-left:auto; }
+.grid-2x2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.chip-row { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { font-size:11px; font-weight:500; color:#FB7299; letter-spacing:0.1em; padding:4px 12px; border:1px solid rgba(251,114,153,0.25); border-radius:18px; }
+.code-w { background:#18191C; border-radius:10px; overflow:hidden; display:flex; flex-direction:column; }
+.code-w .ch { background:#1C1E21; height:28px; display:flex; align-items:center; padding:0 12px; gap:5px; flex-shrink:0; }
+.code-w .ch .cd { width:8px; height:8px; border-radius:50%; }
+.code-w .cb { padding:12px 16px; font-family:"JetBrains Mono",monospace; font-size:13px; line-height:1.6; color:#E0E0E0; white-space:pre-wrap; }
+.code-tag { position:absolute; top:28px; right:16px; background:#FB7299; color:white; padding:2px 10px; border-radius:4px; font-size:10px; font-weight:600; z-index:10; }
+.split { display:flex; gap:18px; flex:1; min-height:0; }
+.split-l, .split-r { display:flex; flex-direction:column; gap:10px; }
+.split-l { flex:1.2; }
+.split-r { flex:1; }
+.img-placeholder { display:flex; align-items:center; justify-content:center; background:rgba(251,114,153,0.06); border-radius:10px; border:1px solid #E5E6EB; font-size:13px; color:#A9B2BF; min-height:80px; aspect-ratio:16/9; overflow:hidden; }
+.img-placeholder img { width:100%; height:100%; object-fit:cover; }
+.step-row { display:flex; align-items:stretch; gap:12px; }
+.step-card { background:#FFFFFF; border:1px solid #E5E6EB; border-radius:10px; padding:12px; flex:1; text-align:center; }
+.step-card .si { font-size:28px; margin-bottom:4px; }
+.step-card .st { font-size:15px; font-weight:600; color:#18191C; margin-bottom:2px; }
+.step-card .sb { font-size:13px; color:#4E5969; line-height:1.4; }
+.step-arrow { display:flex; align-items:center; color:#FB7299; font-size:20px; width:24px; flex-shrink:0; justify-content:center; }
+.compare-col { flex:1; padding:14px; }
+.compare-col h4 { font-size:16px; font-weight:600; color:#18191C; margin-bottom:8px; padding-bottom:6px; border-bottom:2px solid #E5E6EB; }
+.compare-col li { font-size:14px; color:#4E5969; line-height:1.6; margin-left:14px; }
+.compare-col.accent-col h4 { color:#FB7299; border-color:#FB7299; }
+.quote-block { background:#18191C; border-radius:12px; padding:36px 48px; text-align:center; }
+.quote-block .qt { font-size:28px; font-weight:400; line-height:1.4; color:#E0E0E0; }
+.quote-block .qa { font-size:14px; color:#FB7299; margin-top:10px; }
+.fq-grid { display:flex; flex-direction:column; gap:14px; }
+.fq { display:flex; align-items:flex-start; gap:12px; }
+.fq-n { font-size:32px; font-weight:700; color:rgba(251,114,153,0.2); line-height:1; width:34px; flex-shrink:0; }
+.fq-q { font-size:18px; font-weight:600; color:#18191C; line-height:1.3; }
+.fq-a { font-size:14px; font-weight:400; color:#4E5969; line-height:1.5; }
+.hero-pattern { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; }
+.dot-grid { position:absolute; top:0; left:0; width:100%; height:100%; background-image:radial-gradient(#FB7299 1px,transparent 1px); background-size:24px 24px; opacity:0.08; }
+.pn { position:absolute; bottom:16px; right:24px; font-size:12px; font-weight:500; color:rgba(24,25,28,0.15); }
+@media (max-width:800px) { .frame { padding:24px 28px; } .h-xl { font-size:36px; } .h-lg { font-size:28px; } .h-md { font-size:22px; } .card-row { flex-direction:column; } .split { flex-direction:column; } .step-row { flex-direction:column; } .step-arrow { transform:rotate(90deg); width:auto; height:20px; } .grid-2x2 { grid-template-columns:1fr; } .card-alt { flex-wrap:wrap; } .quote-block { padding:24px 28px; } .quote-block .qt { font-size:20px; } }
+</style>
+</head>
+<body>
+<div class="page-container">
+
+<h1 style="font-size:40px;font-weight:800;color:#18191C;">🎨 PageSpec 布局系统 — 10 种布局视觉演示</h1>
+<p style="font-size:16px;color:#86909C;margin:6px 0 8px 0;">基于 pagespec.py 的布局类型 × 丰富内容填充。所有页面假设 1920×1080 画布，此处等比缩放展示。</p>
+<p style="font-size:13px;color:#A9B2BF;">配色：Bilibili 二次元科技 (强调色 #FB7299) &nbsp;|&nbsp; 字体：Noto Sans SC + JetBrains Mono</p>
+
+<!-- ================================================================ -->
+<!-- 1. HERO -->
+<!-- ================================================================ -->
+<div class="section-label">01 开场页</div>
+<div class="section-title">Hero</div>
+<div class="section-desc">视频开头，大标题 + 副标题 + 标签 + 装饰性背景图案。视觉重心居中偏上，配合弹幕氛围。</div>
+<div class="frame" style="background:linear-gradient(135deg,#F5F6F7 0%,#FAFBFC 100%);">
+  <div class="hero-pattern"><div class="dot-grid"></div></div>
+  <div class="badge" style="margin-bottom:12px;">🎬 开场 P1</div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
+    <h1 class="h-xl" style="max-width:85%;">🤯 什么是 API？<br>从「调接口」到「万物互联」</h1>
+    <div class="accent-line" style="margin:10px 0 12px 0;"></div>
+    <p class="p-lg" style="max-width:75%;">前两天我在改一个祖传 bug，发现系统里有三个不同的「用户查询」接口，名字不一样但功能一模一样……这大概就是没有 API 规范的世界吧。今天咱就来聊聊，API 到底是个啥。</p>
+    <div class="chip-row" style="margin-top:10px;">
+      <span class="chip">程序员日常</span><span class="chip">入门科普</span><span class="chip">10分钟</span>
+    </div>
+  </div>
+  <div class="pn">1/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 2. CONCEPT (image right) -->
+<!-- ================================================================ -->
+<div class="section-label">02 核心概念页</div>
+<div class="section-title">Concept</div>
+<div class="section-desc">最常见的布局。左侧卡片区展示知识要点（2-3 张卡片），右侧配图补充说明。适用于绝大多数知识点页面。</div>
+<div class="frame">
+  <div class="badge">🧠 核心概念 P2</div>
+  <h1 class="h-lg">💡 API 的本质：一个「中间人」</h1>
+  <p class="p-md" style="max-width:70%;margin-bottom:10px;">API 就是两个程序之间约定好的一套沟通规则。你不需要知道对面怎么实现的，照着规则发请求就行了。</p>
+  <div class="split" style="flex:1;min-height:0;">
+    <div class="split-l" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card"><div class="ci">☎️</div><div class="ct">打电话的比喻</div><div class="cb">你不需要知道电话局怎么转接的，你只需要知道对方的号码，拨号，等接通就行了。API 就是这个「电话号码」+「通话协议」。</div></div>
+      <div class="card"><div class="ci">🎮</div><div class="ct">游戏手柄类比</div><div class="cb">你按 A 键跳跃，按 B 键攻击。你不关心手柄内部电路怎么处理的，你只关心按了什么键、得到什么结果。API 就是游戏的「按键映射表」。</div></div>
+      <div class="card"><div class="ci">👨‍💼</div><div class="ct">餐厅服务员</div><div class="cb">你跟服务员点菜，服务员告诉后厨，后厨做完菜服务员端给你。你没有直接跟后厨打交道——API 就是那个服务员。</div></div>
+    </div>
+    <div class="split-r"><div class="img-placeholder" style="flex:1;"><div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="font-size:32px;">🔄</div><div style="font-size:14px;color:#86909C;text-align:center;">程序 A → API → 程序 B<br><span style="font-size:11px;">中间人模式示意图</span></div></div></div></div>
+  </div>
+  <div class="pn">2/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 3. FLIPPED (image left) -->
+<!-- ================================================================ -->
+<div class="section-label">03 图文反排版</div>
+<div class="section-title">Flipped</div>
+<div class="section-desc">和 Concept 对称，图片在左、文字在右。适合以视觉冲击开场的场景，先看示意图再读解释。</div>
+<div class="frame">
+  <div class="badge">🔍 深入理解 P3</div>
+  <h1 class="h-md">🎯 REST API：互联网的通用语</h1>
+  <div class="split" style="flex:1;min-height:0;margin-top:8px;">
+    <div class="split-r" style="flex:1;display:flex;flex-direction:column;gap:10px;">
+      <div class="img-placeholder" style="flex:1;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="font-size:28px;">🌐</div>
+          <div style="font-size:13px;color:#86909C;text-align:center;">GET /users → 返回用户列表<br>POST /users → 创建新用户<br>PUT /users/1 → 更新用户<br>DELETE /users/1 → 删除用户</div>
+          <div style="font-size:11px;color:#A9B2BF;">RESTful URL 设计示例</div>
+        </div>
+      </div>
+    </div>
+    <div class="split-l" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card-alt"><div class="ci">📮</div><div><div class="ca-name">GET — 查</div><div class="ca-desc">向服务器请求资源，就像翻一本字典。幂等，安全。</div></div><div class="ca-tag">只读</div></div>
+      <div class="card-alt"><div class="ci">✉️</div><div><div class="ca-name">POST — 增</div><div class="ca-desc">创建新资源，每次调用都产生一个新东西。发一次和多发一次不一样。</div></div><div class="ca-tag">非幂等</div></div>
+      <div class="card-alt"><div class="ci">🔄</div><div><div class="ca-name">PUT — 改</div><div class="ca-desc">替换整个资源。你要把一页纸全部擦掉重写。</div></div><div class="ca-tag">幂等</div></div>
+      <div class="card-alt"><div class="ci">🗑️</div><div><div class="ca-name">DELETE — 删</div><div class="ca-desc">删除资源。删了就是删了，再删一次也是同样的结果。</div></div><div class="ca-tag">幂等</div></div>
+    </div>
+  </div>
+  <div class="pn">3/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 4. COMPARISON -->
+<!-- ================================================================ -->
+<div class="section-label">04 对比页</div>
+<div class="section-title">Comparison</div>
+<div class="section-desc">双栏对比布局。左 vs 右，方案A vs 方案B，优点 vs 缺点。视觉上通过分隔线和强调色区分两侧。适用于概念辨析、技术选型。</div>
+<div class="frame">
+  <div class="badge">⚖️ 对比分析 P4</div>
+  <h1 class="h-md">REST vs GraphQL：谁更香？</h1>
+  <p class="p-sm" style="margin-bottom:8px;">同样的需求，两种不同的 API 设计哲学。没有银弹，但各有主场。</p>
+  <div class="split" style="flex:1;min-height:0;">
+    <div class="compare-col" style="display:flex;flex-direction:column;">
+      <h4>REST — 资源驱动</h4>
+      <li>每个 URL 代表一个资源，语义清晰</li>
+      <li>缓存友好：HTTP 缓存直接用</li>
+      <li>工具链成熟：Swagger, Postman 全家桶</li>
+      <li>过度获取（Over-fetching）：一个接口返回整张表</li>
+      <li>版本管理麻烦：v1, v2, v3 满天飞</li>
+      <li>多个资源需要多次请求，N+1 问题</li>
+    </div>
+    <div style="width:1px;background:#E5E6EB;flex-shrink:0;"></div>
+    <div class="compare-col accent-col" style="display:flex;flex-direction:column;">
+      <h4>GraphQL — 查询驱动</h4>
+      <li>客户端精确指定需要的字段，不多不少</li>
+      <li>一次查询拿多个资源，告别 N+1</li>
+      <li>类型系统：Schema 即文档，自省能力强</li>
+      <li>缓存复杂：不像 HTTP URL 那么好缓存</li>
+      <li>查询复杂度难控制：一个深层嵌套查垮服务器</li>
+      <li>文件上传等二进制操作支持较弱</li>
+    </div>
+  </div>
+  <div style="display:flex;gap:14px;margin-top:10px;flex-shrink:0;">
+    <div class="card" style="flex:1;padding:10px 14px;"><div class="cb"><strong>选 REST：</strong>团队小、CRUD 为主、需要强缓存</div></div>
+    <div class="card" style="flex:1;padding:10px 14px;"><div class="cb"><strong>选 GraphQL：</strong>前端场景复杂、多端共用、对数据粒度敏感</div></div>
+  </div>
+  <div class="pn">4/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 5. CODE BLOCK -->
+<!-- ================================================================ -->
+<div class="section-label">05 代码实践页</div>
+<div class="section-title">Code Block</div>
+<div class="section-desc">左半屏代码窗口（Mac 风格红绿灯 + 语法高亮），右半屏注释卡片。适用于实操演示、代码解读。</div>
+<div class="frame">
+  <div class="badge">💻 代码实践 P5</div>
+  <div class="split" style="flex:1;min-height:0;margin-top:4px;">
+    <div class="code-w" style="flex:1.4;position:relative;">
+      <div class="ch"><span class="cd" style="background:#ff5f56;"></span><span class="cd" style="background:#ffbd2e;"></span><span class="cd" style="background:#27c93f;"></span><span style="margin-left:10px;font-family:monospace;font-size:11px;color:#888;">python</span></div>
+      <div class="code-tag">FastAPI</div>
+      <div class="cb">from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Optional
+
+app = FastAPI()
+
+class User(BaseModel):
+    name: str
+    email: str
+    age: Optional[int] = None
+
+users_db = {}
+
+@app.get("/users/{user_id}")
+def get_user(user_id: int):
+    if user_id not in users_db:
+        raise HTTPException(404, "用户不存在")
+    return users_db[user_id]
+
+@app.post("/users")
+def create_user(user: User):
+    uid = len(users_db) + 1
+    users_db[uid] = user
+    return {"id": uid, **user.model_dump()}</div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:10px;">
+      <div class="card" style="padding:12px 14px;"><div class="ci" style="font-size:18px;">🚀</div><div class="ct" style="font-size:14px;">Pydantic 模型</div><div class="cb" style="font-size:13px;">用 Python 类型注解自动做参数校验。name 必须传，age 可省略，类型不对直接 422。</div></div>
+      <div class="card" style="padding:12px 14px;"><div class="ci" style="font-size:18px;">🎯</div><div class="ct" style="font-size:14px;">路径参数 + 类型转换</div><div class="cb" style="font-size:13px;">FastAPI 自动把 /users/42 里的 "42" 转成 int。如果传了 abc，自动返回 422。</div></div>
+      <div class="card" style="padding:12px 14px;"><div class="ci" style="font-size:18px;">⚠️</div><div class="ct" style="font-size:14px;">错误处理</div><div class="cb" style="font-size:13px;">HTTPException 自动生成规范化的 JSON 错误响应，前端直接拿到 {"detail": "用户不存在"}。</div></div>
+      <div class="card" style="padding:12px 14px;"><div class="ci" style="font-size:18px;">📝</div><div class="ct" style="font-size:14px;">交互式文档</div><div class="cb" style="font-size:13px;">启动后自动生成 Swagger UI (/docs) 和 ReDoc (/redoc)，前后端联调神器。</div></div>
+    </div>
+  </div>
+  <div class="pn">5/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 6. FLOWCHART -->
+<!-- ================================================================ -->
+<div class="section-label">06 流程步骤页</div>
+<div class="section-title">Flowchart</div>
+<div class="section-desc">水平步骤流，3-5 个步骤卡片 + 箭头连接。每一步有图标、标题、简述。适合展示流程、生命周期、演进路径。</div>
+<div class="frame">
+  <div class="badge">🔄 工作流程 P6</div>
+  <h1 class="h-md">📬 一次完整的 API 请求生命周期</h1>
+  <p class="p-sm" style="max-width:80%;margin-bottom:12px;">从你在前端点下按钮，到拿到数据渲染在屏幕上，这一路发生了什么？</p>
+  <div class="step-row" style="flex-shrink:0;">
+    <div class="step-card"><div class="si">🔍</div><div class="st">DNS 解析</div><div class="sb">浏览器把域名翻译成 IP 地址，找到服务器在哪</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step-card"><div class="si">🔗</div><div class="st">TCP 建连</div><div class="sb">三次握手：你还好吗 / 我挺好的 / 那我们开始吧</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step-card"><div class="si">🔐</div><div class="st">TLS 握手</div><div class="sb">HTTPS 加密协商，交换证书，建立加密通道</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step-card"><div class="si">📨</div><div class="st">发送请求</div><div class="sb">HTTP 请求行 + headers + body 飞到服务器</div></div>
+    <div class="step-arrow">→</div>
+    <div class="step-card"><div class="si">✅</div><div class="st">响应返回</div><div class="sb">服务器处理完，带着状态码和数据回来</div></div>
+  </div>
+  <div style="display:flex;gap:14px;margin-top:14px;flex-shrink:0;">
+    <div class="card-alt" style="flex:1;"><div class="ci">💡</div><div><div class="ca-name">整个流程大约 100-500ms</div><div class="ca-desc">其中 DNS 解析平均 20-50ms，TCP 握手 ~50ms，TLS ~100ms，真正的业务处理可能只有 5ms。</div></div></div>
+  </div>
+  <div class="pn">6/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 7. CARD GRID -->
+<!-- ================================================================ -->
+<div class="section-label">07 要点归纳页</div>
+<div class="section-title">Card Grid</div>
+<div class="section-desc">2×2 网格布局，每格一个卡片（图标 + 标题 + 简述）。适合并列展示四个平级概念、常见误区、最佳实践。</div>
+<div class="frame">
+  <div class="badge">📋 要点归纳 P7</div>
+  <h1 class="h-md">⚠️ API 设计的 4 个常见翻车现场</h1>
+  <p class="p-sm" style="margin-bottom:10px;">这些都是我在 code review 里真实见过的。每一个都有血有泪。</p>
+  <div class="grid-2x2" style="flex:1;">
+    <div class="card" style="padding:16px;"><div class="ci">🚮</div><div class="ct">返回 200 但报错</div><div class="cb">code 200, body 里写 {"error": "token过期"}。前端每个请求都要先解析 body 看有没有错误。HTTP 状态码不是摆设！</div></div>
+    <div class="card" style="padding:16px;"><div class="ci">📏</div><div class="ct">接口膨胀</div><div class="cb">/getUser、/getUserInfo、/getUserDetail 三个接口做的事一模一样。不同开发者各写各的，没人肯删。一条规范能省 3 个人天。</div></div>
+    <div class="card" style="padding:16px;"><div class="ci">🔓</div><div class="ct">权限裸奔</div><div class="cb">只做了前端按钮隐藏，后端的 API 没有任何鉴权。用 Postman 直接调 /admin/deleteAll 就能删库。这种事发生得比你想象的频繁。</div></div>
+    <div class="card" style="padding:16px;"><div class="ci">🐌</div><div class="ct">N+1 查询地狱</div><div class="cb">查询订单列表 → 每个订单再查一次用户信息。如果 100 个订单就是 101 次数据库查询。加个 JOIN 或者用 GraphQL 就能解决。</div></div>
+  </div>
+  <div class="pn">7/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 8. QUOTE -->
+<!-- ================================================================ -->
+<div class="section-label">08 引述页</div>
+<div class="section-title">Quote</div>
+<div class="section-desc">深色背景，居中大字引述，下方作者名。适合摘录名人名言、行业判断、精彩观点。视觉冲击强，节奏调节用。</div>
+<div class="frame" style="background:#0A0C0E;">
+  <div class="badge" style="background:rgba(251,114,153,0.15);color:#FB7299;">💬 大神说 P8</div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <div style="font-size:60px;color:rgba(255,255,255,0.08);margin-bottom:-20px;font-family:Georgia,serif;">"</div>
+    <div style="font-size:30px;font-weight:400;line-height:1.5;color:#E0E0E0;max-width:85%;">Be conservative in what you send, <br>be liberal in what you accept.</div>
+    <div style="font-size:14px;color:#FB7299;margin-top:14px;letter-spacing:1px;">发送时要保守，接收时要开放</div>
+    <div style="font-size:13px;color:#86909C;margin-top:6px;">—— Robustness Principle, Jon Postel (RFC 793)</div>
+    <div style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;justify-content:center;">
+      <span class="chip" style="border-color:rgba(251,114,153,0.3);">API 设计核心原则</span>
+      <span class="chip" style="border-color:rgba(251,114,153,0.3);">容错性</span>
+      <span class="chip" style="border-color:rgba(251,114,153,0.3);">防御性编程</span>
+    </div>
+  </div>
+  <div class="pn" style="color:rgba(255,255,255,0.2);">8/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 9. SECTION DIVIDER -->
+<!-- ================================================================ -->
+<div class="section-label">09 章节分隔页</div>
+<div class="section-title">Section Divider</div>
+<div class="section-desc">居中大标题 + 背景过渡，视觉上标记一个章节的结束和下一章的开始。适合长视频的中段节奏分割。</div>
+<div class="frame" style="background:linear-gradient(180deg,#F5F6F7 0%,#F0F1F3 100%);">
+  <div class="badge" style="margin-bottom:14px;">📖 章节 P9</div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <div style="font-size:48px;margin-bottom:10px;">🌉</div>
+    <h1 class="h-lg" style="font-size:48px;max-width:70%;text-align:center;">从理论到实践</h1>
+    <div class="accent-line" style="margin:10px auto 12px;width:80px;"></div>
+    <p class="p-md" style="max-width:50%;text-align:center;">前面聊了 API 是什么、设计原则、常见翻车。<br>接下来我们打开编辑器，手写一个真实的 API 服务。</p>
+  </div>
+  <div class="pn">9/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- 10. OUTRO -->
+<!-- ================================================================ -->
+<div class="section-label">10 总结页</div>
+<div class="section-title">Outro</div>
+<div class="section-desc">视频收尾。总结要点 + 下期预告 + 关注引导。轻量干净，让观众带着清晰的收获离开。</div>
+<div class="frame" style="background:linear-gradient(180deg,#FAFBFC 0%,#F5F6F7 100%);">
+  <div class="badge" style="margin-bottom:8px;">🎯 下期预告</div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <h1 class="h-lg" style="font-size:40px;">📌 今天你学到了什么？</h1>
+    <div style="display:flex;gap:16px;margin:14px 0;flex-wrap:wrap;justify-content:center;">
+      <div class="card" style="max-width:220px;padding:12px 16px;"><div class="cb" style="font-size:13px;"><strong>API 的本质</strong> — 中间人模式</div></div>
+      <div class="card" style="max-width:220px;padding:12px 16px;"><div class="cb" style="font-size:13px;"><strong>REST 四大动词</strong> — GET/POST/PUT/DELETE</div></div>
+      <div class="card" style="max-width:220px;padding:12px 16px;"><div class="cb" style="font-size:13px;"><strong>4 个翻车现场</strong> — 有则改之</div></div>
+    </div>
+    <p class="p-md" style="max-width:55%;margin-top:4px;">下期聊聊 <strong>gRPC vs REST</strong>，为什么谷歌说 REST 太慢了，以及什么时候该用哪个。我们下期见！</p>
+    <div style="background:#FB7299;color:white;border-radius:999px;padding:8px 28px;font-size:15px;font-weight:600;margin-top:14px;display:inline-block;">我们下期见 →</div>
+  </div>
+  <div class="pn">10/10</div>
+</div>
+
+<!-- ================================================================ -->
+<!-- FIX PLAN -->
+<!-- ================================================================ -->
+<div style="margin-top:60px;padding:32px;background:white;border-radius:16px;border:1px solid #E5E6EB;">
+  <h2 style="font-size:24px;font-weight:700;color:#18191C;margin-bottom:12px;">🔧 修复方案：桥接 PageSpec 到 T6</h2>
+  <p style="font-size:15px;color:#4E5969;line-height:1.6;margin-bottom:16px;">
+    如上面 10 个布局所示，<code>pagespec.py</code> 已经具备完整的页面结构推导能力（布局自动选择、内容解析、层数保障）。但 <code>t6_compositions.py</code> 完全没有使用它。需要做三件事：
+  </p>
+  <div style="display:flex;flex-direction:column;gap:12px;">
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="background:#FB7299;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">1</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:#18191C;">T3 存每页叙述文本到 timeline.json</div>
+        <div style="font-size:13px;color:#86909C;margin-top:2px;">在 <code>v3/steps/tts.py</code> 中，把解析出的每页口播正文存入 <code>timeline.json</code> 的 slide 对象（key: <code>narration</code>）。这样 T6 就能拿到每页的文字内容。</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="background:#FB7299;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">2</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:#18191C;">T6 调用 pagespec.build_all_pages() 生成 PageSpecs</div>
+        <div style="font-size:13px;color:#86909C;margin-top:2px;">在 <code>CompositionHandler::execute()</code> 中，读取 <code>timeline.json</code>（此时已有 narration）后调用 <code>pagespec.build_all_pages(slides, images)</code> 获得结构化的 <code>PageSpec[]</code>。这一步自动完成布局选择和内容分段。</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <div style="background:#FB7299;color:white;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">3</div>
+      <div>
+        <div style="font-size:15px;font-weight:600;color:#18191C;">写转换器：PageSpec → Elements 数组</div>
+        <div style="font-size:13px;color:#86909C;margin-top:2px;">把每个 <code>PageSpec</code> 转换成 <code>_render()</code> 能吃的元素列表（badge / heading / card-row / grid-2x2 / code / split / quote / image 等）。这个转换器约 80-120 行，覆盖全部 10 种布局的分支映射。</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:20px;padding:16px;background:#F5F6F7;border-radius:10px;">
+    <div style="font-size:13px;font-weight:600;color:#18191C;margin-bottom:4px;">💡 改动面</div>
+    <div style="font-size:13px;color:#4E5969;line-height:1.6;">
+      修改 2 个文件：<code>v3/steps/tts.py</code>（~10 行追加 narration 字段）、<code>v3/steps/t6_compositions.py</code>（~100 行新代码：提取 narration + 调 build_all_pages + PageSpec→elements 转换器）。<br>
+      新增 0 个文件。<code>pagespec.py</code> 和设计预设 YAML 完全复用。不动现有 gate 逻辑。
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

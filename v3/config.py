@@ -75,6 +75,7 @@ FILE_NAMES = {
     # T2
     "script": "02-script.txt",
     "script_raw": "02-script-raw.txt",
+    "page_plans": "02-page-plans.json",
     # T3
     "audio_narration": "03-audio/narration.mp3",
     "audio_srt": "03-audio/narration.srt",

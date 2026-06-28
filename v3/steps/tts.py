@@ -181,7 +181,8 @@ class TTSHandler(StepHandler):
                 chars = len(m.group(2).strip())
                 dur = (chars / max(total_chars, 1)) * total_dur if total_chars > 0 else total_dur / len(page_matches)
                 pages.append({"page": pg, "duration": round(dur, 2), "start": round(pos, 2),
-                              "end": round(pos + dur, 2), "title": f"P{pg}", "chars": chars})
+                              "end": round(pos + dur, 2), "title": f"P{pg}", "chars": chars,
+                              "narration": m.group(2).strip()})
                 pos += dur
         else:
             # No page markers: treat as one slide

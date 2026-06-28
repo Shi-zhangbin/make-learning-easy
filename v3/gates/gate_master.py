@@ -388,8 +388,11 @@ def check_t6(episode_dir: str) -> GateResult:
         content_els = len(re.findall(r'class="(?:h-xl|h-lg|h-md|h-sm|p-lg|p-md|p-sm|badge|card|card-alt|fq|quote|img-wrap)', block))
         if content_els == 0:
             issues.append(f"Scene {si}: 无内容元素")
-        # Check for images (allow cover and summary scenes to skip)
-        if len(scenes) > 1 and si in [str(1), str(len(scenes))]:
+        # Check for images — only require images for empty pages
+        # (pages with content don't need images, especially with model-driven layouts)
+        if content_els > 0:
+            pass
+        elif len(scenes) > 1 and si in [str(1), str(len(scenes))]:
             pass
         elif not re.search(r'<img\s+[^>]*src="', block):
             issues.append(f"Scene {si}: 无配图")
