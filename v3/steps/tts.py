@@ -178,11 +178,14 @@ class TTSHandler(StepHandler):
             pos = 0.0
             for i, m in enumerate(page_matches):
                 pg = int(m.group(1))
-                chars = len(m.group(2).strip())
+                _nt = m.group(2).strip()
+                chars = len(_nt)
                 dur = (chars / max(total_chars, 1)) * total_dur if total_chars > 0 else total_dur / len(page_matches)
+                _title = re.split(r'[。！？\n]', _nt)[0][:30]
+                _title = _title + "…" if len(_title) >= 30 else _title if _title else f"P{pg}"
                 pages.append({"page": pg, "duration": round(dur, 2), "start": round(pos, 2),
-                              "end": round(pos + dur, 2), "title": f"P{pg}", "chars": chars,
-                              "narration": m.group(2).strip()})
+                              "end": round(pos + dur, 2), "title": _title, "chars": chars,
+                              "narration": _nt})
                 pos += dur
         else:
             # No page markers: treat as one slide

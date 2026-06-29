@@ -159,3 +159,30 @@ T2/T4 的 `step-prompt.json` 含 `validation_rules` 字段，明确告诉 Agent 
 | T4 image_slots | 新增每个 slot 必填字段校验（filename/prompt/page/slot_index），T5 pre_condition 拦截 |
 | 目录名 `[` `]` | 命名已改为 `-Agent` 格式，不再使用方括号，避免 `glob.glob()` 语法错误 |
 | HyperFrames 闭源 | 渲染引擎 proprietary npm 包，核心逻辑不可修改 |
+| 口播稿开头不在 P1 内 | 开场白若写在 `--- P1 ---` 之前，T6 不会捕获为旁白文本，Scene 1 内容偏移或缺失 | 确保开场白在 `--- P1 ---` 内部 |
+| T6 合成后无法预览 | composition.html 内联 GSAP 库，浏览器直接打开报错/空白 | 打开 T6 自动生成的 index.html（无 GSAP 预览版） |
+| T6 index.html 不刷新 | 旧代码 `if not exists` 导致后续 T6 不覆盖 | 已修：每次 T6 都生成无 GSAP 预览版到 index.html |
+| Hero 封面 chips 受卡片控制 | 无卡片 = 纯封面无标签，有卡片 = 显示标签 | page-plans 设 `cards: []` 即可关闭 |
+
+### T6 合成注意事项
+
+- **脚本开头必须在 P1 内**：开场白必须放在 `--- P1 ---` 之后，否则 T6 不会捕获
+- **T3 timeline 标题来自旁白首句**：T3 自动从每页口播正文首句（前 30 字）提取语义化标题，替代原来硬编码的 P1/P2；可通过 page-plans 覆盖
+- **Hero chip-row 受卡片控制**：page-plans 设 `cards: []` 即可关闭封面标签
+- **index.html = 可翻页预览版**：T6 生成两个文件——`06-composition.html`(有 GSAP，供 T7 渲染) 和 `index.html`(无 GSAP，有翻页导航和响应式缩放，浏览器直接打开)
+- **timeline 标题不对齐**：手动改 timeline.json 标题时要确保与实际口播稿 P 标记内容匹配，避免 off-by-one
+- **封面 chips 硬编码**：hero 布局固定添加 chip-row，需手动删除才有纯封面
+
+### 修复顺序建议
+
+注意 T2 门禁现在会自动校验口播稿开头是否在 P1 内，若未通过会提示退回修改。
+
+合成问题通常是口播稿格式导致的，不要直接修 composition。修复顺序：
+1. 先修口播稿（如移动开场白到 P1 内）
+2. 重跑 T3（重新生成 timeline，更新各页时长）
+3. 再跑 T6（生成新 composition + 预览）
+4. 最后 T7 渲染
+
+每一步跑完手动检查：
+- T3 → `timeline.json` 各页时长合理吗？
+- T6 → 打开 `index.html` 预览，Scene 标题/正文正确吗？

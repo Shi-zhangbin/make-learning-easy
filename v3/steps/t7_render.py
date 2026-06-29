@@ -26,11 +26,11 @@ class RenderHandler(StepHandler):
         comp_path = self.episode_dir / FILE_NAMES["composition"]
         if not comp_path.exists():
             return f"Composition file {comp_path} 不存在。请先运行 T6。"
-        idx_path = self.episode_dir / "index.html"
-        if not idx_path.exists():
-            import shutil
-            shutil.copy2(str(comp_path), str(idx_path))
-            print(f"  🔗 Created index.html for HyperFrames")
+        # Always use the full composition (with GSAP) for HyperFrames rendering
+        # The preview index.html from T6 is GSAP-free and won't animate.
+        import shutil
+        shutil.copy2(str(comp_path), idx_path := self.episode_dir / "index.html")
+        print(f"  🔗 index.html updated from composition for HyperFrames rendering")
         return None
 
     def execute(self) -> StepResult:

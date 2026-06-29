@@ -153,6 +153,13 @@ def check_t2(episode_dir: str) -> GateResult:
         if empty:
             issues.append(f"空页: P{', '.join(empty)}")
 
+    # T2-C: 开场文本必须在 P1 内（否则 T6 不会捕获为 Slide 旁白）
+    _p1 = re.search(r'^---\s*P1\s*---', content, re.MULTILINE)
+    if _p1:
+        _before = content[:_p1.start()].strip()
+        if _before:
+            issues.append(f"口播稿开头 {len(_before)} 字在 --- P1 --- 之前，不会被 T6 捕获为 Slide 旁白。请移入 P1 内。")
+
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T2")

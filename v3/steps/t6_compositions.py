@@ -121,7 +121,7 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
     .split-l {{ flex:1.2; }}
     .split-r {{ flex:1; }}
 
-    .img-wrap {{ display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:12px; background:color-mix(in srgb,var(--canvas)60%,black); border:1px solid var(--border); }}
+    .img-wrap {{ display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:12px; background:transparent; border:none; }}
     .img-wrap img {{ width:100%; height:100%; object-fit:contain; padding:4px; }}
 
     .code-w {{ background:var(--code-bg); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }}
@@ -276,8 +276,8 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
                         "large": "flex:1.5; aspect-ratio:16/9;",
                         "fill": "flex:1; min-height:100px;"}.get(sz, "flex:1; aspect-ratio:16/9;")
             if sz == "fill":
-                return f'<div class="img-wrap" style="{size_css}"><img src="{src}" alt=""></div>'
-            return f'<div class="img-wrap" style="{size_css}"><img src="{src}" alt=""></div>'
+                return f'<div class="img-wrap" style="{size_css}"><img src="{src}"></div>'
+            return f'<div class="img-wrap" style="{size_css}"><img src="{src}"></div>'
         elif t == "code":
             lines = el.get("code", el.get("text", ""))
             tag = el.get("lang", "")
@@ -549,7 +549,8 @@ def _page_spec_to_elements(spec):
 
     # ── Chip tags for hero ──
     if spec.layout == "hero":
-        elements.append({"type": "chip-row", "chips": ["入门科普", "程序员日常", "10分钟"]})
+        if any(len(s.cards) > 0 for s in (spec.sections or [])):
+            elements.append({"type": "chip-row", "chips": ["入门科普", "程序员日常", "10分钟"]})
 
     # ── Layout-specific content ──
 
@@ -930,17 +931,45 @@ class CompositionHandler(StepHandler):
                         b64 = _b64.b64encode(_f.read()).decode("ascii")
                     ext = src.rsplit(".", 1)[-1].lower()
                     mime = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg"}.get(ext, "image/png")
-                    return f'<img src="data:{mime};base64,{b64}" alt="">'
+                    return f'<img src="data:{mime};base64,{b64}">'
             return m.group(0)
-        html = _re_img.sub(r'<img\s+src="([^"]+\.(png|jpg|jpeg))"', _inline_img, html)
+        html = _re_img.sub(r'<img\s+src="([^"]+\.(png|jpg|jpeg))"[^>]*>', _inline_img, html)
 
         with open(idx_path, "w", encoding="utf-8") as f:
             f.write(html)
-        # Create index.html symlink/copy for HyperFrames compatibility
+
+        # GSAP-free preview for browser preview (T6 only, skips GSAP)
+        # The main 06-composition.html keeps GSAP for HyperFrames T7 rendering;
+        # index.html gets a stripped version without GSAP so users can open
+        # it directly in a browser and see all scenes as a static slide deck.
+        import re as _rp
+        _pv = html
+        _pv = _rp.sub(r'<script>/\* inlined: assets/gsap\.min\.js \*/.*?</script>', '', _pv, count=1, flags=_rp.DOTALL)
+        _pv = _rp.sub(r'<script>\s*window\.__timelines[\s\S]*?</script>', '', _pv, count=1, flags=_rp.DOTALL)
+
+        _nav = '<style>.danmaku,.danmaku-overlay{display:none!important}body{transform-origin:top left;overflow:hidden;margin:0;}#_preview-nav{position:fixed;bottom:28px;right:28px;z-index:99999;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.4);color:#fff;padding:6px 16px 6px 12px;border-radius:999px;font:13px/1.4 sans-serif;user-select:none;pointer-events:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}#_preview-nav button{background:rgba(255,255,255,0.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font:16px/1 sans-serif;display:flex;align-items:center;justify-content:center;transition:background .15s;}#_preview-nav button:hover{background:rgba(255,255,255,0.35);}#_preview-nav ._pc{min-width:32px;text-align:center;font-variant-numeric:tabular-nums;}</style><script>(function(){var ps=document.querySelectorAll(\'[id^="s"]\');if(!ps.length)return;var c=0;function g(n){if(n<0||n>=ps.length)return;ps[c].style.opacity=\'0\';c=n;ps[c].style.opacity=\'1\';}document.addEventListener(\'keydown\',function(e){if(e.key==\'ArrowRight\'||e.key==\'ArrowDown\'||e.key==\' \'){e.preventDefault();g(c+1)}if(e.key==\'ArrowLeft\'||e.key==\'ArrowUp\'){e.preventDefault();g(c-1)}});document.addEventListener(\'click\',function(e){if(e.target.closest(\'#_preview-nav\'))return;g(c+1)});function fit(){var sx=window.innerWidth/1920,sy=window.innerHeight/1080,s=Math.min(sx,sy);document.body.style.transform=\'scale(\'+s+\')\';document.body.style.width=1920/s+\'px\';document.body.style.height=1080/s+\'px\';}window.addEventListener(\'resize\',fit);fit();var nav=document.createElement(\'div\');nav.id=\'_preview-nav\';nav.innerHTML=\'<button onclick="g(Math.max(0,c-1))">&larr;</button><span class="_pc">1/\'+ps.length+\'</span><button onclick="g(Math.min(ps.length-1,c+1))">&rarr;</button>\';document.body.appendChild(nav);var _g=g;g=function(n){_g(n);var pc=nav.querySelector(\'._pc\');if(pc)pc.textContent=(c+1)+\'/\'+ps.length};g(0);})();</script>'
+
+        # Remove danmaku overlay HTML elements from preview
+        _dm = _pv.find('<!-- Danmaku overlay -->')
+        if _dm >= 0:
+            _ov = _pv.find('<div class="danmaku-overlay">', _dm)
+            if _ov >= 0:
+                _d, _p = 0, _ov
+                while _p < len(_pv):
+                    _no = _pv.find('<div ', _p + 1)
+                    _nc = _pv.find('</div>', _p + 1)
+                    if _nc < 0: break
+                    if _no >= 0 and _no < _nc:
+                        _d += 1; _p = _no + 5
+                    else:
+                        if _d == 0: _pv = _pv[:_dm] + _pv[_nc + 6:]; break
+                        _d -= 1; _p = _nc + 6
+        _pv = _pv.replace('content="width=1920, height=1080"', 'content="width=device-width, initial-scale=1.0"')
+        _pv = _pv.replace('</body>', _nav + '\n</body>')
         idx_link = self.episode_dir / "index.html"
-        if not idx_link.exists():
-            import shutil
-            shutil.copy2(str(idx_path), str(idx_link))
-            print(f"  🔗 Created index.html -> 06-composition.html")
+        with open(idx_link, "w", encoding="utf-8") as f:
+            f.write(_pv)
+        print(f"  🔗 index.html (preview — no GSAP, danmaku removed, navigate with ◀ ▶ ← → space)")
+
         print(f"  ✅ Element-driven composition: {len(slides)} scenes, {total_dur}s")
         return StepResult(True, {"pages": len(slides), "total_duration": total_dur, "path": str(idx_path)})
