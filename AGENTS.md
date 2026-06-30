@@ -12,7 +12,8 @@
  - **管线入口**: `bash go.sh`
  - **引擎代码**: `core/engine.py`
  - **期目目录**: `episodes/YYYY-MM-DD_主题_-Agent/`
- - **设计预设**: `core/designs/presets/` (7 套)
+ - **设计预设**: `core/designs/presets/` (8 套)
+ - **话风预设**: `core/tones/` (2 套)
  - **主语言**: Python 3.14+, Node.js (HyperFrames)
  
  
@@ -65,21 +66,28 @@ pipeline-state.json        ← 管线状态
   "engine": "core",
   "created": "2026-06-26T10:00:00",
   "topic": "...",
-  "design_style": "bilibili"
+  "design_style": "bilibili",
+  "tone_style": "talk-show"
 }
 ```
 
 ### 创建新期目
 
+视觉风格和口播话风可独立选择：
+
 ```bash
-python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilibili
+# 默认：B站视觉 + 脱口秀话风
+python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..."
+
+# 指定视觉和话风
+python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilibili --tone bilibili-upzhu
 ```
 
 ## 快速开始
  
  ```bash
  # 创建新期目
- python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
+ python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili --tone talk-show
  
  # 查看已创建期目
  bash go.sh list
@@ -92,6 +100,9 @@ python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..." --style bil
  
  # 查看可用的设计预设
  bash go.sh designs
+
+ # 查看可用的话风预设
+ bash go.sh tones
  ```
  
  ## 管线总览
@@ -114,37 +125,62 @@ python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..." --style bil
  
  > **Agent 步骤规范**: Agent 步骤（T0/T1/T2/T4）产出文件后，删除 `.step_prompt.json`，重新运行同一步骤通过门禁后，引擎自动推进到下一步。
  
- ## 设计预设
- 
- 可用 7 套预设，通过 `bash go.sh designs` 查看最新列表：
- 
- | 预设名 | 底色 | 强调色 | 风格描述 |
- |--------|------|--------|---------|
- | bilibili | 浅灰 `#F5F6F7` | 粉 `#FB7299` | B站二次元科技，默认风格 |
- | claude | 暖白 `#faf9f5` | 珊瑚 `#cc785c` | 暖色人文 |
- | dark-teal | 深灰 `#0A0C0E` | 青绿 `#4FC3A1` | 深色科技 |
- | linear | 纯黑 `#010102` | 紫蓝 `#5e6ad2` | 深色极简 |
- | mintlify | 白 `#ffffff` | 青 `#00d4a4` | 清爽文档 |
- | stripe | 白 `#ffffff` | 蓝紫 `#635bff` | 金融专业 |
- | vercel | 白 `#ffffff` | 蓝 `#0070f3` | 黑白极简 |
+ ## 双轴风格控制
+
+管线支持**视觉**和**口播**两轴独立控制，可任意组合：
+
+```
+--style <name>          控制画面视觉（颜色/字体/间距/画面风格指南）
+--tone  <name>          控制口播话风（语气/用词/口播稿验证规则）
+```
+
+### 设计预设（`--style`）
+
+可用 8 套预设，通过 `bash go.sh designs` 查看最新列表：
+
+| 预设名 | 底色 | 强调色 | 风格描述 |
+|--------|------|--------|---------|
+| bilibili（默认） | 浅灰 `#F5F6F7` | 粉 `#FB7299` | B站二次元科技 |
+| talk-show | 浅灰 `#F0F2F5` | 暖橙 `#FF6B35` | 程序员脱口秀 |
+| claude | 暖白 `#faf9f5` | 珊瑚 `#cc785c` | 暖色人文 |
+| dark-teal | 深灰 `#0A0C0E` | 青绿 `#4FC3A1` | 深色科技 |
+| linear | 纯黑 `#010102` | 紫蓝 `#5e6ad2` | 深色极简 |
+| mintlify | 白 `#ffffff` | 青 `#00d4a4` | 清爽文档 |
+| stripe | 白 `#ffffff` | 蓝紫 `#635bff` | 金融专业 |
+| vercel | 白 `#ffffff` | 蓝 `#0070f3` | 黑白极简 |
+
+### 话风预设（`--tone`）
+
+可用 2 套话风，通过 `bash go.sh tones` 查看最新列表：
+
+| 话风名 | 说明 |
+|--------|------|
+| `talk-show`（默认） | 程序员脱口秀，自黑吐槽，暴躁上头 |
+| `bilibili-upzhu` | B站科技UP主，口语化，用梗讲干货 |
  
  ## 核心规则（红线）
  
  以下规则对所有 Agent 强制执行。每条附带**遵守示例**和**违规示例**。
  
- ### 规则 1：默认使用 bilibili 风格
+ ### 规则 1：默认风格 — bilibili 画面 + talk-show 话风
  
- 除非用户**明确指定**其他风格，创建期目时一律 `--style bilibili`。
+ 除非用户**明确指定**，创建期目默认：
+ - `--style bilibili`（B站二次元视觉）
+ - `--tone talk-show`（程序员脱口秀口播）
  
  ✅ **遵守示例**
  ```bash
- python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style bilibili
+ # 默认：B站视觉 + 脱口秀话风（--style 和 --tone 都可省略）
+ python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..."
+
+ # 显式指定与默认一致
+ python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style bilibili --tone talk-show
  ```
 
  ❌ **违规示例**
  ```bash
  python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style dark-teal
- # 擅自选择非默认风格，需要用户明确要求才能这样做
+ # 擅自更改视觉风格，需要用户明确要求才能这样做
  ```
  
  ### 规则 2：严格执行视频时长要求
@@ -361,7 +397,8 @@ Hero 布局现在只在有卡片内容的页面显示 chip-row（`入门科普 /
  │   │   └── t7_render.py   # T7: 渲染
  │   ├── subtitle.py        # 字幕处理
  │   ├── pagespec.py        # 页面规格模型
- │   ├── designs/presets/   # 7 套设计预设 YAML
+ │   ├── tones/             # 话风预设（2 套，控制口播风格）
+ │   ├── designs/presets/   # 8 套设计预设 YAML
  │   └── assets/            # 静态资源（如 gsap.min.js）
  ├── episodes/              # 所有期目
  │   └── YYYY-MM-DD_主题_-Agent/
@@ -376,9 +413,9 @@ Hero 布局现在只在有卡片内容的页面显示 chip-row（`入门科普 /
  ## 常见流程
  
  ### 创建新期目
- 
+
  ```bash
- python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
+ python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili --tone talk-show
  ```
  
  ### 手动运行 Agent 步骤 (T0/T1/T2/T4)
@@ -431,7 +468,7 @@ Hero 布局现在只在有卡片内容的页面显示 chip-row（`入门科普 /
  
  ---
  
- *最后更新：2026-06-25*
+ *最后更新：2026-06-30*
  *本文件与 [02-Bug与待修复清单.md](obsidian://open?vault=史章斌的远程仓库&file=10-职业发展%2F05-项目经验%2Fmake%20learning%20easy%2F02-Bug与待修复清单.md) 和 [06-方案对比与社区调研.md](obsidian://open?vault=史章斌的远程仓库&file=10-职业发展%2F05-项目经验%2Fmake%20learning%20easy%2F06-方案对比与社区调研.md) 同步更新。*
 
 ## 规则 7：执行类操作不问，直接跑
