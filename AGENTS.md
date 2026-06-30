@@ -10,9 +10,10 @@
  这是一个 **AI 视频自动生产线**。输入一个主题，走完 T0→T7 管线，产出成品 MP4 视频。
  
  - **管线入口**: `bash go.sh`
- - **引擎代码**: `v3/engine.py`
+ - **引擎代码**: `core/engine.py`
  - **期目目录**: `episodes/YYYY-MM-DD_主题_-Agent/`
- - **设计预设**: `v3/designs/presets/` (7 套)
+ - **设计预设**: `core/designs/presets/` (8 套)
+ - **话风预设**: `core/tones/` (2 套)
  - **主语言**: Python 3.14+, Node.js (HyperFrames)
  
  
@@ -38,7 +39,7 @@ YYYY-MM-DD_主题_-Agent
 
 ### 期目内部文件
 
-每个期目使用 **步骤序号 + 语义名** 的统一格式。所有文件名在 `v3/config.py` 的 `FILE_NAMES` 中定义。
+每个期目使用 **步骤序号 + 语义名** 的统一格式。所有文件名在 `core/config.py` 的 `FILE_NAMES` 中定义。
 
 ```
 00-topic.md                ← T0 选题报告
@@ -64,24 +65,31 @@ pipeline-state.json        ← 管线状态
 ```json
 {
   "agent": "Codex",
-  "engine": "v3",
+  "engine": "core",
   "created": "2026-06-26T10:00:00",
   "topic": "...",
-  "design_style": "bilibili"
+  "design_style": "bilibili",
+  "tone_style": "talk-show"
 }
 ```
 
 ### 创建新期目
 
+视觉风格和口播话风可独立选择：
+
 ```bash
-python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilibili
+# 默认：B站视觉 + 脱口秀话风
+python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..."
+
+# 指定视觉和话风
+python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilibili --tone bilibili-upzhu
 ```
 
 ## 快速开始
  
  ```bash
  # 创建新期目
- python3 -m v3.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
+ python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili --tone talk-show
  
  # 查看已创建期目
  bash go.sh list
@@ -94,6 +102,9 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  
  # 查看可用的设计预设
  bash go.sh designs
+
+ # 查看可用的话风预设
+ bash go.sh tones
  ```
  
  ## 管线总览
@@ -116,44 +127,69 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  
  > **Agent 步骤规范**: Agent 步骤（T0/T1/T2/T4）产出文件后，删除 `.step_prompt.json`，重新运行同一步骤通过门禁后，引擎自动推进到下一步。
  
- ## 设计预设
- 
- 可用 7 套预设，通过 `bash go.sh designs` 查看最新列表：
- 
- | 预设名 | 底色 | 强调色 | 风格描述 |
- |--------|------|--------|---------|
- | bilibili | 浅灰 `#F5F6F7` | 粉 `#FB7299` | B站二次元科技，默认风格 |
- | claude | 暖白 `#faf9f5` | 珊瑚 `#cc785c` | 暖色人文 |
- | dark-teal | 深灰 `#0A0C0E` | 青绿 `#4FC3A1` | 深色科技 |
- | linear | 纯黑 `#010102` | 紫蓝 `#5e6ad2` | 深色极简 |
- | mintlify | 白 `#ffffff` | 青 `#00d4a4` | 清爽文档 |
- | stripe | 白 `#ffffff` | 蓝紫 `#635bff` | 金融专业 |
- | vercel | 白 `#ffffff` | 蓝 `#0070f3` | 黑白极简 |
+ ## 双轴风格控制
+
+管线支持**视觉**和**口播**两轴独立控制，可任意组合：
+
+```
+--style <name>          控制画面视觉（颜色/字体/间距/画面风格指南）
+--tone  <name>          控制口播话风（语气/用词/口播稿验证规则）
+```
+
+### 设计预设（`--style`）
+
+可用 8 套预设，通过 `bash go.sh designs` 查看最新列表：
+
+| 预设名 | 底色 | 强调色 | 风格描述 |
+|--------|------|--------|---------|
+| bilibili（默认） | 浅灰 `#F5F6F7` | 粉 `#FB7299` | B站二次元科技 |
+| talk-show | 浅灰 `#F0F2F5` | 暖橙 `#FF6B35` | 程序员脱口秀 |
+| claude | 暖白 `#faf9f5` | 珊瑚 `#cc785c` | 暖色人文 |
+| dark-teal | 深灰 `#0A0C0E` | 青绿 `#4FC3A1` | 深色科技 |
+| linear | 纯黑 `#010102` | 紫蓝 `#5e6ad2` | 深色极简 |
+| mintlify | 白 `#ffffff` | 青 `#00d4a4` | 清爽文档 |
+| stripe | 白 `#ffffff` | 蓝紫 `#635bff` | 金融专业 |
+| vercel | 白 `#ffffff` | 蓝 `#0070f3` | 黑白极简 |
+
+### 话风预设（`--tone`）
+
+可用 2 套话风，通过 `bash go.sh tones` 查看最新列表：
+
+| 话风名 | 说明 |
+|--------|------|
+| `talk-show`（默认） | 程序员脱口秀，自黑吐槽，暴躁上头 |
+| `bilibili-upzhu` | B站科技UP主，口语化，用梗讲干货 |
  
  ## 核心规则（红线）
  
  以下规则对所有 Agent 强制执行。每条附带**遵守示例**和**违规示例**。
  
- ### 规则 1：默认使用 bilibili 风格
+ ### 规则 1：默认风格 — bilibili 画面 + talk-show 话风
  
- 除非用户**明确指定**其他风格，创建期目时一律 `--style bilibili`。
+ 除非用户**明确指定**，创建期目默认：
+ - `--style bilibili`（B站二次元视觉）
+ - `--tone talk-show`（程序员脱口秀口播）
  
  ✅ **遵守示例**
  ```bash
- python3 -m v3.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style bilibili
+ # 默认：B站视觉 + 脱口秀话风（--style 和 --tone 都可省略）
+ python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..."
+
+ # 显式指定与默认一致
+ python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style bilibili --tone talk-show
  ```
 
  ❌ **违规示例**
  ```bash
- python3 -m v3.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style dark-teal
- # 擅自选择非默认风格，需要用户明确要求才能这样做
+ python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style dark-teal
+ # 擅自更改视觉风格，需要用户明确要求才能这样做
  ```
  
  ### 规则 2：严格执行视频时长要求
  
  用户要求"不少于 X 分钟"时，必须量化校验，不可自行"合理裁剪"。
  
- 校验方式：T2 口播稿写完后，用 `v3/config.py` 中的 `TTS_EFFECTIVE_CHARS_PER_SEC = 4.2` 估算音频时长：
+ 校验方式：T2 口播稿写完后，用 `core/config.py` 中的 `TTS_EFFECTIVE_CHARS_PER_SEC = 4.2` 估算音频时长：
  
  ```
  预估秒数 = 配音稿有效字符数 / 4.2
@@ -205,7 +241,7 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
 - 章节标题（如 `一、B站的前世今生`、`二、创始人`）
 - 分隔线（如 `===`、`---`）
 
-如果需标记分段，使用 `--- P1` 格式（仅 `v3/steps/tts.py` 能识别的分页标记）。
+如果需标记分段，使用 `--- P1` 格式（仅 `core/steps/tts.py` 能识别的分页标记）。
 
 ✅ **遵守示例**
 ```
@@ -248,7 +284,7 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  
  ### 规则 6：所有产出必须在期目目录内
  
- 不允许向 `episodes/` 根目录、仓库根目录或 `v3/` 引擎目录写入任何文件。
+ 不允许向 `episodes/` 根目录、仓库根目录或 `core/` 引擎目录写入任何文件。
  
  ✅ **遵守示例**
  ```
@@ -265,19 +301,85 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  episodes/sprite_sheet.png        ❌ 放在期目目录外
  ```
  
- ## 已知风险
- 
- 以下是管线当前已知的限制。所有人（Agent 和开发者）在遇到异常时应优先查阅此清单。
- 
- | 风险 | 影响 | 当前处理 |
- |------|------|---------|
- | **T7 渲染慢** | GSAP + HyperFrames 的 `Runtime.callFunctionOn` 在对长视频（>5min）并行帧采集时可能超时，降级到单 worker | 已修 `dur`→`duration` 缓解（2026-06-25）。如需观察渲染过程，可设置 `--headless=false` |
- | **字幕烧录受限** | 中文路径下 ffmpeg 的 `subtitles` filter 可能不可用（Homebrew 默认不含 libass） | 字幕以独立 .srt/.ass 文件存放在 `audio/` 目录。如需烧录：`brew install ffmpeg-full` |
- | **图片留白** | 容器内图片使用 `object-fit: contain`，宽高比不符时会产生暗色留白 | 属于有意行为，保证图片不被裁剪。如需填满可改为 `cover` |
- | **配图质量** | 默认 JPEG 压缩（-q:v 3）下图片约 50-80KB | 可在 `v3/config.py` 中调大 `IMAGE_JPEG_QUALITY` |
+## 已知风险
+
+以下是管线当前已知的限制。所有人（Agent 和开发者）在遇到异常时应优先查阅此清单。
+
+| 风险 | 影响 | 当前处理 |
+|------|------|---------|
+| **T2 开头文本丢失** | 口播稿开头若写在 `--- P1 ---` 之前，不会被任何 slide 捕获为旁白文本，导致 Scene 1 内容偏移或缺失 | 确保开场白在 `--- P1 ---` 内部。若需修复：将开头文本移入 P1 后重跑 T3→T6→T7 |
+| **T6 合成后不可预览** | 06-composition.html 内联了 GSAP 库(约 15K 行)，浏览器打开时空白或报错，无法直接预览 | 已修(2026-06-29): T6 自动生成 index.html（无 GSAP，所有场景 opacity:1）。打开 index.html 即可静态预览 |
+| **T3 timeline 标题来自旁白首句** | T3 自动从每页口播正文首句（前 30 字）提取语义化标题，替代原来硬编码的 P1/P2 | 首句可能不语义化（如"但是这里有一个问题"），可接受；若需更好标题可通过 02-page-plans.json 覆盖 |
+| **Hero chip-row 受卡片控制** | 封面页的「入门科普/程序员日常/10分钟」标签只在有卡片内容时显示 | 无卡片 = 纯封面无标签；page-plans 设 `cards: []` 即可关闭 |
+| **T2 门禁校验 P1 开头** | 口播稿开头不能在 --- P1 --- 之前，否则 T6 不会捕获为 Slide 旁白 | 门禁自动拦截并提示移入 P1 内，退回 T2 修改 |
+| **T6 index.html 不更新** | index.html 是副本，旧代码 `if not exists` 导致后续 T6 不覆盖，用户看到的是旧版 | 已修(2026-06-29): 移除存在检查，index.html 现为无 GSAP 预览版，每次 T6 都会刷新 |
+| **Hero 布局硬编码 chip-row** | `_page_spec_to_elements` 对 hero 布局固定添加 `["入门科普", "程序员日常", "10分钟"]` 标签，page-plans 无法关闭 | 若需纯封面（无标签）：在 composition.html 中手动删除 `<div class="chip-row">...`，然后重跑 T7 |
+| **T7 渲染慢** | GSAP + HyperFrames 的 `Runtime.callFunctionOn` 在对长视频（>5min）并行帧采集时可能超时，降级到单 worker | 已修 `dur`→`duration` 缓解（2026-06-25）。如需观察渲染过程，可设置 `--headless=false` |
+| **字幕烧录受限** | 中文路径下 ffmpeg 的 `subtitles` filter 可能不可用（Homebrew 默认不含 libass） | 字幕以独立 .srt/.ass 文件存放在 `audio/` 目录。如需烧录：`brew install ffmpeg-full` |
+| **图片留白** | 容器内图片使用 `object-fit: contain`，宽高比不符时会产生暗色留白 | 属于有意行为，保证图片不被裁剪。如需填满可改为 `cover` |
+ | **配图质量** | 默认 JPEG 压缩（-q:v 3）下图片约 50-80KB | 可在 `core/config.py` 中调大 `IMAGE_JPEG_QUALITY` |
  | **HyperFrames 闭源** | 渲染引擎是 proprietary npm 包（0.7.6），核心逻辑不可修改 | 如遇到阻断性 Bug，可考虑用 Playwright 替代 T7 |
 | **T6 入场动画单一** | 所有元素使用统一入场方向（全向上淡入），视觉单调 | 已修 (2026-06-25): 3 种动画变体按页面+索引确定性分配，每元素从 y/x/scale 三类效果中轮换 |
 | **视觉层次不足** | 纯平铺背景，缺乏深度感 | 已修 (2026-06-25): 增加环境浮点粒子 + 暗角渐变叠加层，增强视觉层次 |
+
+## T6 合成注意事项
+
+### 1. 脚本开头必须在 P1 内
+
+T2 口播稿的**开场白文本（如 "前两天我在公司改一个祖传bug..."）必须放在 `--- P1 ---` 之后**。如果写在第一个 P 标记之前，`build_pagespec` 的 narration 提取正则（`---\s*P(\d+).*?---\s*\n(.*?)(?=\n---\s*P|\Z)`）不会捕获这段文字，Scene 1 的开场白就丢了。
+
+✅ 正确写法：
+```
+--- P1 ---
+前两天我在公司改一个祖传bug，改到emo了...
+
+今天我打算用一期视频的时间...
+
+首先得聊一个最基本的问题：大模型的"食物"是什么？
+--- P2 ---
+```
+
+❌ 错误写法：
+```
+前两天我在公司改一个祖传bug，改到emo了...
+← 这行不在任何 P 标记内，被 T6 忽略
+
+--- P1 ---
+首先得聊一个最基本的问题：大模型的"食物"是什么？
+```
+
+### 2. index.html 可翻页预览（无 GSAP）
+
+T6 会生成两个文件：
+
+| 文件 | 用途 | 特点 |
+|------|------|------|
+| `06-composition.html` | T7 渲染用 | 有 GSAP 动画库，浏览器直接打开可能报错/空白 |
+| `index.html` | 人工预览用 | 无 GSAP、无动画脚本、有翻页导航栏和响应式缩放，浏览器可直接打开浏览所有幻灯片 |
+
+**预览版操作：**
+- ◀ ▶ 按钮或 ← → 方向键翻页
+- 空格键 / 点击画面进入下一页
+- 右下角显示当前页码（如 3/8）
+- 自动缩放适配窗口大小（1920×1080 → 浏览器视口）
+
+任何时候想预览合成效果，打开 `index.html` 即可，无需等 T7 渲染。每次 T6 重跑后 `index.html` 自动刷新。
+
+### 3. timeline.json 标题 vs 实际内容
+
+timeline.json 的 `title` 字段决定了 Scene 标题。手动修改时要确保与**实际口播稿中的 P 标记内容**对齐，否则会出现标题和正文不匹配的 off-by-one。
+
+### 4. 封面的 chip 标签
+
+Hero 布局现在只在有卡片内容的页面显示 chip-row（`入门科普 / 程序员日常 / 10分钟`）。规则：
+- **页面无卡片**（如纯封面）→ 自动隐藏 chip-row
+- **页面有卡片**（如内容页）→ 显示 chip-row
+- page-plans 设 `"cards": []` 即可关闭封面标签
+
+---
+
+*最后更新：2026-06-29*
+*本文件与 [02-Bug与待修复清单.md](obsidian://open?vault=史章斌的远程仓库&file=10-职业发展%2F05-项目经验%2Fmake%20learning%20easy%2F02-Bug与待修复清单.md) 和 [06-方案对比与社区调研.md](obsidian://open?vault=史章斌的远程仓库&file=10-职业发展%2F05-项目经验%2Fmake%20learning%20easy%2F06-方案对比与社区调研.md) 同步更新。*
  
  ## 项目结构
  
@@ -285,7 +387,7 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  make-learning-easy/
  ├── AGENTS.md              # ← 本文件，Agent 和人共读
  ├── go.sh                  # 管线入口脚本
- ├── v3/                    # 管线引擎
+ ├── core/                    # 管线引擎
  │   ├── engine.py          # 核心调度
  │   ├── config.py          # 配置
  │   ├── agent_steps.py     # Agent 步骤 handler
@@ -297,7 +399,8 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  │   │   └── t7_render.py   # T7: 渲染
  │   ├── subtitle.py        # 字幕处理
  │   ├── pagespec.py        # 页面规格模型
- │   ├── designs/presets/   # 7 套设计预设 YAML
+ │   ├── tones/             # 话风预设（2 套，控制口播风格）
+ │   ├── designs/presets/   # 8 套设计预设 YAML
  │   └── assets/            # 静态资源（如 gsap.min.js）
  ├── episodes/              # 所有期目
  │   └── YYYY-MM-DD_主题_-Agent/
@@ -325,9 +428,9 @@ codex/visual-fix              画面改进与视觉效果修复 — 动画精灵
  ## 常见流程
  
  ### 创建新期目
- 
+
  ```bash
- python3 -m v3.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
+ python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili --tone talk-show
  ```
  
  ### 手动运行 Agent 步骤 (T0/T1/T2/T4)
@@ -380,5 +483,19 @@ codex/visual-fix              画面改进与视觉效果修复 — 动画精灵
  
  ---
  
- *最后更新：2026-06-25*
+ *最后更新：2026-06-30*
  *本文件与 [02-Bug与待修复清单.md](obsidian://open?vault=史章斌的远程仓库&file=10-职业发展%2F05-项目经验%2Fmake%20learning%20easy%2F02-Bug与待修复清单.md) 和 [06-方案对比与社区调研.md](obsidian://open?vault=史章斌的远程仓库&file=10-职业发展%2F05-项目经验%2Fmake%20learning%20easy%2F06-方案对比与社区调研.md) 同步更新。*
+
+## 规则 7：执行类操作不问，直接跑
+
+以下场景 **不需要询问用户同意**，直接执行：
+
+- 管线步骤（T0-T7）的创建、运行、重试
+- 长时间操作（渲染、图片生成）—— 异步跑，定期报进度
+- 错误修复 —— 先自己修一轮，连续 3 次失败才停下说明
+- 代码改动后的提交、推送、创建 PR
+
+以下场景 **必须询问**：
+
+- 涉及架构方向、设计取舍、产品定义的选择
+- 不确定用户意图时澄清需求

@@ -1,0 +1,183 @@
+name: mintlify
+display_name: Mintlify (清爽文档)
+description: White canvas, green accents, clean documentation feel
+colors:
+  primary: '#0a0a0a'
+  on_primary: '#ffffff'
+  brand_green: '#00d4a4'
+  brand_green_deep: '#00b48a'
+  brand_green_soft: '#7cebcb'
+  ink: '#0a0a0a'
+  charcoal: '#1c1c1e'
+  slate: '#3a3a3c'
+  steel: '#5a5a5c'
+  stone: '#888888'
+  muted: '#a8a8aa'
+  canvas: '#ffffff'
+  canvas_dark: '#0a0a0a'
+  surface: '#f7f7f7'
+  surface_soft: '#fafafa'
+  surface_code: '#1c1c1e'
+  hairline: '#e5e5e5'
+  hairline_soft: '#ededed'
+  on_dark: '#ffffff'
+  on_dark_muted: '#b3b3b3'
+  success: '#00d4a4'
+  warning: '#c37d0d'
+  error: '#d45656'
+  code_bg: '#1c1c1e'
+  code_text: '#e5e5e5'
+typography:
+  display_family: sans-serif
+  body_family: sans-serif
+  code_family: monospace
+  display_xl:
+    size: 72px
+    weight: 600
+    line_height: 1.05
+    letter_spacing: -2px
+  display_lg:
+    size: 56px
+    weight: 600
+    line_height: 1.1
+    letter_spacing: -1.5px
+  display_md:
+    size: 36px
+    weight: 600
+    line_height: 1.2
+    letter_spacing: -0.5px
+  display_sm:
+    size: 28px
+    weight: 600
+    line_height: 1.25
+    letter_spacing: 0
+  title_lg:
+    size: 22px
+    weight: 600
+    line_height: 1.3
+    letter_spacing: 0
+  title_md:
+    size: 18px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 0
+  title_sm:
+    size: 16px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 0
+  body_md:
+    size: 16px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+  body_sm:
+    size: 14px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+  caption:
+    size: 13px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  caption_uppercase:
+    size: 12px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 1.5px
+  code:
+    size: 14px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+rounded:
+  xs: 4px
+  sm: 6px
+  md: 8px
+  lg: 12px
+  xl: 16px
+  pill: 9999px
+spacing:
+  xxs: 4px
+  xs: 8px
+  sm: 12px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  xxl: 48px
+  section: 96px
+components:
+  button_primary:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.md}'
+    padding: 12px 24px
+    height: 40px
+  button_secondary:
+    bg: '{colors.canvas}'
+    text: '{colors.ink}'
+    radius: '{rounded.md}'
+    padding: 12px 24px
+    border: 1px solid {colors.hairline}
+  card_feature:
+    bg: '{colors.surface}'
+    text: '{colors.ink}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+  card_dark:
+    bg: '{colors.canvas_dark}'
+    text: '{colors.on_dark}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+  card_code:
+    bg: '{colors.surface_code}'
+    text: '{colors.on_dark}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.lg}'
+  badge:
+    bg: '{colors.surface}'
+    text: '{colors.slate}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption.size}'
+  badge_accent:
+    bg: '{colors.brand_green}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption_uppercase.size}'
+    letter_spacing: '{typography.caption_uppercase.letter_spacing}'
+  page_number:
+    color: '{colors.stone}'
+    size: 13px
+    weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用清新扁平插画风格。具体要求：
+  1. 使用柔和色彩、白底、简约线稿的视觉语言
+  2. 技术概念用简洁图标和图示表达，避免复杂场景
+  3. 每页像一帧干净的产品文档插图，清晰直观
+  4. 色调与 mintlify 风格色板协调（主色薄荷绿 #00d4a4、白底 #ffffff）
+  5. 避免暗黑、写实、过度装饰风格
+
+image_style: "清新扁平插画风格，柔和色彩，干净白底"
+
+imagegen_style_prefix: "clean flat illustration style, soft colors, mint green accent, white background, minimal line art, fresh and modern"
+
+layout_defaults:
+  canvas_bg: '{colors.canvas}'
+  content_bg: '{colors.canvas}'
+  card_bg: '{colors.surface}'
+  code_bg: '{colors.surface_code}'
+  text_color: '{colors.ink}'
+  heading_color: '{colors.ink}'
+  body_color: '{colors.slate}'
+  muted_color: '{colors.stone}'
+  accent_color: '{colors.brand_green}'
+  border_color: '{colors.hairline}'
+  page_number_color: '{components.page_number.color}'
+  page_number_size: '{components.page_number.size}'
+  font_family: sans-serif
+  code_family: monospace
+  heading_family: sans-serif
+  body_family: sans-serif

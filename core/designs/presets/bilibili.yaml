@@ -1,0 +1,207 @@
+name: bilibili
+display_name: Bilibili (二次元科技)
+description: Light warm canvas, pink accents, Noto Sans SC headlines — playful and energetic
+colors:
+  primary: '#FB7299'
+  primary_active: '#F25D88'
+  primary_disabled: '#FCE0E6'
+  accent_blue: '#00A1D6'
+  accent_blue_active: '#008EBD'
+  ink: '#18191C'
+  body: '#4E5969'
+  body_strong: '#33363B'
+  muted: '#86909C'
+  muted_soft: '#A9B2BF'
+  hairline: '#E5E6EB'
+  hairline_soft: '#F0F1F3'
+  canvas: '#F5F6F7'
+  surface_soft: '#FAFBFC'
+  surface_card: '#FFFFFF'
+  surface_dark: '#25282B'
+  surface_dark_elevated: '#1C1E21'
+  surface_dark_soft: '#2F3338'
+  on_primary: '#FFFFFF'
+  on_dark: '#F5F6F7'
+  on_dark_soft: '#B0B8C2'
+  accent_teal: '#32C5FF'
+  accent_amber: '#FFB800'
+  accent_purple: '#B37FEB'
+  success: '#00C853'
+  warning: '#FF9100'
+  error: '#F44336'
+  code_bg: '#F2F3F5'
+  code_text: '#4E5969'
+typography:
+  display_family: '"Noto Sans SC", -apple-system, sans-serif'
+  body_family: '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif'
+  code_family: '"JetBrains Mono", "Fira Code", monospace'
+  display_xl:
+    size: 72px
+    weight: 800
+    line_height: 1.05
+    letter_spacing: -1.5px
+  display_lg:
+    size: 56px
+    weight: 700
+    line_height: 1.1
+    letter_spacing: -1px
+  display_md:
+    size: 40px
+    weight: 700
+    line_height: 1.15
+    letter_spacing: -0.5px
+  display_sm:
+    size: 30px
+    weight: 700
+    line_height: 1.2
+    letter_spacing: 0
+  title_lg:
+    size: 24px
+    weight: 600
+    line_height: 1.3
+    letter_spacing: 0
+  title_md:
+    size: 20px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 0
+  title_sm:
+    size: 17px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 0
+  body_md:
+    size: 17px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+  body_sm:
+    size: 15px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+  caption:
+    size: 13px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  caption_uppercase:
+    size: 12px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 2px
+  code:
+    size: 14px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+rounded:
+  xs: 4px
+  sm: 8px
+  md: 12px
+  lg: 16px
+  xl: 20px
+  pill: 9999px
+spacing:
+  xxs: 4px
+  xs: 8px
+  sm: 12px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  xxl: 48px
+  section: 96px
+components:
+  button_primary:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.pill}'
+    padding: 12px 28px
+    height: 40px
+    font: '{typography.body_sm.size}/{typography.body_sm.line_height} {typography.body_family}'
+    weight: 500
+  button_secondary:
+    bg: '{colors.surface_card}'
+    text: '{colors.primary}'
+    radius: '{rounded.pill}'
+    padding: 12px 28px
+    height: 40px
+    border: 1.5px solid {colors.primary}
+  card_feature:
+    bg: '{colors.surface_card}'
+    text: '{colors.ink}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+    border: 1px solid {colors.hairline}
+    shadow: 0 2px 12px rgba(0,0,0,0.06)
+  card_dark:
+    bg: '{colors.surface_dark}'
+    text: '{colors.on_dark}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+  card_code:
+    bg: '{colors.code_bg}'
+    text: '{colors.code_text}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.lg}'
+    border: 1px solid {colors.hairline}
+  badge:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.sm}'
+    padding: 4px 14px
+    font_size: '{typography.caption.size}'
+    weight: 600
+  badge_accent:
+    bg: '{colors.accent_blue}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.sm}'
+    padding: 4px 14px
+    font_size: '{typography.caption.size}'
+    weight: 600
+  page_number:
+    color: '{colors.muted}'
+    size: 13px
+    weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用日系二次元动漫风格。具体要求：
+  1. image_slots 中的 prompt 描述必须指向 anime / 动漫绘画风格，禁止写实照片
+  2. 参考新海诚/京都动画等视觉语言：柔和的线条、鲜艳但有层次的色彩、光影通透
+  3. 人物（如有）使用二次元画风：大眼睛表情丰富、头发有光泽、肤色柔和
+  4. 技术概念和抽象内容用动漫化方式表达（比如：数据流变成发光的魔法阵、Bug变成卖萌的小怪兽）
+  5. 每页像一帧动画截图，有明确的视觉焦点和氛围感
+  6. 背景用渐变天空/云彩/光晕等 anime 经典元素增强沉浸感
+  7. 色调与 bilibili 风格色板协调（主色粉 #FB7299、辅助蓝 #00A1D6）
+  8. 避免恐怖、血腥、恐怖谷等不适内容
+  9. 参考 B站动画区常见视觉风格，让观众第一眼就知道这是二次元向内容
+
+image_style: "日系二次元动漫风格配图描述，anime绘画风格"
+
+imagegen_style_prefix: "anime aesthetic, cel shading style, vibrant colors, soft lighting, cute expressions, studio ghibli inspired, pink and blue accent"
+
+layout_defaults:
+  canvas_bg: '{colors.canvas}'
+  content_bg: '{colors.canvas}'
+  card_bg: '{colors.surface_card}'
+  card_shadow: 0 2px 12px rgba(0,0,0,0.06)
+  code_bg: '{colors.code_bg}'
+  code_header: '#E8E9ED'
+  code_text: '{colors.code_text}'
+  text_color: '{colors.ink}'
+  heading_color: '{colors.ink}'
+  body_color: '{colors.body}'
+  muted_color: '{colors.muted}'
+  accent_color: '{colors.primary}'
+  accent_secondary: '{colors.accent_blue}'
+  border_color: '{colors.hairline}'
+  page_number_color: '{components.page_number.color}'
+  page_number_size: '{components.page_number.size}'
+  font_family: '{typography.body_family}'
+  code_family: '{typography.code_family}'
+  heading_family: '{typography.display_family}'
+  body_family: '{typography.body_family}'
+  badge_bg: '{components.badge.bg}'
+  badge_text: '{components.badge.text}'
+  badge_alt_bg: '{components.badge_accent.bg}'
+  badge_alt_text: '{components.badge_accent.text}'
+

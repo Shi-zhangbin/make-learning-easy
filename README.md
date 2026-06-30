@@ -42,13 +42,13 @@ bash go.sh run --episode "2026-06-27_主题_[Codex]" --step T0
 使用方式：
 ```bash
 git switch codex/bilibili-video-making
-python3 -m v3.engine init "2026-06-27_主题_[Codex]" --topic "..." --style talk-show
+python3 -m core.engine init "2026-06-27_主题_[Codex]" --topic "..." --style talk-show
 ```
 
 可选风格：
 ```bash
-python3 -m v3.engine init "2026-06-27_主题_[Codex]" --topic "..." --style bilibili   # 默认，二次元粉
-python3 -m v3.engine init "2026-06-27_主题_[Codex]" --topic "..." --style dark-teal  # 深色科技
+python3 -m core.engine init "2026-06-27_主题_[Codex]" --topic "..." --style bilibili   # 默认，二次元粉
+python3 -m core.engine init "2026-06-27_主题_[Codex]" --topic "..." --style dark-teal  # 深色科技
 # 全部预设: bash go.sh designs
 ```
 
@@ -105,12 +105,12 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 - 3×3 网格 AI 生成 → 自动去底 → 内容居中 → 拼接成 9 帧水平 strip（540×60px）
 - GSAP onUpdate 逐帧驱动，与 HyperFrames 渲染同步（1.2s/循环）
 - 每帧独立做视觉中心对齐，避免角色跳动
-- 支持扩展：在 `v3/sprite_runner.py` 的 `SPRITE_PRESETS` 字典加条目即可新增风格
+- 支持扩展：在 `core/sprite_runner.py` 的 `SPRITE_PRESETS` 字典加条目即可新增风格
 
 **手动生成精灵图：**
 ```bash
-python3 -m v3.sprite_runner preset --style dino --out sprites/runner.png   # 小恐龙
-python3 -m v3.sprite_runner preset --style boy --out sprites/runner.png    # 小男孩
+python3 -m core.sprite_runner preset --style dino --out sprites/runner.png   # 小恐龙
+python3 -m core.sprite_runner preset --style boy --out sprites/runner.png    # 小男孩
 ```
 
 ### 🧩 元素驱动布局
@@ -158,7 +158,7 @@ python3 -m v3.sprite_runner preset --style boy --out sprites/runner.png    # 小
 .
 ├── go.sh                  # 主入口：run / create / status / list / designs
 ├── AGENTS.md              # Agent 与开发者协作准则
-├── v3/
+├── core/
 │   ├── engine.py          # 管线编排引擎
 │   ├── config.py          # 配置
 │   ├── agent_steps.py     # Agent 内容生成提示词（分支含脱口秀/二次元指导）

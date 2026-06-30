@@ -1,0 +1,180 @@
+name: stripe
+display_name: Stripe (金融专业)
+description: Clean white canvas, indigo accents, professional and polished
+colors:
+  primary: '#635bff'
+  on_primary: '#ffffff'
+  primary_dark: '#4a42e0'
+  ink: '#1a1a2e'
+  body: '#4a4a5a'
+  muted: '#6a6a7a'
+  muted_soft: '#8a8a9a'
+  canvas: '#ffffff'
+  surface: '#f6f9fc'
+  surface_soft: '#fafbfc'
+  surface_card: '#ffffff'
+  surface_code: '#1a1a2e'
+  hairline: '#e6e8eb'
+  hairline_soft: '#f0f1f3'
+  on_dark: '#ffffff'
+  on_dark_muted: '#9a9aaa'
+  success: '#24b47e'
+  warning: '#c37d0d'
+  error: '#d45656'
+  code_bg: '#1a1a2e'
+  code_text: '#cfd7ff'
+typography:
+  display_family: sans-serif
+  body_family: sans-serif
+  code_family: monospace
+  display_xl:
+    size: 72px
+    weight: 700
+    line_height: 1.0
+    letter_spacing: -2px
+  display_lg:
+    size: 48px
+    weight: 700
+    line_height: 1.05
+    letter_spacing: -1.5px
+  display_md:
+    size: 36px
+    weight: 600
+    line_height: 1.15
+    letter_spacing: -0.5px
+  display_sm:
+    size: 28px
+    weight: 600
+    line_height: 1.2
+    letter_spacing: 0
+  title_lg:
+    size: 22px
+    weight: 600
+    line_height: 1.3
+    letter_spacing: 0
+  title_md:
+    size: 18px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 0
+  title_sm:
+    size: 16px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 0
+  body_md:
+    size: 16px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+  body_sm:
+    size: 14px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+  caption:
+    size: 13px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  caption_uppercase:
+    size: 12px
+    weight: 600
+    line_height: 1.4
+    letter_spacing: 1.5px
+  code:
+    size: 14px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+rounded:
+  xs: 4px
+  sm: 6px
+  md: 8px
+  lg: 12px
+  xl: 16px
+  pill: 9999px
+spacing:
+  xxs: 4px
+  xs: 8px
+  sm: 12px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  xxl: 48px
+  section: 96px
+components:
+  button_primary:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.md}'
+    padding: 14px 28px
+    height: 44px
+  button_secondary:
+    bg: '{colors.canvas}'
+    text: '{colors.ink}'
+    radius: '{rounded.md}'
+    padding: 14px 28px
+    border: 1.5px solid {colors.hairline}
+  card_feature:
+    bg: '{colors.surface_card}'
+    text: '{colors.ink}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+    border: 1px solid {colors.hairline}
+  card_dark:
+    bg: '{colors.surface_code}'
+    text: '{colors.on_dark}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+  card_code:
+    bg: '{colors.surface_code}'
+    text: '{colors.on_dark}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.lg}'
+  badge:
+    bg: '{colors.surface}'
+    text: '{colors.muted}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption.size}'
+  badge_accent:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption_uppercase.size}'
+    letter_spacing: '{typography.caption_uppercase.letter_spacing}'
+  page_number:
+    color: '{colors.muted_soft}'
+    size: 13px
+    weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用专业简洁插画风格。具体要求：
+  1. 使用清晰轮廓、干净渐变、企业级视觉语言
+  2. 技术概念用简洁图标和流程图表达，聚焦功能逻辑
+  3. 每页像一帧企业产品页面，排版工整、视觉专业
+  4. 色调与 stripe 风格色板协调（主色紫蓝 #635bff、白底 #ffffff）
+  5. 避免卡通、动漫、过度娱乐化风格
+
+image_style: "专业简洁插画风格，干净渐变，企业级"
+
+imagegen_style_prefix: "professional flat illustration, clean gradients, blue-purple accent, white background, corporate style, clear outlines"
+
+layout_defaults:
+  canvas_bg: '{colors.canvas}'
+  content_bg: '{colors.surface}'
+  card_bg: '{colors.surface_card}'
+  code_bg: '{colors.surface_code}'
+  text_color: '{colors.ink}'
+  heading_color: '{colors.ink}'
+  body_color: '{colors.body}'
+  muted_color: '{colors.muted}'
+  accent_color: '{colors.primary}'
+  border_color: '{colors.hairline}'
+  page_number_color: '{components.page_number.color}'
+  page_number_size: '{components.page_number.size}'
+  font_family: sans-serif
+  code_family: monospace
+  heading_family: sans-serif
+  body_family: sans-serif

@@ -1,0 +1,192 @@
+name: claude
+display_name: Claude (暖色人文)
+description: Warm cream canvas, coral accents, serif headlines — editorial and humanist
+colors:
+  primary: '#cc785c'
+  primary_active: '#a9583e'
+  primary_disabled: '#e6dfd8'
+  ink: '#141413'
+  body: '#3d3d3a'
+  body_strong: '#252523'
+  muted: '#6c6a64'
+  muted_soft: '#8e8b82'
+  hairline: '#e6dfd8'
+  hairline_soft: '#ebe6df'
+  canvas: '#faf9f5'
+  surface_soft: '#f5f0e8'
+  surface_card: '#efe9de'
+  surface_cream_strong: '#e8e0d2'
+  surface_dark: '#181715'
+  surface_dark_elevated: '#252320'
+  surface_dark_soft: '#1f1e1b'
+  on_primary: '#ffffff'
+  on_dark: '#faf9f5'
+  on_dark_soft: '#a09d96'
+  accent_teal: '#5db8a6'
+  accent_amber: '#e8a55a'
+  success: '#5db872'
+  warning: '#d4a017'
+  error: '#c64545'
+  code_bg: '#1a1a1a'
+  code_text: '#e0e0e0'
+typography:
+  display_family: serif
+  body_family: sans-serif
+  code_family: monospace
+  display_xl:
+    size: 64px
+    weight: 400
+    line_height: 1.05
+    letter_spacing: -1.5px
+  display_lg:
+    size: 48px
+    weight: 400
+    line_height: 1.1
+    letter_spacing: -1px
+  display_md:
+    size: 36px
+    weight: 400
+    line_height: 1.15
+    letter_spacing: -0.5px
+  display_sm:
+    size: 28px
+    weight: 400
+    line_height: 1.2
+    letter_spacing: -0.3px
+  title_lg:
+    size: 22px
+    weight: 500
+    line_height: 1.3
+    letter_spacing: 0
+  title_md:
+    size: 18px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  title_sm:
+    size: 16px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  body_md:
+    size: 16px
+    weight: 400
+    line_height: 1.55
+    letter_spacing: 0
+  body_sm:
+    size: 14px
+    weight: 400
+    line_height: 1.55
+    letter_spacing: 0
+  caption:
+    size: 13px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  caption_uppercase:
+    size: 12px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 1.5px
+  code:
+    size: 14px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+rounded:
+  xs: 4px
+  sm: 6px
+  md: 8px
+  lg: 12px
+  xl: 16px
+  pill: 9999px
+spacing:
+  xxs: 4px
+  xs: 8px
+  sm: 12px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  xxl: 48px
+  section: 96px
+components:
+  button_primary:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.md}'
+    padding: 12px 20px
+    height: 40px
+    font: '{typography.body_sm.size}/{typography.body_sm.line_height} {typography.body_family}'
+    weight: 500
+  button_secondary:
+    bg: '{colors.canvas}'
+    text: '{colors.ink}'
+    radius: '{rounded.md}'
+    padding: 12px 20px
+    height: 40px
+    border: 1px solid {colors.hairline}
+  card_feature:
+    bg: '{colors.surface_card}'
+    text: '{colors.ink}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+  card_dark:
+    bg: '{colors.surface_dark}'
+    text: '{colors.on_dark}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+  card_code:
+    bg: '{colors.surface_dark}'
+    text: '{colors.on_dark}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.lg}'
+  badge:
+    bg: '{colors.surface_card}'
+    text: '{colors.ink}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption.size}'
+    weight: 500
+  badge_accent:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption_uppercase.size}'
+    weight: 500
+    letter_spacing: '{typography.caption_uppercase.letter_spacing}'
+  page_number:
+    color: rgba(0,0,0,0.12)
+    size: 14px
+    weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用暖色调插画风格。具体要求：
+  1. 使用数字绘画风格，柔和笔触、温暖色彩、手绘质感
+  2. 人物（如有）用自然生动的表情，强调人文温度
+  3. 技术概念用隐喻方式表达（比如：数据用书信/笔记本等实体象征）
+  4. 每页像一帧手绘插图，柔和光影、自然过渡
+  5. 背景用暖色渐变或柔和纹理，增强人文氛围
+  6. 色调与 claude 风格色板协调（主色珊瑚 #cc785c、暖白底 #faf9f5）
+  7. 避免冷色科幻感、动漫风格过度
+
+image_style: "暖色调数字绘画风格，柔和笔触，手绘质感"
+
+imagegen_style_prefix: "warm illustration, painterly style, soft edges, digital art, warm color palette, hand-drawn feel"
+
+layout_defaults:
+  canvas_bg: '{colors.canvas}'
+  content_bg: '{colors.canvas}'
+  card_bg: '{colors.surface_card}'
+  code_bg: '{colors.surface_dark}'
+  text_color: '{colors.ink}'
+  heading_color: '{colors.ink}'
+  body_color: '{colors.body}'
+  muted_color: '{colors.muted}'
+  accent_color: '{colors.primary}'
+  border_color: '{colors.hairline}'
+  page_number_color: '{components.page_number.color}'
+  page_number_size: '{components.page_number.size}'
+  font_family: sans-serif
+  code_family: monospace
+  heading_family: serif
+  body_family: sans-serif
