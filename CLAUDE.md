@@ -20,8 +20,12 @@ bash go.sh status --episode "2026-06-27_什么是API_-Claude-Code"
 bash go.sh list
 bash go.sh designs
 
-# 分步创建（参数：name, --topic）
-python3 -m v3.engine init "2026-06-27_什么是API_-Claude-Code" --topic "..." --style bilibili
+# 分步创建（参数：name, --topic, --style, --tone）
+python3 -m core.engine init "2026-06-27_什么是API_-Claude-Code" --topic "..." --style bilibili --tone bilibili-upzhu
+
+# 查看可用预设
+bash go.sh designs
+bash go.sh tones
 
 # 依赖安装
 pip install -r requirements.txt
@@ -45,18 +49,19 @@ T0(选题) → T1(大纲) → T2(口播稿) → T3(配音+字幕) → T4(分镜)
 
 | 文件 | 职责 |
 |------|------|
-| `v3/engine.py` | 管线编排引擎 — init/run/status/create 命令调度 + 状态机 |
-| `v3/config.py` | API keys + 环境配置（wuyinkeji/Pexels/Pixabay key、视频尺寸、TTS 参数） |
-| `v3/agent_steps.py` | Agent 步骤的提示词（TopicResearch/Outline/Script/StoryboardHandler） |
-| `v3/imagegen.py` | 三级兜底配图: wuyinkeji(AI) → pexels(照片) → pixabay(照片) → SVG |
-| `v3/gates/gate_master.py` | 门禁检查器 — 每步产出的质量门禁（内容、时长、配图、风格、黑帧） |
-| `v3/steps/tts.py` | edge-tts 配音 + 字幕生成 |
-| `v3/steps/t5_images.py` | T5 配图生成 handler |
-| `v3/steps/t6_compositions.py` | 元素驱动 HyperFrames composition 引擎 |
-| `v3/steps/t7_render.py` | HyperFrames 渲染 + ffmpeg 音视频合成 |
-| `v3/designs/` | 设计预设系统 — YAML 定义颜色/字体/间距，预设见 `presets/*.yaml` |
-| `v3/subtitle.py` | 字幕处理（SRT/ASS） |
-| `go.sh` | 主入口 — 包装 `python3 -m v3.engine` |
+| `core/engine.py` | 管线编排引擎 — init/run/status/create 命令调度 + 状态机 |
+| `core/config.py` | API keys + 环境配置（wuyinkeji/Pexels/Pixabay key、视频尺寸、TTS 参数） |
+| `core/agent_steps.py` | Agent 步骤的提示词（TopicResearch/Outline/Script/StoryboardHandler） |
+| `core/imagegen.py` | 三级兜底配图: wuyinkeji(AI) → pexels(照片) → pixabay(照片) → SVG |
+| `core/gates/gate_master.py` | 门禁检查器 — 每步产出的质量门禁（内容、时长、配图、风格、黑帧） |
+| `core/steps/tts.py` | edge-tts 配音 + 字幕生成 |
+| `core/steps/t5_images.py` | T5 配图生成 handler |
+| `core/steps/t6_compositions.py` | 元素驱动 HyperFrames composition 引擎 |
+| `core/steps/t7_render.py` | HyperFrames 渲染 + ffmpeg 音视频合成 |
+| `core/designs/` | 设计预设系统 — YAML 定义颜色/字体/间距/画面风格指南，预设见 `presets/*.yaml` |
+| `core/tones/` | 话风预设系统 — YAML 定义口播稿的语气/风格/验证规则（独立于视觉，可与任意设计预设组合） |
+| `core/subtitle.py` | 字幕处理（SRT/ASS） |
+| `go.sh` | 主入口 — 包装 `python3 -m core.engine` |
 | `AGENTS.md` | Agent 与开发者协作准则 |
 
 ### 项目结构
@@ -66,11 +71,12 @@ make-learning-easy/
 ├── go.sh                    # 主入口
 ├── AGENTS.md                # Agent 协作准则（每次任务前必读）
 ├── CLAUDE.md                ← 本文件
-├── v3/                      # 管线引擎核心
+├── core/                    # 管线引擎核心
 │   ├── engine.py            # 编排 + 状态机
 │   ├── steps/               # 各步骤实现
 │   ├── gates/               # 门禁检查
-│   ├── designs/presets/     # 设计预设（7+1 套 YAML）
+│   ├── designs/presets/     # 设计预设（8 套 YAML，控制画面视觉）
+│   ├── tones/               # 话风预设（控制口播稿风格，独立两轴）
 │   └── assets/              # GSAP 动画库
 ├── scripts/                 # 辅助脚本（较早的管线版本/工具）
 │   ├── pipeline.py          # ascend-pipeline 旧版编排器
@@ -89,17 +95,47 @@ make-learning-easy/
 └── skills/                  # Codex agent 技能
 ```
 
-### 设计预设
+### 双轴风格控制
 
-8 套预设，通过 `python3 -m v3.engine init "..." --style <name>` 指定：
+管线现在支持**视觉**和**口播**两轴独立控制，可任意组合：
+
+```
+--style <name>          控制画面视觉（颜色/字体/间距/画面风格指南）
+--tone  <name>          控制口播话风（语气/用词/口播稿验证规则）
+```
+
+示例：
+```bash
+# B站视觉 + 脱口秀话风（默认）
+bash go.sh init "..." --topic "..." --style bilibili --tone talk-show
+
+# B站视觉 + B站UP主话风
+bash go.sh init "..." --topic "..." --style bilibili --tone bilibili-upzhu
+
+# 深色科技视觉 + 脱口秀话风
+bash go.sh init "..." --topic "..." --style dark-teal --tone talk-show
+```
+
+### 画面风格 — 设计预设
+
+8 套预设，通过 `--style <name>` 指定：
 
 | 预设 | 底色 | 强调色 | 风格 |
 |------|------|--------|------|
 | bilibili（默认） | 浅灰 `#F5F6F7` | 粉 `#FB7299` | B站二次元科技 |
-| talk-show（分支） | 浅灰 `#F0F2F5` | 暖橙 `#FF6B35` | 程序员脱口秀 |
+| talk-show | 浅灰 `#F0F2F5` | 暖橙 `#FF6B35` | 程序员脱口秀 |
 | claude | 暖白 `#faf9f5` | 珊瑚 `#cc785c` | 暖色人文 |
 | dark-teal | 深灰 `#0A0C0E` | 青绿 `#4FC3A1` | 深色科技 |
 | linear/mintlify/stripe/vercel | 详见 YAML | — | 各品牌风格 |
+
+### 口播话风 — 话风预设
+
+当前 2 套话风，通过 `--tone <name>` 指定（`bash go.sh tones` 查看列表）：
+
+| 话风 | 说明 | 适用场景 |
+|------|------|---------|
+| `bilibili-upzhu` | B站科技UP主，跟朋友聊天，用梗讲干货 | 知识科普、技术教程 |
+| `talk-show`（默认） | 程序员脱口秀，自黑吐槽，暴躁上头 | 轻松话题、吐槽向内容 |
 
 ### API Keys
 

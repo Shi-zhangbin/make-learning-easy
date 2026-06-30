@@ -1,13 +1,20 @@
 """
-v3/agent_steps.py — 内容生成步骤（Codex 直接生成）
+core/agent_steps.py — 内容生成步骤（Codex 直接生成）
 
 每个 handler 只做：验证前置条件 → 打印生成提示 → Codex 按 SKILL.md 生成内容。
 不做模板填充，不做内容生成。
 """
 import json, os, re
 from pathlib import Path
-from v3.config import FILE_NAMES
-from v3.steps.base import StepHandler, StepResult
+from core.config import FILE_NAMES
+from core.steps.base import StepHandler, StepResult
+
+
+# Shared placeholder patterns — must be absent from ALL outputs regardless of style
+_FORBIDDEN_PLACEHOLDERS = [
+    "卡片", "图片", "图表", "TKTK", "TODO",
+    "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本",
+]
 
 
 def _get_feedback(episode_dir: str) -> str:
@@ -31,8 +38,9 @@ class TopicResearchHandler(StepHandler):
     name = "T0"
     description = "Generate topic research report"
 
-    def __init__(self, episode_dir: str, design: dict = None, topic: str = ""):
-        super().__init__(episode_dir, design)
+    def __init__(self, episode_dir: str, design: dict = None, topic: str = "",
+                 tone: dict = None):
+        super().__init__(episode_dir, design, tone)
         self.topic = topic
 
     def execute(self) -> StepResult:
@@ -52,8 +60,9 @@ class TopicResearchHandler(StepHandler):
             "step": "T0", "topic": topic, "feedback": feedback,
             "output": FILE_NAMES["topic_report"],
             "design_style": self.design.get("name", "bilibili"),
-            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
-            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+            "forbidden_patterns": _FORBIDDEN_PLACEHOLDERS,
+            "min_duration_hint": self.tone.get("min_duration_hint",
+                "目标10分钟以上（约3000-4000字），不要压缩内容"),
 
         }
         (self.episode_dir / "step-prompt.json").write_text(
@@ -86,8 +95,9 @@ class OutlineHandler(StepHandler):
             "step": "T1", "report": report[:500], "feedback": feedback,
             "output": FILE_NAMES["outline"],
             "design_style": self.design.get("name", "bilibili"),
-            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
-            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
+            "forbidden_patterns": _FORBIDDEN_PLACEHOLDERS,
+            "min_duration_hint": self.tone.get("min_duration_hint",
+                "目标10分钟以上（约3000-4000字），不要压缩内容"),
 
         }
         (self.episode_dir / "step-prompt.json").write_text(
@@ -106,42 +116,51 @@ class ScriptHandler(StepHandler):
         outline = outline_path.read_text(encoding="utf-8") if outline_path.exists() else ""
         feedback = _get_feedback(str(self.episode_dir))
         
+        tone_name = self.tone.get("display_name", "B站科技UP主")
         print(f"\n  📝 需要生成口播稿")
         print(f"     来源: {FILE_NAMES["outline"]}")
         print(f"     输出: {FILE_NAMES["script"]}")
         print(f"     参考 SKILL.md T2 章节")
-        print(f"     风格: B站科技UP主 — 跟朋友聊天的感觉，用梗讲干货")
+        print(f"     风格: {tone_name}")
         if feedback:
             print(f"     反馈: {feedback}")
-        
+
+        # Load tone config (fallback to talk-show defaults for backward compat)
+        tone_style = self.tone.get("tone_style", "bilibili_up主")
+        script_style_guide = self.tone.get("script_style_guide",
+            "以B站科技UP主的口吻输出口播稿。")
+        tone_vrules = self.tone.get("validation_rules", {})
+        # page_plan heading style comes from tone (e.g. "口语化" vs "吐槽")
+        heading_style = self.tone.get("page_plan_heading_style",
+            "用口语化的短语（10字以内）")
+
         prompt = {
             "step": "T2", "outline": outline[:1000], "feedback": feedback,
             "output": FILE_NAMES["script"],
             "design_style": self.design.get("name", "bilibili"),
-            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
-            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
-            "tone_style": "bilibili_up主",
-            "script_style_guide": (
-                "以B站科技UP主的口吻输出口播稿。具体要求：\n1. 开头用一个日常生活场景或互联网热点破题，让观众有代入感（比如刷到个新闻、刷视频时的发现、买了个新设备），不用程序员办公室段子\n2. 语气像跟朋友聊天，多用'家人们'、'懂的都懂'、'咱就是说'、'你细品'等UP主常用口癖\n3. 每个知识点之间用网络热梗或B站名场面过渡，保持年轻化表达节奏\n4. 把技术概念类比成大家熟悉的日常场景，少用程序员专属类比\n5. 适当加入'三连'、'投币'、'弹幕护体'等B站文化元素，让观众有参与感\n6. 干货内核必须保留，不能为了玩梗牺牲准确性\n7. 每段结尾可以加一句互动式结尾，模拟和观众对话\n8. 排版上像随口在聊，不用追求每句都押韵或节奏工整，要的是'听着不累'"
-            ),
+            "forbidden_patterns": _FORBIDDEN_PLACEHOLDERS,
+            "min_duration_hint": self.tone.get("min_duration_hint",
+                "目标10分钟以上（约3000-4000字），不要压缩内容"),
+            "tone_style": tone_style,
+            "script_style_guide": script_style_guide,
             "validation_rules": {
-                "must_not_contain": [
+                "must_not_contain": tone_vrules.get("must_not_contain", [
                     "章节标题（一、二、三...）",
                     "舞台指示（（开场）（停顿）（完））",
                     "分隔线（=== ---）",
                     "元数据行（音频配音稿、目标时长等）",
                     "Markdown 标记（## ** ``）",
                     "占位符（TKTK TODO 此处插入）"
-                ],
-                "must_contain": [
+                ]),
+                "must_contain": tone_vrules.get("must_contain", [
                     "分页标记（--- P1, --- P2, ...）",
-                ],
-                "minimum_pages": 5,
-                "tone": "B站科技UP主，口语化，像跟朋友聊天，纯口播文字"
+                ]),
+                "minimum_pages": tone_vrules.get("minimum_pages", 5),
+                "tone": tone_vrules.get("tone", "B站科技UP主，口语化，像跟朋友聊天，纯口播文字"),
             },
             "page_plan_required": True,
             "page_plan_filename": "02-page-plans.json",
-            "page_plan_instructions": "除了 02-script.txt，你还需要输出 02-page-plans.json。这个文件为每一页定义视觉结构，T6 直接用它来渲染页面。\n每页包含以下字段：\n  - page: 页码（与 --- P{N} 对应）\n  - layout: 布局类型，可选 hero / concept / flipped / comparison / code_block / flowchart / card_grid / quote / section_divider / outro\n  - heading: 这一页的大标题，用口语化的短语（10字以内）\n  - subtitle: 副标题或一句话概述（选填，null 也可以）\n  - emoji: 一个 emoji 代表这页主题\n  - accent_line: 布尔值，是否在标题下方显示强调线（hero/section_divider 建议 true）\n  - tags: 标签列表（仅 hero 页用）\n  - cards: 卡片列表，每张卡片有 icon / title / body\n    card 数量由本页内容密度决定，3个要点就用3张\n    title 是语义化的简短标题（不超过10字），不是截断句\n    body 是此要点的完整解释（1-2句话）\n  - code: 代码对象（仅 code_block 页用），有 language 和 body 字段\n  - comparison: 对比对象（仅 comparison 页用），有 left_title / left_items / right_title / right_items\n  - flow_steps: 步骤列表（仅 flowchart 页用），每步有 icon / title / body\n  - quote: 引语（仅 quote 页用），可以代替 heading/subtitle\n  - image: 图片意图对象，含字段：\n      required: true/false，这页是否需要配图\n      position: left / right / bottom / background\n      concept: 画面概念描述（20字左右），告诉 T4 这页需要传达什么画面信息\n      style_hint: 风格建议（选填）\n    image 的 prompt 由 T4 负责写，此处只传递意图\n规则：\n  1. 每个 page 只能设一种内容结构字段：cards / code / comparison / flow_steps / quote 四选一\n  2. layout 和 image.position 共同决定最终的排版方式\n  3. 卡片数 = 本页的核心要点数，不要为了凑数硬塞\n  4. 不需要写图片的完整 prompt，那是 T4 的任务\n  5. 不要在这份 JSON 里出现占位符",
+            "page_plan_instructions": f"除了 02-script.txt，你还需要输出 02-page-plans.json。这个文件为每一页定义视觉结构，T6 直接用它来渲染页面。\n每页包含以下字段：\n  - page: 页码（与 --- P{{N}} 对应）\n  - layout: 布局类型，可选 hero / concept / flipped / comparison / code_block / flowchart / card_grid / quote / section_divider / outro\n  - heading: 这一页的大标题，{heading_style}\n  - subtitle: 副标题或一句话概述（选填，null 也可以）\n  - emoji: 一个 emoji 代表这页主题\n  - accent_line: 布尔值，是否在标题下方显示强调线（hero/section_divider 建议 true）\n  - tags: 标签列表（仅 hero 页用）\n  - cards: 卡片列表，每张卡片有 icon / title / body\n    card 数量由本页内容密度决定，3个要点就用3张\n    title 是语义化的简短标题（不超过10字），不是截断句\n    body 是此要点的完整解释（1-2句话）\n  - code: 代码对象（仅 code_block 页用），有 language 和 body 字段\n  - comparison: 对比对象（仅 comparison 页用），有 left_title / left_items / right_title / right_items\n  - flow_steps: 步骤列表（仅 flowchart 页用），每步有 icon / title / body\n  - quote: 引语（仅 quote 页用），可以代替 heading/subtitle\n  - image: 图片意图对象，含字段：\n      required: true/false，这页是否需要配图\n      position: left / right / bottom / background\n      concept: 画面概念描述（20字左右），告诉 T4 这页需要传达什么画面信息\n      style_hint: 风格建议（选填）\n    image 的 prompt 由 T4 负责写，此处只传递意图\n规则：\n  1. 每个 page 只能设一种内容结构字段：cards / code / comparison / flow_steps / quote 四选一\n  2. layout 和 image.position 共同决定最终的排版方式\n  3. 卡片数 = 本页的核心要点数，不要为了凑数硬塞\n  4. 不需要写图片的完整 prompt，那是 T4 的任务\n  5. 不要在这份 JSON 里出现占位符",
 
         }
         (self.episode_dir / "step-prompt.json").write_text(
@@ -160,31 +179,37 @@ class StoryboardHandler(StepHandler):
         script = script_path.read_text(encoding="utf-8") if script_path.exists() else ""
         feedback = _get_feedback(str(self.episode_dir))
         
+        design_name = self.design.get("display_name", self.design.get("name", "bilibili"))
         print(f"\n  📝 需要生成分镜方案")
         print(f"     来源: {FILE_NAMES["script"]}")
         print(f"     输出: {FILE_NAMES["storyboard"]} + {FILE_NAMES["image_slots"]}")
         print(f"     参考 SKILL.md T4 章节")
-        print(f"     风格: 二次元动漫视觉 — 每页像一帧B站动画截图")
+        print(f"     风格: {design_name}")
         if feedback:
             print(f"     反馈: {feedback}")
-        
+
+        # tone_style from tone preset, visual_style_guide from design preset
+        tone_style = self.tone.get("tone_style", "bilibili_up主")
+        visual_style_guide = self.design.get("visual_style_guide",
+            "设计分镜和配图描述时，采用日系二次元动漫风格。")
+        image_style = self.design.get("image_style", "日系二次元动漫风格配图描述，anime绘画风格")
+
         prompt = {
             "step": "T4", "script": script[:1000], "feedback": feedback,
             "output": FILE_NAMES["storyboard"] + " + " + FILE_NAMES["image_slots"],
             "design_style": self.design.get("name", "bilibili"),
-            "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
-            "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
-            "tone_style": "bilibili_up主",
-            "visual_style_guide": (
-                "设计分镜和配图描述时，采用日系二次元动漫风格。具体要求：\n1. image_slots 中的 prompt 描述必须指向 anime / 动漫绘画风格，禁止写实照片\n2. 参考新海诚/京都动画等视觉语言：柔和的线条、鲜艳但有层次的色彩、光影通透\n3. 人物（如有）使用二次元画风：大眼睛表情丰富、头发有光泽、肤色柔和\n4. 技术概念和抽象内容用动漫化方式表达（比如：数据流变成发光的魔法阵、Bug变成卖萌的小怪兽）\n5. 每页像一帧动画截图，有明确的视觉焦点和氛围感\n6. 背景用渐变天空/云彩/光晕等 anime 经典元素增强沉浸感\n7. 色调与 bilibili 风格色板协调（主色粉 #FB7299、辅助蓝 #00A1D6）\n8. 避免恐怖、血腥、恐怖谷等不适内容\n9. 参考 B站动画区常见视觉风格，让观众第一眼就知道这是二次元向内容"
-            ),
+            "forbidden_patterns": _FORBIDDEN_PLACEHOLDERS,
+            "min_duration_hint": self.tone.get("min_duration_hint",
+                "目标10分钟以上（约3000-4000字），不要压缩内容"),
+            "tone_style": tone_style,
+            "visual_style_guide": visual_style_guide,
             "validation_rules": {
                 "image_slots_required_fields": ["filename", "prompt", "page", "slot_index"],
                 "minimum_slots": 5,
                 "must_not_contain": [
                     "占位符（TKTK TODO 图片 此处插入）"
                 ],
-                "image_style": "日系二次元动漫风格配图描述，anime绘画风格"
+                "image_style": image_style,
             },
             "image_intent_available_from": "02-page-plans.json",
             "image_intent_instructions": (
@@ -197,9 +222,8 @@ class StoryboardHandler(StepHandler):
                 "你的任务：把 concept 扩充为具体、可执行的 prompt。不允许直接复制 concept 当 prompt。\n"
                 "一个好的 prompt 应该包含：主体、动作、环境、风格、色调。\n"
                 "例：\n"
-                "  概念: → 程序A通过API网关向程序B发请求，中间人分隔两边\n"
-                "  写出的 prompt: → 一个程序员坐在电脑前，屏幕上两个程序模块中间有一个标记着API的网关，\n"
-                "  通过云朵状箭头连接，漫画风格，简洁背景，暖色调"
+                "  概念: → 程序A通过API网关向程序B发请求\n"
+                "  写出的 prompt: → 两个程序模块中间有一个标记着API的网关，通过箭头连接，直观清晰"
             ),
 
         }

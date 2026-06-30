@@ -1,5 +1,5 @@
 """
-v3/steps/tts.py — TTS + Subtitle generation step
+core/steps/tts.py — TTS + Subtitle generation step
 
 Generates:
   1. Full TTS audio from narration script (edge-tts)
@@ -9,9 +9,9 @@ Generates:
 """
 import os, json, subprocess, tempfile, re
 from pathlib import Path
-from v3.steps.base import StepHandler, StepResult
-from v3.config import EDGE_TTS_VOICE, EDGE_TTS_RATE, VIDEO_FPS, FILE_NAMES
-from v3.subtitle import generate_srt, srt_to_ass
+from core.steps.base import StepHandler, StepResult
+from core.config import EDGE_TTS_VOICE, EDGE_TTS_RATE, VIDEO_FPS, FILE_NAMES
+from core.subtitle import generate_srt, srt_to_ass
 
 
 class TTSHandler(StepHandler):

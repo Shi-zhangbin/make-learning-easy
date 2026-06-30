@@ -1,5 +1,5 @@
 """
-v3/config.py — API keys + environment configuration
+core/config.py — API keys + environment configuration
 
 All API keys are read from environment variables.
 Copy .env.example to .env and fill in your keys.
@@ -47,9 +47,9 @@ WUYINKEJI_SIZE_MAP = {
 # ── Project paths ──
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EPISODES_DIR = os.path.join(BASE_DIR, "episodes")
-V3_DIR = os.path.join(BASE_DIR, "v3")
-PRESETS_DIR = os.path.join(V3_DIR, "designs", "presets")
-TEMPLATES_DIR = os.path.join(V3_DIR, "templates")
+CORE_DIR = os.path.join(BASE_DIR, "core")
+PRESETS_DIR = os.path.join(CORE_DIR, "designs", "presets")
+TEMPLATES_DIR = os.path.join(CORE_DIR, "templates")
 LAYOUTS_DIR = os.path.join(TEMPLATES_DIR, "layouts")
 
 

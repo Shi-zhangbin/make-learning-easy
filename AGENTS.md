@@ -10,9 +10,9 @@
  这是一个 **AI 视频自动生产线**。输入一个主题，走完 T0→T7 管线，产出成品 MP4 视频。
  
  - **管线入口**: `bash go.sh`
- - **引擎代码**: `v3/engine.py`
+ - **引擎代码**: `core/engine.py`
  - **期目目录**: `episodes/YYYY-MM-DD_主题_-Agent/`
- - **设计预设**: `v3/designs/presets/` (7 套)
+ - **设计预设**: `core/designs/presets/` (7 套)
  - **主语言**: Python 3.14+, Node.js (HyperFrames)
  
  
@@ -36,7 +36,7 @@ YYYY-MM-DD_主题_-Agent
 
 ### 期目内部文件
 
-每个期目使用 **步骤序号 + 语义名** 的统一格式。所有文件名在 `v3/config.py` 的 `FILE_NAMES` 中定义。
+每个期目使用 **步骤序号 + 语义名** 的统一格式。所有文件名在 `core/config.py` 的 `FILE_NAMES` 中定义。
 
 ```
 00-topic.md                ← T0 选题报告
@@ -62,7 +62,7 @@ pipeline-state.json        ← 管线状态
 ```json
 {
   "agent": "Codex",
-  "engine": "v3",
+  "engine": "core",
   "created": "2026-06-26T10:00:00",
   "topic": "...",
   "design_style": "bilibili"
@@ -72,14 +72,14 @@ pipeline-state.json        ← 管线状态
 ### 创建新期目
 
 ```bash
-python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilibili
+python3 -m core.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilibili
 ```
 
 ## 快速开始
  
  ```bash
  # 创建新期目
- python3 -m v3.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
+ python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
  
  # 查看已创建期目
  bash go.sh list
@@ -138,12 +138,12 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  
  ✅ **遵守示例**
  ```bash
- python3 -m v3.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style bilibili
+ python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style bilibili
  ```
 
  ❌ **违规示例**
  ```bash
- python3 -m v3.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style dark-teal
+ python3 -m core.engine init "2026-06-27_Docker入门_-Claude-Code" --topic "..." --style dark-teal
  # 擅自选择非默认风格，需要用户明确要求才能这样做
  ```
  
@@ -151,7 +151,7 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  
  用户要求"不少于 X 分钟"时，必须量化校验，不可自行"合理裁剪"。
  
- 校验方式：T2 口播稿写完后，用 `v3/config.py` 中的 `TTS_EFFECTIVE_CHARS_PER_SEC = 4.2` 估算音频时长：
+ 校验方式：T2 口播稿写完后，用 `core/config.py` 中的 `TTS_EFFECTIVE_CHARS_PER_SEC = 4.2` 估算音频时长：
  
  ```
  预估秒数 = 配音稿有效字符数 / 4.2
@@ -203,7 +203,7 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
 - 章节标题（如 `一、B站的前世今生`、`二、创始人`）
 - 分隔线（如 `===`、`---`）
 
-如果需标记分段，使用 `--- P1` 格式（仅 `v3/steps/tts.py` 能识别的分页标记）。
+如果需标记分段，使用 `--- P1` 格式（仅 `core/steps/tts.py` 能识别的分页标记）。
 
 ✅ **遵守示例**
 ```
@@ -246,7 +246,7 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
  
  ### 规则 6：所有产出必须在期目目录内
  
- 不允许向 `episodes/` 根目录、仓库根目录或 `v3/` 引擎目录写入任何文件。
+ 不允许向 `episodes/` 根目录、仓库根目录或 `core/` 引擎目录写入任何文件。
  
  ✅ **遵守示例**
  ```
@@ -279,7 +279,7 @@ python3 -m v3.engine init "2026-06-26_主题_-Agent" --topic "..." --style bilib
 | **T7 渲染慢** | GSAP + HyperFrames 的 `Runtime.callFunctionOn` 在对长视频（>5min）并行帧采集时可能超时，降级到单 worker | 已修 `dur`→`duration` 缓解（2026-06-25）。如需观察渲染过程，可设置 `--headless=false` |
 | **字幕烧录受限** | 中文路径下 ffmpeg 的 `subtitles` filter 可能不可用（Homebrew 默认不含 libass） | 字幕以独立 .srt/.ass 文件存放在 `audio/` 目录。如需烧录：`brew install ffmpeg-full` |
 | **图片留白** | 容器内图片使用 `object-fit: contain`，宽高比不符时会产生暗色留白 | 属于有意行为，保证图片不被裁剪。如需填满可改为 `cover` |
- | **配图质量** | 默认 JPEG 压缩（-q:v 3）下图片约 50-80KB | 可在 `v3/config.py` 中调大 `IMAGE_JPEG_QUALITY` |
+ | **配图质量** | 默认 JPEG 压缩（-q:v 3）下图片约 50-80KB | 可在 `core/config.py` 中调大 `IMAGE_JPEG_QUALITY` |
  | **HyperFrames 闭源** | 渲染引擎是 proprietary npm 包（0.7.6），核心逻辑不可修改 | 如遇到阻断性 Bug，可考虑用 Playwright 替代 T7 |
 | **T6 入场动画单一** | 所有元素使用统一入场方向（全向上淡入），视觉单调 | 已修 (2026-06-25): 3 种动画变体按页面+索引确定性分配，每元素从 y/x/scale 三类效果中轮换 |
 | **视觉层次不足** | 纯平铺背景，缺乏深度感 | 已修 (2026-06-25): 增加环境浮点粒子 + 暗角渐变叠加层，增强视觉层次 |
@@ -349,7 +349,7 @@ Hero 布局现在只在有卡片内容的页面显示 chip-row（`入门科普 /
  make-learning-easy/
  ├── AGENTS.md              # ← 本文件，Agent 和人共读
  ├── go.sh                  # 管线入口脚本
- ├── v3/                    # 管线引擎
+ ├── core/                    # 管线引擎
  │   ├── engine.py          # 核心调度
  │   ├── config.py          # 配置
  │   ├── agent_steps.py     # Agent 步骤 handler
@@ -378,7 +378,7 @@ Hero 布局现在只在有卡片内容的页面显示 chip-row（`入门科普 /
  ### 创建新期目
  
  ```bash
- python3 -m v3.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
+ python3 -m core.engine init "YYYY-MM-DD_主题_-Agent" --topic "..." --style bilibili
  ```
  
  ### 手动运行 Agent 步骤 (T0/T1/T2/T4)

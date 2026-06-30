@@ -159,6 +159,20 @@ components:
     color: rgba(0,0,0,0.12)
     size: 14px
     weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用暖色调插画风格。具体要求：
+  1. 使用数字绘画风格，柔和笔触、温暖色彩、手绘质感
+  2. 人物（如有）用自然生动的表情，强调人文温度
+  3. 技术概念用隐喻方式表达（比如：数据用书信/笔记本等实体象征）
+  4. 每页像一帧手绘插图，柔和光影、自然过渡
+  5. 背景用暖色渐变或柔和纹理，增强人文氛围
+  6. 色调与 claude 风格色板协调（主色珊瑚 #cc785c、暖白底 #faf9f5）
+  7. 避免冷色科幻感、动漫风格过度
+
+image_style: "暖色调数字绘画风格，柔和笔触，手绘质感"
+
+imagegen_style_prefix: "warm illustration, painterly style, soft edges, digital art, warm color palette, hand-drawn feel"
+
 layout_defaults:
   canvas_bg: '{colors.canvas}'
   content_bg: '{colors.canvas}'

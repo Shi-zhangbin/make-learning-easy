@@ -1,56 +1,50 @@
-name: mintlify
-display_name: Mintlify (清爽文档)
-description: White canvas, green accents, clean documentation feel
+name: vercel
+display_name: Vercel (黑白极简)
+description: Stark black/white duet, blue accent, minimal and geometric
 colors:
-  primary: '#0a0a0a'
+  primary: '#000000'
   on_primary: '#ffffff'
-  brand_green: '#00d4a4'
-  brand_green_deep: '#00b48a'
-  brand_green_soft: '#7cebcb'
-  ink: '#0a0a0a'
-  charcoal: '#1c1c1e'
-  slate: '#3a3a3c'
-  steel: '#5a5a5c'
-  stone: '#888888'
-  muted: '#a8a8aa'
+  accent_blue: '#0070f3'
+  ink: '#000000'
+  body: '#333333'
+  muted: '#666666'
+  muted_soft: '#888888'
   canvas: '#ffffff'
-  canvas_dark: '#0a0a0a'
-  surface: '#f7f7f7'
-  surface_soft: '#fafafa'
-  surface_code: '#1c1c1e'
-  hairline: '#e5e5e5'
-  hairline_soft: '#ededed'
+  surface: '#fafafa'
+  surface_code: '#0a0a0a'
+  hairline: '#eaeaea'
+  hairline_strong: '#dddddd'
   on_dark: '#ffffff'
-  on_dark_muted: '#b3b3b3'
-  success: '#00d4a4'
-  warning: '#c37d0d'
-  error: '#d45656'
-  code_bg: '#1c1c1e'
-  code_text: '#e5e5e5'
+  on_dark_muted: '#888888'
+  code_bg: '#0a0a0a'
+  code_text: '#e0e0e0'
+  semantic_success: '#0070f3'
+  semantic_warning: '#f5a623'
+  semantic_error: '#ee0000'
 typography:
   display_family: sans-serif
   body_family: sans-serif
   code_family: monospace
   display_xl:
-    size: 72px
-    weight: 600
-    line_height: 1.05
-    letter_spacing: -2px
+    size: 80px
+    weight: 700
+    line_height: 1.0
+    letter_spacing: -2.5px
   display_lg:
     size: 56px
+    weight: 700
+    line_height: 1.05
+    letter_spacing: -1.8px
+  display_md:
+    size: 40px
     weight: 600
     line_height: 1.1
-    letter_spacing: -1.5px
-  display_md:
-    size: 36px
-    weight: 600
-    line_height: 1.2
-    letter_spacing: -0.5px
+    letter_spacing: -1px
   display_sm:
     size: 28px
     weight: 600
-    line_height: 1.25
-    letter_spacing: 0
+    line_height: 1.2
+    letter_spacing: -0.5px
   title_lg:
     size: 22px
     weight: 600
@@ -82,10 +76,10 @@ typography:
     line_height: 1.4
     letter_spacing: 0
   caption_uppercase:
-    size: 12px
-    weight: 500
+    size: 11px
+    weight: 600
     line_height: 1.4
-    letter_spacing: 1.5px
+    letter_spacing: 2px
   code:
     size: 14px
     weight: 400
@@ -126,7 +120,7 @@ components:
     radius: '{rounded.lg}'
     padding: '{spacing.xl}'
   card_dark:
-    bg: '{colors.canvas_dark}'
+    bg: '{colors.surface_code}'
     text: '{colors.on_dark}'
     radius: '{rounded.lg}'
     padding: '{spacing.xl}'
@@ -137,21 +131,34 @@ components:
     padding: '{spacing.lg}'
   badge:
     bg: '{colors.surface}'
-    text: '{colors.slate}'
+    text: '{colors.muted}'
     radius: '{rounded.pill}'
     padding: 4px 12px
     font_size: '{typography.caption.size}'
   badge_accent:
-    bg: '{colors.brand_green}'
+    bg: '{colors.accent_blue}'
     text: '{colors.on_primary}'
     radius: '{rounded.pill}'
     padding: 4px 12px
     font_size: '{typography.caption_uppercase.size}'
     letter_spacing: '{typography.caption_uppercase.letter_spacing}'
   page_number:
-    color: '{colors.stone}'
+    color: '{colors.muted_soft}'
     size: 13px
     weight: 500
+layout_defaults:
+visual_style_guide: |
+  设计分镜和配图描述时，采用黑白极简几何风格。具体要求：
+  1. 使用高对比度、简洁几何形状、黑白灰色系
+  2. 技术概念用抽象几何和线条表达，极简但不失信息量
+  3. 每页像一帧极简主义海报，视觉干净有力
+  4. 色调与 vercel 风格色板协调（主色蓝 #0070f3、白底/黑底切换）
+  5. 避免彩色过度、卡通、写实风格
+
+image_style: "黑白极简几何风格，高对比度，干净抽象"
+
+imagegen_style_prefix: "black and white minimalist geometric style, high contrast, clean abstract shapes, monochrome with blue accent"
+
 layout_defaults:
   canvas_bg: '{colors.canvas}'
   content_bg: '{colors.canvas}'
@@ -159,9 +166,9 @@ layout_defaults:
   code_bg: '{colors.surface_code}'
   text_color: '{colors.ink}'
   heading_color: '{colors.ink}'
-  body_color: '{colors.slate}'
-  muted_color: '{colors.stone}'
-  accent_color: '{colors.brand_green}'
+  body_color: '{colors.body}'
+  muted_color: '{colors.muted}'
+  accent_color: '{colors.accent_blue}'
   border_color: '{colors.hairline}'
   page_number_color: '{components.page_number.color}'
   page_number_size: '{components.page_number.size}'

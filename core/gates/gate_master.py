@@ -1,5 +1,5 @@
 """
-v3/gates/gate_master.py — 统一门禁调度
+core/gates/gate_master.py — 统一门禁调度
 
 每个步骤完成后调用对应 gate，gate 返回：
   - issues: list[str] — 具体问题
@@ -10,7 +10,85 @@ from dataclasses import dataclass, field
 import json, os, re, subprocess, tempfile
 from pathlib import Path
 from PIL import Image
-from v3.config import FILE_NAMES, resolve_episode_path, TTS_EFFECTIVE_CHARS_PER_SEC
+from core.config import FILE_NAMES, resolve_episode_path, TTS_EFFECTIVE_CHARS_PER_SEC
+from core.tones.base import load_tone
+
+# Per-design accent color mapping — single source for all gate checks
+_DESIGN_ACCENT_COLORS = {
+    "bilibili": "#FB7299",
+    "talk-show": "#FF6B35",
+    "claude": "#cc785c",
+    "dark-teal": "#4FC3A1",
+    "linear": "#5e6ad2",
+    "mintlify": "#00d4a4",
+    "stripe": "#635bff",
+    "vercel": "#0070f3",
+}
+
+
+def _load_state(episode_dir: str) -> dict:
+    """Load pipeline state from episode directory."""
+    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
+    if os.path.exists(state_path):
+        with open(state_path) as f:
+            return json.load(f)
+    return {}
+
+
+def _check_accent_color(episode_dir: str, state: dict) -> str | None:
+    """Check if the composition HTML contains the expected accent color for the design preset.
+    Returns an issue string, or None if passed / skippable."""
+    _style = state.get("design_style", "")
+    _expected_color = _DESIGN_ACCENT_COLORS.get(_style, "")
+    if not _expected_color:
+        return None
+    _html_check_path = os.path.join(episode_dir, FILE_NAMES["composition"])
+    if os.path.exists(_html_check_path):
+        with open(_html_check_path) as _hf:
+            _html_check = _hf.read()
+        if _expected_color not in _html_check:
+            return f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配"
+    return None
+
+
+def _check_tone_script(episode_dir: str, state: dict) -> list[str]:
+    """Check if the generated script respects the selected tone's validation rules.
+    Returns a list of issues (empty = passed)."""
+    tone_name = state.get("tone_style", "")
+    if not tone_name:
+        return []
+    try:
+        tone = load_tone(tone_name)
+    except FileNotFoundError:
+        return []
+    vrules = tone.get("validation_rules", {})
+    issues = []
+
+    script_path = os.path.join(episode_dir, "02-script.txt")
+    if not os.path.exists(script_path):
+        return issues
+
+    with open(script_path, encoding="utf-8") as f:
+        content = f.read()
+
+    # Check must_not_contain patterns
+    for pattern_desc in vrules.get("must_not_contain", []):
+        for keyword in re.findall(r'[一-鿿\w]+', pattern_desc):
+            if keyword and keyword in content:
+                issues.append(f"[话风门禁] tone={tone_name}: 内容含禁用词「{keyword}」({pattern_desc})")
+                break
+
+    # Check must_contain patterns
+    for pattern_desc in vrules.get("must_contain", []):
+        found = False
+        for keyword in re.findall(r'[一-鿿\w]+', pattern_desc):
+            if keyword and keyword in content:
+                found = True
+                break
+        if not found:
+            issues.append(f"[话风门禁] tone={tone_name}: 内容缺少要求项「{pattern_desc}」")
+
+    return issues
 
 
 @dataclass
@@ -160,13 +238,18 @@ def check_t2(episode_dir: str) -> GateResult:
         if _before:
             issues.append(f"口播稿开头 {len(_before)} 字在 --- P1 --- 之前，不会被 T6 捕获为 Slide 旁白。请移入 P1 内。")
 
+    # 话风门禁：检查脚本是否符合所选 tone 的 validation_rules
+    state = _load_state(episode_dir)
+    tone_issues = _check_tone_script(episode_dir, state)
+    issues.extend(tone_issues)
+
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T2")
 def check_t3(episode_dir: str) -> GateResult:
     """配音时长 vs 口播字数偏差是否在合理范围。"""
     import os, json, subprocess
-    from v3.config import FILE_NAMES
+    from core.config import FILE_NAMES
     issues = []
 
     audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
@@ -218,7 +301,7 @@ def check_t4(episode_dir: str) -> GateResult:
     """分镜方案完整吗？image_slots 有吗？"""
     import os, json
     from pathlib import Path
-    from v3.config import FILE_NAMES, resolve_episode_path
+    from core.config import FILE_NAMES, resolve_episode_path
     issues = []
     
     slots_path = os.path.join(episode_dir, FILE_NAMES["image_slots"])
@@ -256,28 +339,10 @@ def check_t4(episode_dir: str) -> GateResult:
             issues.append(f"Slot[{i}]: filename为空")
 
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
-    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
-    if os.path.exists(state_path):
-        with open(state_path) as _sf:
-            _state = json.load(_sf)
-        _style = _state.get("design_style", "")
-        _expected_color = {
-            "bilibili": "#FB7299",
-            "claude": "#cc785c",
-            "dark-teal": "#4FC3A1",
-            "linear": "#5e6ad2",
-            "mintlify": "#00d4a4",
-            "stripe": "#635bff",
-            "vercel": "#0070f3",
-        }.get(_style, "")
-        if _expected_color:
-            _html_check_path = os.path.join(episode_dir, FILE_NAMES["composition"])
-            if os.path.exists(_html_check_path):
-                with open(_html_check_path) as _hf:
-                    _html_check = _hf.read()
-                if _expected_color not in _html_check:
-                    issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
-    
+    _accent_issue = _check_accent_color(episode_dir, _load_state(episode_dir))
+    if _accent_issue:
+        issues.append(_accent_issue)
+
     # 2B: 时长交叉验证
     tl_path = os.path.join(episode_dir, FILE_NAMES["timeline"])
     audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
@@ -320,7 +385,7 @@ def check_t4(episode_dir: str) -> GateResult:
 def check_content_accuracy(step: str, episode_dir: str) -> GateResult:
     """内容准确性审核 — 检查基本知识性错误。纯 Python，无 agent 依赖。"""
     import os, re
-    from v3.config import FILE_NAMES
+    from core.config import FILE_NAMES
     issues = []
     
     files_to_check = {
@@ -362,7 +427,7 @@ def check_t6(episode_dir: str) -> GateResult:
     """Check composition has actual scene content in index.html."""
     import re, os
     from pathlib import Path
-    from v3.config import FILE_NAMES, resolve_episode_path
+    from core.config import FILE_NAMES, resolve_episode_path
     
     ep = Path(episode_dir)
     idx = Path(str(episode_dir)) / FILE_NAMES["composition"]
@@ -411,28 +476,10 @@ def check_t6(episode_dir: str) -> GateResult:
         issues.append("缺少音频")
     
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
-    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
-    if os.path.exists(state_path):
-        with open(state_path) as _sf:
-            _state = json.load(_sf)
-        _style = _state.get("design_style", "")
-        _expected_color = {
-            "bilibili": "#FB7299",
-            "claude": "#cc785c",
-            "dark-teal": "#4FC3A1",
-            "linear": "#5e6ad2",
-            "mintlify": "#00d4a4",
-            "stripe": "#635bff",
-            "vercel": "#0070f3",
-        }.get(_style, "")
-        if _expected_color:
-            _html_check_path = os.path.join(episode_dir, FILE_NAMES["composition"])
-            if os.path.exists(_html_check_path):
-                with open(_html_check_path) as _hf:
-                    _html_check = _hf.read()
-                if _expected_color not in _html_check:
-                    issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
-    
+    _accent_issue = _check_accent_color(episode_dir, _load_state(episode_dir))
+    if _accent_issue:
+        issues.append(_accent_issue)
+
     # 2B: 时长交叉验证
     tl_path = os.path.join(episode_dir, FILE_NAMES["timeline"])
     audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])
@@ -476,7 +523,7 @@ def check_t7(episode_dir: str) -> GateResult:
     """视频时长对齐、音频存在、字幕偏差。"""
     import os, json, subprocess, re
     from pathlib import Path
-    from v3.config import FILE_NAMES, resolve_episode_path
+    from core.config import FILE_NAMES, resolve_episode_path
     
     ep = Path(episode_dir)
     issues = []
@@ -577,10 +624,10 @@ def check_t5(episode_dir: str) -> GateResult:
     """Check images are not blank/black."""
     import os
     from PIL import Image
-    from v3.config import FILE_NAMES, resolve_episode_path
+    from core.config import FILE_NAMES, resolve_episode_path
     issues = []
     img_dir = os.path.join(episode_dir, FILE_NAMES["images_dir"])
-    from v3.config import resolve_episode_path
+    from core.config import resolve_episode_path
     if not os.path.isdir(img_dir):
         return GateResult(False, ["images/ directory missing"], "T4")
     pngs = sorted([f for f in os.listdir(img_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg'))])
@@ -610,28 +657,10 @@ def check_t5(episode_dir: str) -> GateResult:
         except Exception as e:
             issues.append("{0}: unreadable ({1})".format(fn, e))
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
-    state_path = os.path.join(episode_dir, FILE_NAMES["pipeline_state"])
-    if os.path.exists(state_path):
-        with open(state_path) as _sf:
-            _state = json.load(_sf)
-        _style = _state.get("design_style", "")
-        _expected_color = {
-            "bilibili": "#FB7299",
-            "claude": "#cc785c",
-            "dark-teal": "#4FC3A1",
-            "linear": "#5e6ad2",
-            "mintlify": "#00d4a4",
-            "stripe": "#635bff",
-            "vercel": "#0070f3",
-        }.get(_style, "")
-        if _expected_color:
-            _html_check_path = os.path.join(episode_dir, FILE_NAMES["composition"])
-            if os.path.exists(_html_check_path):
-                with open(_html_check_path) as _hf:
-                    _html_check = _hf.read()
-                if _expected_color not in _html_check:
-                    issues.append(f"Style/Accent mismatch: 预设={_style}, 期望accent={_expected_color}, 未在HTML中找到匹配")
-    
+    _accent_issue = _check_accent_color(episode_dir, _load_state(episode_dir))
+    if _accent_issue:
+        issues.append(_accent_issue)
+
     # 2B: 时长交叉验证
     tl_path = os.path.join(episode_dir, FILE_NAMES["timeline"])
     audio_path = os.path.join(episode_dir, FILE_NAMES["audio_narration"])

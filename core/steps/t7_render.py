@@ -1,5 +1,5 @@
 """
-v3/steps/t7_render.py — Render + post-processing step
+core/steps/t7_render.py — Render + post-processing step
 
 Uses HyperFrames to render composition to video, then:
   1. Add audio (TTS)
@@ -8,9 +8,9 @@ Uses HyperFrames to render composition to video, then:
 """
 import os, subprocess, json
 from pathlib import Path
-from v3.steps.base import StepHandler, StepResult
-from v3.config import VIDEO_FPS, FILE_NAMES, resolve_episode_path
-from v3.subtitle import burn_subtitles
+from core.steps.base import StepHandler, StepResult
+from core.config import VIDEO_FPS, FILE_NAMES, resolve_episode_path
+from core.subtitle import burn_subtitles
 
 
 class RenderHandler(StepHandler):
@@ -104,6 +104,87 @@ class RenderHandler(StepHandler):
             final_video = str(episode_dir / FILE_NAMES["final_video"])
             subprocess.run(["cp", raw_video, final_video], check=True)
             print("  No audio found — video will be silent")
+
+        # Restore index.html as preview (remove GSAP, add navigation)
+        comp_path = episode_dir / FILE_NAMES["composition"]
+        idx_path = episode_dir / "index.html"
+        if comp_path.exists():
+            _pv = comp_path.read_text(encoding="utf-8")
+            _gsap_marker = 'inlined: assets/gsap.min.js'
+            _gsap_start = _pv.find(f'<script>/* {_gsap_marker} */')
+            if _gsap_start >= 0:
+                _gsap_end = _pv.find('</script>', _gsap_start)
+                if _gsap_end >= 0:
+                    _pv = _pv[:_gsap_start] + _pv[_gsap_end + len('</script>'):]
+            _tl_marker = 'window.__timelines'
+            _tl_start = _pv.find('<script>')
+            while _tl_start >= 0:
+                _tl_end = _pv.find('</script>', _tl_start)
+                if _tl_end < 0:
+                    break
+                if _tl_marker in _pv[_tl_start:_tl_end]:
+                    _pv = _pv[:_tl_start] + _pv[_tl_end + len('</script>'):]
+                    break
+                _tl_start = _pv.find('<script>', _tl_end + 1)
+            _dm_start = _pv.find('<!-- Danmaku overlay -->')
+            if _dm_start >= 0:
+                _close_start = _pv.find('<div', _dm_start)
+                if _close_start >= 0:
+                    depth, pos = 0, _close_start
+                    while pos < len(_pv):
+                        _no = _pv.find('<div ', pos + 1)
+                        _nc = _pv.find('</div>', pos + 1)
+                        if _nc < 0:
+                            break
+                        if _no >= 0 and _no < _nc:
+                            depth += 1; pos = _no + 5
+                        else:
+                            if depth == 0:
+                                _pv = _pv[:_dm_start] + _pv[_nc + 6:]; break
+                            depth -= 1; pos = _nc + 6
+            _pv = _pv.replace('content="width=1920, height=1080"', 'content="width=device-width, initial-scale=1.0"')
+            _nav = (
+                '<style>'
+                '.danmaku,.danmaku-overlay{display:none!important}'
+                'body{transform-origin:top left;overflow:hidden;margin:0;}'
+                '#_preview-nav{position:fixed;bottom:28px;right:28px;z-index:99999;'
+                'display:flex;align-items:center;gap:8px;'
+                'background:rgba(0,0,0,0.4);color:#fff;padding:6px 16px 6px 12px;'
+                'border-radius:999px;font:13px/1.4 sans-serif;user-select:none;'
+                'pointer-events:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}'
+                '#_preview-nav button{background:rgba(255,255,255,0.2);border:none;color:#fff;'
+                'width:28px;height:28px;border-radius:50%;cursor:pointer;'
+                'font:16px/1 sans-serif;display:flex;align-items:center;justify-content:center;transition:background .15s;}'
+                '#_preview-nav button:hover{background:rgba(255,255,255,0.35);}'
+                '#_preview-nav ._pc{min-width:32px;text-align:center;font-variant-numeric:tabular-nums;}'
+                '</style>'
+                '<script>'
+                '(function(){'
+                'var ps=document.querySelectorAll(\'[id^="s"]\');if(!ps.length)return;'
+                'var c=0;'
+                'function g(n){if(n<0||n>=ps.length)return;ps[c].style.opacity=\'0\';c=n;ps[c].style.opacity=\'1\';}'
+                'document.addEventListener(\'keydown\',function(e){'
+                'if(e.key==\'ArrowRight\'||e.key==\'ArrowDown\'||e.key==\' \'){e.preventDefault();g(c+1)}'
+                'if(e.key==\'ArrowLeft\'||e.key==\'ArrowUp\'){e.preventDefault();g(c-1)'
+                '}});'
+                'document.addEventListener(\'click\',function(e){if(e.target.closest(\'#_preview-nav\'))return;g(c+1)});'
+                'function fit(){var sx=window.innerWidth/1920,sy=window.innerHeight/1080,s=Math.min(sx,sy);'
+                'document.body.style.transform=\'scale(\'+s+\')\';'
+                'document.body.style.width=1920/s+\'px\';'
+                'document.body.style.height=1080/s+\'px\';}'
+                'window.addEventListener(\'resize\',fit);fit();'
+                'var nav=document.createElement(\'div\');nav.id=\'_preview-nav\';'
+                'nav.innerHTML=\'<button onclick="g(Math.max(0,c-1))">&larr;</button>'
+                '<span class="_pc">1/\'+ps.length+\'</span>'
+                '<button onclick="g(Math.min(ps.length-1,c+1))">&rarr;</button>\';'
+                'document.body.appendChild(nav);'
+                'var _g=g;g=function(n){_g(n);var pc=nav.querySelector(\'._pc\');if(pc)pc.textContent=(c+1)+\'/\'+ps.length};'
+                'g(0);})();'
+                '</script>'
+            )
+            _pv = _pv.replace('</body>', _nav + '\n</body>')
+            idx_path.write_text(_pv, encoding="utf-8")
+            print(f"  🔗 index.html (preview restored — no GSAP, with navigation)")
 
         # Final info
         r = subprocess.run([

@@ -1,23 +1,23 @@
 """
-v3/sprite_runner.py — Progress bar running character (sprite sheet)
+core/sprite_runner.py — Progress bar running character (sprite sheet)
 
 Generates a 3x3 grid sprite sheet via AI, processes it into a horizontal strip
 for the video progress bar running animation.
 
 Usage:
     # Generate from a preset style
-    python3 -m v3.sprite_runner preset --style boy --out v3/assets/sprite_runner.png
+    python3 -m core.sprite_runner preset --style boy --out core/assets/sprite_runner.png
 
     # Process existing grid into strip
-    python3 -m v3.sprite_runner process --in grid.png --out strip.png
+    python3 -m core.sprite_runner process --in grid.png --out strip.png
 """
 import argparse, os
 from pathlib import Path
 
 from PIL import Image
 
-from v3.config import V3_DIR
-from v3.imagegen import _wuyinkeji_generate
+from core.config import CORE_DIR as V3_DIR
+from core.imagegen import _wuyinkeji_generate
 
 # ── Constants ──
 DEFAULT_FRAMES = 9

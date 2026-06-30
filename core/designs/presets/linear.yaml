@@ -1,0 +1,181 @@
+name: linear
+display_name: Linear (深色科技)
+description: Near-black canvas, lavender accents, dense and technical
+colors:
+  primary: '#5e6ad2'
+  on_primary: '#ffffff'
+  primary_hover: '#828fff'
+  ink: '#f7f8f8'
+  ink_muted: '#d0d6e0'
+  ink_subtle: '#8a8f98'
+  ink_tertiary: '#62666d'
+  canvas: '#010102'
+  surface_1: '#0f1011'
+  surface_2: '#141516'
+  surface_3: '#18191a'
+  surface_4: '#191a1b'
+  hairline: '#23252a'
+  hairline_strong: '#34343a'
+  inverse_canvas: '#ffffff'
+  inverse_surface_1: '#f5f6f6'
+  inverse_ink: '#000000'
+  semantic_success: '#27a644'
+  semantic_overlay: '#000000'
+  code_bg: '#0a0a0a'
+  code_text: '#d0d6e0'
+typography:
+  display_family: sans-serif
+  body_family: sans-serif
+  code_family: monospace
+  display_xl:
+    size: 80px
+    weight: 600
+    line_height: 1.05
+    letter_spacing: -3px
+  display_lg:
+    size: 56px
+    weight: 600
+    line_height: 1.1
+    letter_spacing: -1.8px
+  display_md:
+    size: 40px
+    weight: 600
+    line_height: 1.15
+    letter_spacing: -1px
+  display_sm:
+    size: 28px
+    weight: 600
+    line_height: 1.2
+    letter_spacing: -0.6px
+  title_lg:
+    size: 22px
+    weight: 500
+    line_height: 1.25
+    letter_spacing: -0.4px
+  title_md:
+    size: 18px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  title_sm:
+    size: 16px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  body_md:
+    size: 16px
+    weight: 400
+    line_height: 1.5
+    letter_spacing: -0.05px
+  body_sm:
+    size: 14px
+    weight: 400
+    line_height: 1.5
+    letter_spacing: 0
+  caption:
+    size: 13px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 0
+  caption_uppercase:
+    size: 12px
+    weight: 500
+    line_height: 1.4
+    letter_spacing: 1.5px
+  code:
+    size: 14px
+    weight: 400
+    line_height: 1.6
+    letter_spacing: 0
+rounded:
+  xs: 4px
+  sm: 6px
+  md: 8px
+  lg: 12px
+  xl: 16px
+  pill: 9999px
+spacing:
+  xxs: 4px
+  xs: 8px
+  sm: 12px
+  md: 16px
+  lg: 24px
+  xl: 32px
+  xxl: 48px
+  section: 96px
+components:
+  button_primary:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.md}'
+    padding: 12px 20px
+    height: 40px
+  button_secondary:
+    bg: '{colors.surface_2}'
+    text: '{colors.ink}'
+    radius: '{rounded.md}'
+    padding: 12px 20px
+    border: 1px solid {colors.hairline}
+  card_feature:
+    bg: '{colors.surface_2}'
+    text: '{colors.ink}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+  card_dark:
+    bg: '{colors.canvas}'
+    text: '{colors.ink}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.xl}'
+    border: 1px solid {colors.hairline}
+  card_code:
+    bg: '{colors.canvas}'
+    text: '{colors.ink}'
+    radius: '{rounded.lg}'
+    padding: '{spacing.lg}'
+    border: 1px solid {colors.hairline}
+  badge:
+    bg: '{colors.surface_3}'
+    text: '{colors.ink_muted}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption.size}'
+  badge_accent:
+    bg: '{colors.primary}'
+    text: '{colors.on_primary}'
+    radius: '{rounded.pill}'
+    padding: 4px 12px
+    font_size: '{typography.caption_uppercase.size}'
+    letter_spacing: '{typography.caption_uppercase.letter_spacing}'
+  page_number:
+    color: '{colors.ink_tertiary}'
+    size: 13px
+    weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用极简线性风格。具体要求：
+  1. 使用干净几何线条、低饱和色彩、深色背景的视觉语言
+  2. 技术概念用抽象几何方式表达（比如：API用端点连线、数据流用光束）
+  3. 每页像一帧极简UI界面，留白充足、视觉焦点集中
+  4. 色调与 linear 风格色板协调（主色淡紫 #5e6ad2、近黑底 #010102）
+  5. 避免卡通、写实、过度装饰风格
+
+image_style: "极简线性风格，干净几何，深色背景"
+
+imagegen_style_prefix: "minimalist line art style, clean geometric shapes, dark background, low saturation, lavender accent, abstract tech illustration"
+
+layout_defaults:
+  canvas_bg: '{colors.canvas}'
+  content_bg: '{colors.surface_1}'
+  card_bg: '{colors.surface_2}'
+  code_bg: '{colors.canvas}'
+  text_color: '{colors.ink}'
+  heading_color: '{colors.ink}'
+  body_color: '{colors.ink_muted}'
+  muted_color: '{colors.ink_subtle}'
+  accent_color: '{colors.primary}'
+  border_color: '{colors.hairline}'
+  page_number_color: '{components.page_number.color}'
+  page_number_size: '{components.page_number.size}'
+  font_family: sans-serif
+  code_family: monospace
+  heading_family: sans-serif
+  body_family: sans-serif

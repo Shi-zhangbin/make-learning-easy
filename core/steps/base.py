@@ -1,5 +1,5 @@
 """
-v3/steps/base.py — StepHandler base class
+core/steps/base.py — StepHandler base class
 
 Every pipeline step extends StepHandler and provides:
   - execute(): do the work
@@ -27,9 +27,11 @@ class StepHandler:
     name: str = ""
     description: str = ""
 
-    def __init__(self, episode_dir: str, design: Optional[dict] = None):
+    def __init__(self, episode_dir: str, design: Optional[dict] = None,
+                 tone: Optional[dict] = None):
         self.episode_dir = Path(episode_dir)
         self.design = design or {}
+        self.tone = tone or {}
 
     def pre_condition(self) -> Optional[str]:
         """Check if step can run. Return error string or None."""

@@ -1,5 +1,5 @@
 """
-v3/models.py — Data models for pipeline artifacts
+core/models.py — Data models for pipeline artifacts
 """
 from dataclasses import dataclass, field
 from typing import Optional

@@ -1,5 +1,5 @@
 """
-v3/designs/base.py — Design token loader
+core/designs/base.py — Design token loader
 
 Loads a YAML preset, resolves {token.refs} against the full token tree,
 and provides a flat CSS variable map for template rendering.

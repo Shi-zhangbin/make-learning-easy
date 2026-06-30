@@ -149,6 +149,18 @@ components:
     color: '{colors.muted_soft}'
     size: 13px
     weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用专业简洁插画风格。具体要求：
+  1. 使用清晰轮廓、干净渐变、企业级视觉语言
+  2. 技术概念用简洁图标和流程图表达，聚焦功能逻辑
+  3. 每页像一帧企业产品页面，排版工整、视觉专业
+  4. 色调与 stripe 风格色板协调（主色紫蓝 #635bff、白底 #ffffff）
+  5. 避免卡通、动漫、过度娱乐化风格
+
+image_style: "专业简洁插画风格，干净渐变，企业级"
+
+imagegen_style_prefix: "professional flat illustration, clean gradients, blue-purple accent, white background, corporate style, clear outlines"
+
 layout_defaults:
   canvas_bg: '{colors.canvas}'
   content_bg: '{colors.surface}'

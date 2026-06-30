@@ -1,11 +1,11 @@
 """
-v3/imagegen.py — Three-tier image generator
+core/imagegen.py — Three-tier image generator
 
 Fallback chain: wuyinkeji → pexels → pixabay → svg
 """
 import os, sys, time, base64, io, json, re
 from pathlib import Path
-from v3.config import (
+from core.config import (
     WUYINKEJI_KEY, WUYINKEJI_SUBMIT_URL, WUYINKEJI_DETAIL_URL,
     PEXELS_KEY, PIXABAY_KEY,
     IMAGE_FALLBACK_CHAIN, VIDEO_WIDTH, VIDEO_HEIGHT, WUYINKEJI_SIZE_MAP, IMAGE_JPEG_QUALITY, IMAGE_PNG_COMPRESSION,
@@ -277,18 +277,10 @@ def generate_all_images(slots: list[dict], output_dir: str,
 
     accent = (design or {}).get("colors", {}).get("primary", "#cc785c")
     canvas = (design or {}).get("colors", {}).get("canvas", "#faf9f5")
-    design_name = (design or {}).get("name", "")
-    style_hints = {
-        "bilibili": "anime aesthetic, cel shading style, vibrant colors, soft gradients, studio ghibli inspired, expressive eyes, dreamy atmosphere, japanese animation style, radiant lighting",
-        "talk-show": "cartoon illustration, comic book style, expressive, flat vector art, bold colors, exaggerated expressions",
-        "claude": "warm illustration, painterly style, soft edges, digital art",
-        "dark-teal": "cyberpunk style, neon accents, dark background, digital art",
-        "linear": "minimalist vector art, clean lines, geometric shapes, modern illustration",
-        "mintlify": "clean vector illustration, flat design, professional, modern",
-        "stripe": "clean vector art, isometric style, professional illustration",
-        "vercel": "minimalist vector art, clean lines, modern illustration, simple shapes",
-    }
-    default_hint = style_hints.get(design_name, "digital art, illustration, clear, professional")
+
+    # Read style prefix from design preset YAML — single source of truth
+    default_hint = (design or {}).get("imagegen_style_prefix",
+        "digital art, illustration, clear, professional")
     style_prefix = f"{default_hint}. The image should be visually clear for a video presentation."
 
 
@@ -312,10 +304,8 @@ def generate_all_images(slots: list[dict], output_dir: str,
         size = slot.get("size", "16:9")
         print(f"  🖼  Generating {fn} ({slot.get('slot','?')})...", end=" ", flush=True)
 
-        # Apply style prefix to prompt based on design
-        styled_prompt = f"{prompt.strip()}. {style_prefix}"
-        if design_name in ("bilibili", "talk-show"):
-            styled_prompt = f"[{default_hint}] {prompt.strip()}"
+        # Apply style prefix to prompt based on design preset
+        styled_prompt = f"[{default_hint}] {prompt.strip()}"
 
         img_data, source = generate_image(styled_prompt, accent, canvas, size)
 

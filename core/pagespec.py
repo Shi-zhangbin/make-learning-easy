@@ -1,5 +1,5 @@
 """
-v3/pagespec.py — PageSpec data model + page builder
+core/pagespec.py — PageSpec data model + page builder
 
 Every page in the video is described by a PageSpec object — structured data
 that the templates render into visual components. This replaces the old

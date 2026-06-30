@@ -1,14 +1,14 @@
 """
-v3/steps/t5_images.py — Image generation step
+core/steps/t5_images.py — Image generation step
 
 Generates all images from image_slots.json using the three-tier
 fallback chain: wuyinkeji → pexels → pixabay → svg
 """
 import json, os
 from pathlib import Path
-from v3.config import FILE_NAMES
-from v3.steps.base import StepHandler, StepResult
-from v3.imagegen import generate_all_images
+from core.config import FILE_NAMES
+from core.steps.base import StepHandler, StepResult
+from core.imagegen import generate_all_images
 
 
 class ImageHandler(StepHandler):

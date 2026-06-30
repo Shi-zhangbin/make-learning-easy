@@ -1,13 +1,13 @@
 """
-v3/subtitle.py — Whisper subtitle generation
+core/subtitle.py — Whisper subtitle generation
 
 Uses whisper.cpp CLI (brew install whisper) to generate SRT subtitles
 from audio files.
 """
 import os, subprocess, json, re
 from pathlib import Path
-from v3.config import FILE_NAMES
-from v3.models import SubtitleSegment, SubtitleArtifact
+from core.config import FILE_NAMES
+from core.models import SubtitleSegment, SubtitleArtifact
 
 
 WHISPER_MODEL = "tiny"
@@ -175,5 +175,5 @@ if __name__ == "__main__":
         for s in art.segments[:5]:
             print(f"  [{s.start:.1f}s-{s.end:.1f}s] {s.text}")
     else:
-        print("Usage: python3 -m v3.subtitle <audio.mp3>")
+        print("Usage: python3 -m core.subtitle <audio.mp3>")
 

@@ -1,14 +1,14 @@
 """
-v3/engine.py — Pipeline orchestration engine
+core/engine.py — Pipeline orchestration engine
 
 Manages step state, dispatch, and dependencies.
-Entry point: v3/engine.py or go.sh
+Entry point: core/engine.py or go.sh
 """
 import json, os, sys, time
 from pathlib import Path
 from datetime import datetime
-from v3.config import EPISODES_DIR, PRESETS_DIR, FILE_NAMES, validate_episode_name, parse_episode_name, get_agent_default, resolve_episode_path
-from v3.designs.base import load_preset, list_presets
+from core.config import EPISODES_DIR, PRESETS_DIR, FILE_NAMES, validate_episode_name, parse_episode_name, get_agent_default, resolve_episode_path
+from core.designs.base import load_preset, list_presets
 
 # ── Step registry ──
 STEPS = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"]
@@ -92,10 +92,11 @@ def can_run_step(state: dict, step: str) -> tuple[bool, str]:
     return True, ""
 
 
-def run_step(episode_dir: str, step: str, design: dict | None = None):
+def run_step(episode_dir: str, step: str, design: dict | None = None,
+             tone: dict | None = None):
     """Execute a single pipeline step."""
-    from v3.designs.base import load_preset
-    from v3.steps.base import StepHandler
+    from core.designs.base import load_preset
+    from core.steps.base import StepHandler
 
     state = load_state(episode_dir)
     ok, reason = can_run_step(state, step)
@@ -104,7 +105,7 @@ def run_step(episode_dir: str, step: str, design: dict | None = None):
         return False
 
     # Load the step handler
-    handler = _get_handler(step, episode_dir, design)
+    handler = _get_handler(step, episode_dir, design, tone)
     if not handler:
         print(f"  ❌ No handler implemented for {step}")
         print(f"     This step must be done manually via agent delegation.")
@@ -128,7 +129,7 @@ def run_step(episode_dir: str, step: str, design: dict | None = None):
 
     if result:
         # Run post-execution gate
-        from v3.gates.gate_master import run_gate
+        from core.gates.gate_master import run_gate
         gate = run_gate(step, episode_dir)
         
         if not gate:
@@ -184,14 +185,15 @@ def run_step(episode_dir: str, step: str, design: dict | None = None):
         return False
 
 
-def _get_handler(step: str, episode_dir: str, design: dict | None):
+def _get_handler(step: str, episode_dir: str, design: dict | None,
+                 tone: dict | None = None):
     """Get the StepHandler for a given step, or None if manual."""
-    from v3.steps.tts import TTSHandler
-    from v3.steps.t5_images import ImageHandler
-    from v3.steps.t6_compositions import CompositionHandler
-    from v3.steps.t7_render import RenderHandler
-    from v3.agent_steps import TopicResearchHandler, OutlineHandler, ScriptHandler, StoryboardHandler
-    
+    from core.steps.tts import TTSHandler
+    from core.steps.t5_images import ImageHandler
+    from core.steps.t6_compositions import CompositionHandler
+    from core.steps.t7_render import RenderHandler
+    from core.agent_steps import TopicResearchHandler, OutlineHandler, ScriptHandler, StoryboardHandler
+
     t0_topic = ""
     for fname in [FILE_NAMES["pipeline_state"], "pipeline_state.json"]:
         state_path = os.path.join(episode_dir, fname)
@@ -201,16 +203,16 @@ def _get_handler(step: str, episode_dir: str, design: dict | None):
                 s = json.load(f)
             t0_topic = s.get("topic", "")
             break
-    
+
     handlers = {
-        "T0": lambda ed, d: TopicResearchHandler(ed, d, t0_topic),
-        "T1": OutlineHandler,
-        "T2": ScriptHandler,
-        "T3": TTSHandler,
-        "T4": StoryboardHandler,
-        "T5": ImageHandler,
-        "T6": CompositionHandler,
-        "T7": RenderHandler,
+        "T0": lambda ed, d: TopicResearchHandler(ed, d, t0_topic, tone),
+        "T1": lambda ed, d: OutlineHandler(ed, d, tone=tone),
+        "T2": lambda ed, d: ScriptHandler(ed, d, tone=tone),
+        "T3": lambda ed, d: TTSHandler(ed, d, tone=tone),
+        "T4": lambda ed, d: StoryboardHandler(ed, d, tone=tone),
+        "T5": lambda ed, d: ImageHandler(ed, d, tone=tone),
+        "T6": lambda ed, d: CompositionHandler(ed, d, tone=tone),
+        "T7": lambda ed, d: RenderHandler(ed, d, tone=tone),
     }
     cls = handlers.get(step)
     if cls:
@@ -243,6 +245,7 @@ def cmd_status(args):
 
     print(f"\n📊 {state.get('episode', os.path.basename(episode_dir))}")
     print(f"   风格: {state.get('design_style', 'bilibili')}")
+    print(f"   话风: {state.get('tone_style', 'talk-show')}")
     print(f"   当前: {state.get('current_step', '?')} ({STEP_LABELS.get(state['current_step'], '')})")
     print()
 
@@ -283,21 +286,32 @@ def cmd_run(args):
         print(f"  ⚠️  Design preset '{style}' not found, using default")
         design = load_preset("bilibili")
 
-    run_step(episode_dir, step, design)
+    # Load tone
+    from core.tones.base import load_tone
+    tone_name = state.get("tone_style", "talk-show")
+    try:
+        tone = load_tone(tone_name)
+    except FileNotFoundError:
+        print(f"  ⚠️  Tone preset '{tone_name}' not found, using default")
+        tone = load_tone("talk-show")
+
+    run_step(episode_dir, step, design, tone)
 
 
 
-def write_agent_json(episode_dir: str, agent: str, topic: str, style: str):
+def write_agent_json(episode_dir: str, agent: str, topic: str, style: str,
+                     tone_style: str = "talk-show"):
     """Write .agent.json metadata file for the episode."""
     import json
     from datetime import datetime
-    from v3.config import FILE_NAMES
+    from core.config import FILE_NAMES
     meta = {
         "agent": agent,
-        "engine": "v3",
+        "engine": "core",
         "created": datetime.now().isoformat(),
         "topic": topic,
         "design_style": style,
+        "tone_style": tone_style,
     }
     path = os.path.join(episode_dir, FILE_NAMES["agent_info"])
     with open(path, "w", encoding="utf-8") as f:
@@ -308,6 +322,7 @@ def cmd_init(args):
     name = args.name
     topic = args.topic or name
     style = args.style or "bilibili"
+    tone_style = getattr(args, "tone", "talk-show")
 
     # Validate naming convention
     valid, err = validate_episode_name(name)
@@ -336,6 +351,17 @@ def cmd_init(args):
             print(f"     - {p['name']}: {p['display_name']}")
         style = "bilibili"
 
+    # Verify tone preset exists
+    from core.tones.base import load_tone
+    try:
+        load_tone(tone_style)
+    except FileNotFoundError:
+        print(f"  ⚠️  Tone '{tone_style}' not found. Available:")
+        from core.tones.base import list_tones
+        for t in list_tones():
+            print(f"     - {t['name']}: {t['display_name']}")
+        tone_style = "talk-show"
+
     # Write initial state
     sprite_style = getattr(args, "sprite_style", "") or "boy"
     state = {
@@ -345,17 +371,19 @@ def cmd_init(args):
         "current_step": "T0",
         "steps": {},
         "design_style": style,
+        "tone_style": tone_style,
         "sprite_style": sprite_style,
         "created_at": datetime.now().isoformat(),
     }
     save_state(episode_dir, state)
-    write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style)
+    write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style, tone_style)
 
     print(f"\n  ✅ Created: {name}")
     print(f"     📁 {episode_dir}")
     print(f"     🎨 {style}")
+    print(f"     🎙️ {tone_style}")
     print(f"     🏃 {sprite_style}")
-    print(f"     → Next: python3 -m v3.engine run --episode \"{name}\"")
+    print(f"     → Next: python3 -m core.engine run --episode \"{name}\"")
 
 
 def cmd_list(args):
@@ -370,18 +398,20 @@ def cmd_list(args):
             state = load_state(ep_dir)
             step = state.get("current_step", "?")
             style = state.get("design_style", "?")
+            tone_s = state.get("tone_style", "?")
             agent = state.get("agent", "-")
-            print(f"  {ep:45s} {step:4s} 🎨{style:12s} 🤖{agent}")
+            print(f"  {ep:45s} {step:4s} 🎨{style:12s} 🎙️{tone_s:16s} 🤖{agent}")
 
 
 
 def cmd_create(args):
     """Create a new episode and run the full pipeline automatically."""
-    from v3.designs.base import load_preset
-    
+    from core.designs.base import load_preset
+
     name = args.name
     topic = args.topic
     style = args.style or "bilibili"
+    tone_style = getattr(args, "tone", "talk-show")
 
     # Validate naming convention
     valid, err = validate_episode_name(name)
@@ -390,31 +420,31 @@ def cmd_create(args):
         return
 
     parts = parse_episode_name(name)
-    
+
     # Step 1: init project
     print(f"\n{'='*60}")
     print(f"  创建新项目: {name}")
     print(f"  主题: {topic}")
-    print(f"  风格: {style}")
+    print(f"  风格: {style}  |  话风: {tone_style}")
     print(f"{'='*60}\n")
-    
+
     episode_dir = os.path.join(EPISODES_DIR, name)
     if os.path.exists(episode_dir):
         print(f"  ⚠️  项目已存在，将追加内容")
         # Refresh .agent.json if not exists
         agent_path = os.path.join(episode_dir, FILE_NAMES["agent_info"])
         if not os.path.exists(agent_path):
-            write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style)
+            write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style, tone_style)
     else:
         os.makedirs(os.path.join(episode_dir, "audio"), exist_ok=True)
         os.makedirs(os.path.join(episode_dir, FILE_NAMES["images_dir"]), exist_ok=True)
         os.makedirs(os.path.join(episode_dir, "compositions"), exist_ok=True)
         os.makedirs(os.path.join(episode_dir, "成品"), exist_ok=True)
-        
+
         # Write topic to README
         with open(os.path.join(episode_dir, "README.md"), "w", encoding="utf-8") as f:
             f.write(f"# {name}\n\n{topic}\n")
-        
+
         # Init state
         sprite_style = getattr(args, "sprite_style", "") or "boy"
         state = {
@@ -423,12 +453,13 @@ def cmd_create(args):
             "current_step": "T0",
             "steps": {},
             "design_style": style,
+            "tone_style": tone_style,
             "sprite_style": sprite_style,
             "created_at": __import__("datetime").datetime.now().isoformat(),
         }
         save_state(episode_dir, state)
-        write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style)
-    
+        write_agent_json(episode_dir, parts.get("agent") or get_agent_default(), topic, style, tone_style)
+
     # Load design preset
     try:
         design = load_preset(style)
@@ -436,51 +467,60 @@ def cmd_create(args):
         print(f"  ⚠️  设计预设 {style} 不存在，使用 bilibili")
         design = load_preset("bilibili")
         style = "bilibili"
-    
+
+    # Load tone preset
+    from core.tones.base import load_tone
+    try:
+        tone = load_tone(tone_style)
+    except FileNotFoundError:
+        print(f"  ⚠️  话风 {tone_style} 不存在，使用默认 talk-show")
+        tone = load_tone("talk-show")
+        tone_style = "talk-show"
+
     if not args.auto:
         print(f"\n  项目已创建。运行: bash go.sh run --episode \"{name}\"")
         return
-    
+
     # Step 2: Run all steps automatically
     steps_to_run = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"]
-    
+
     for step in steps_to_run:
         state = load_state(episode_dir)
         ok, reason = can_run_step(state, step)
         if not ok:
             print(f"\n  ⏭  {step}: {reason}")
             continue
-        
+
         print(f"\n{'='*50}")
         print(f"  ▶️  步骤 {step}: {STEP_LABELS.get(step, step)}")
         print(f"{'='*50}")
-        
+
         # Get handler with topic context for T0
-        from v3.steps.base import StepHandler
-        from v3.agent_steps import TopicResearchHandler, OutlineHandler, ScriptHandler, StoryboardHandler
-        from v3.steps.tts import TTSHandler
-        from v3.steps.t5_images import ImageHandler
-        from v3.steps.t6_compositions import CompositionHandler
-        from v3.steps.t7_render import RenderHandler
-        from v3.agent_steps import AuditHandler
+        from core.steps.base import StepHandler
+        from core.agent_steps import TopicResearchHandler, OutlineHandler, ScriptHandler, StoryboardHandler
+        from core.steps.tts import TTSHandler
+        from core.steps.t5_images import ImageHandler
+        from core.steps.t6_compositions import CompositionHandler
+        from core.steps.t7_render import RenderHandler
+        from core.agent_steps import AuditHandler
         handler = None
         
         if step == "T0":
-            handler = TopicResearchHandler(episode_dir, design, topic)
+            handler = TopicResearchHandler(episode_dir, design, topic, tone)
         else:
             handlers_map = {
-                "T1": OutlineHandler,
-                "T2": ScriptHandler,
-                "T3": TTSHandler,
-                "T4": StoryboardHandler,
-                "T5": ImageHandler,
-                "T6": CompositionHandler,
-                "T7": RenderHandler,
+                "T1": lambda ed, d: OutlineHandler(ed, d, tone=tone),
+                "T2": lambda ed, d: ScriptHandler(ed, d, tone=tone),
+                "T3": lambda ed, d: TTSHandler(ed, d, tone=tone),
+                "T4": lambda ed, d: StoryboardHandler(ed, d, tone=tone),
+                "T5": lambda ed, d: ImageHandler(ed, d, tone=tone),
+                "T6": lambda ed, d: CompositionHandler(ed, d, tone=tone),
+                "T7": lambda ed, d: RenderHandler(ed, d, tone=tone),
             }
             cls = handlers_map.get(step)
             if cls:
                 handler = cls(episode_dir, design)
-        
+
         if not handler:
             print(f"  ❌ 没有 {step} 的执行器")
             continue
@@ -548,15 +588,25 @@ def cmd_designs(args):
     print()
 
 
+def cmd_tones(args):
+    """List available tone presets."""
+    from core.tones.base import list_tones
+    print("\n  Available tone presets:")
+    for t in list_tones():
+        print(f"     {t['name']:20s} {t['display_name']}")
+    print()
+
+
 def main():
     import argparse
-    p = argparse.ArgumentParser(description="ascend-pipeline v3")
+    p = argparse.ArgumentParser(description="Make Learning Easy Pipeline")
     s = p.add_subparsers(dest="cmd", required=True)
 
     sp = s.add_parser("init")
     sp.add_argument("name", help="Episode name")
     sp.add_argument("--topic", help="Topic description")
-    sp.add_argument("--style", default="bilibili", help="Design preset")
+    sp.add_argument("--style", default="bilibili", help="Design preset (visual style)")
+    sp.add_argument("--tone", default="talk-show", help="Tone preset (narration voice)")
     sp.add_argument("--sprite-style", default="", help='Runner sprite style (boy/dino/walk/cycle/skateboard/jump/moonwalk/dance/fly)')
 
     sp = s.add_parser("run")
@@ -568,11 +618,13 @@ def main():
 
     sp = s.add_parser("list")
     sp = s.add_parser("designs")
-    
+    sp = s.add_parser("tones")
+
     sp = s.add_parser("create")
     sp.add_argument("name", help='Episode name (e.g. 2026-06-27_什么是API_[Codex])')
     sp.add_argument("--topic", required=True, help="Topic description")
-    sp.add_argument("--style", default="bilibili", help="Design preset")
+    sp.add_argument("--style", default="bilibili", help="Design preset (visual style)")
+    sp.add_argument("--tone", default="talk-show", help="Tone preset (narration voice)")
     sp.add_argument("--sprite-style", default="", help='Runner sprite style (boy/dino/walk/cycle/skateboard/jump/moonwalk/dance/fly)')
     sp.add_argument("--auto", action="store_true", default=True, help="Auto-run all steps")
 
@@ -584,6 +636,7 @@ def main():
         "status": cmd_status,
         "list": cmd_list,
         "designs": cmd_designs,
+        "tones": cmd_tones,
         "create": cmd_create,
     }
     dispatch[args.cmd](args)

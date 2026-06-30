@@ -1,87 +1,88 @@
-name: bilibili
-display_name: Bilibili (二次元科技)
-description: Light warm canvas, pink accents, Noto Sans SC headlines — playful and energetic
+name: talk-show
+display_name: 脱口秀 (程序员搞笑风)
+description: Energetic comic style for programmer standup — bright, punchy, high contrast
 colors:
-  primary: '#FB7299'
-  primary_active: '#F25D88'
-  primary_disabled: '#FCE0E6'
-  accent_blue: '#00A1D6'
-  accent_blue_active: '#008EBD'
-  ink: '#18191C'
-  body: '#4E5969'
-  body_strong: '#33363B'
-  muted: '#86909C'
-  muted_soft: '#A9B2BF'
-  hairline: '#E5E6EB'
-  hairline_soft: '#F0F1F3'
-  canvas: '#F5F6F7'
-  surface_soft: '#FAFBFC'
+  primary: '#FF6B35'
+  primary_active: '#E55A28'
+  primary_disabled: '#FFD9C5'
+  accent_blue: '#00C4FF'
+  accent_blue_active: '#00A8D6'
+  accent_green: '#00E676'
+  ink: '#1A1A2E'
+  body: '#3D3D4A'
+  body_strong: '#2A2A3A'
+  muted: '#7A7A8A'
+  muted_soft: '#A0A0B0'
+  hairline: '#E8E8EE'
+  hairline_soft: '#F2F2F6'
+  canvas: '#F0F2F5'
+  surface_soft: '#F8F9FB'
   surface_card: '#FFFFFF'
-  surface_dark: '#25282B'
-  surface_dark_elevated: '#1C1E21'
-  surface_dark_soft: '#2F3338'
+  surface_dark: '#1E2029'
+  surface_dark_elevated: '#161822'
+  surface_dark_soft: '#2A2D3A'
   on_primary: '#FFFFFF'
   on_dark: '#F5F6F7'
   on_dark_soft: '#B0B8C2'
   accent_teal: '#32C5FF'
-  accent_amber: '#FFB800'
-  accent_purple: '#B37FEB'
-  success: '#00C853'
+  accent_amber: '#FFB300'
+  accent_purple: '#B388FF'
+  success: '#00E676'
   warning: '#FF9100'
-  error: '#F44336'
-  code_bg: '#F2F3F5'
-  code_text: '#4E5969'
+  error: '#FF5252'
+  code_bg: '#1A1C2E'
+  code_text: '#C0CAF5'
 typography:
   display_family: '"Noto Sans SC", -apple-system, sans-serif'
   body_family: '"Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif'
   code_family: '"JetBrains Mono", "Fira Code", monospace'
   display_xl:
-    size: 72px
+    size: 80px
     weight: 800
     line_height: 1.05
-    letter_spacing: -1.5px
+    letter_spacing: -1px
   display_lg:
-    size: 56px
+    size: 64px
     weight: 700
     line_height: 1.1
-    letter_spacing: -1px
+    letter_spacing: -0.5px
   display_md:
-    size: 40px
+    size: 48px
     weight: 700
     line_height: 1.15
-    letter_spacing: -0.5px
+    letter_spacing: -0.3px
   display_sm:
-    size: 30px
+    size: 34px
     weight: 700
     line_height: 1.2
     letter_spacing: 0
   title_lg:
-    size: 24px
+    size: 26px
     weight: 600
     line_height: 1.3
     letter_spacing: 0
   title_md:
-    size: 20px
+    size: 22px
     weight: 600
     line_height: 1.4
     letter_spacing: 0
   title_sm:
-    size: 17px
+    size: 18px
     weight: 600
     line_height: 1.4
     letter_spacing: 0
   body_md:
-    size: 17px
+    size: 18px
     weight: 400
     line_height: 1.6
     letter_spacing: 0
   body_sm:
-    size: 15px
+    size: 16px
     weight: 400
     line_height: 1.6
     letter_spacing: 0
   caption:
-    size: 13px
+    size: 14px
     weight: 500
     line_height: 1.4
     letter_spacing: 0
@@ -91,7 +92,7 @@ typography:
     line_height: 1.4
     letter_spacing: 2px
   code:
-    size: 14px
+    size: 15px
     weight: 400
     line_height: 1.6
     letter_spacing: 0
@@ -163,13 +164,29 @@ components:
     color: '{colors.muted}'
     size: 13px
     weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用明亮活泼的插画风格。具体要求：
+  1. 使用扁平/矢量插画风格，线稿简洁、色彩明快，不用写实照片
+  2. 参考漫画/轻小说插画的视觉语言：高对比度、清晰轮廓、鲜艳色彩
+  3. 人物（如有）用夸张表情和肢体语言增强搞笑效果
+  4. 技术概念和抽象内容用趣味比喻表达（比如：Bug变成戴着眼镜的卡通小怪兽、服务器压力大变成气喘吁吁的机器人）
+  5. 每页像一帧漫画分镜构图，有明确的视觉焦点
+  6. 背景用纯色或简单渐变为主，保持画面清爽不杂乱
+  7. 色调与 talk-show 风格色板协调（主色暖橙 #FF6B35、辅助蓝 #00C4FF）
+  8. 避免暗黑、恐怖、血腥阴郁内容
+  9. 参考 B站搞笑区/脱口秀类视频的常见视觉风格，让观众感觉轻松有趣
+
+image_style: "扁平矢量插画风格，明亮活泼，漫画面质感"
+
+imagegen_style_prefix: "cartoon illustration, comic book style, expressive, flat vector art, bold colors, orange and blue accent"
+
 layout_defaults:
   canvas_bg: '{colors.canvas}'
   content_bg: '{colors.canvas}'
   card_bg: '{colors.surface_card}'
   card_shadow: 0 2px 12px rgba(0,0,0,0.06)
   code_bg: '{colors.code_bg}'
-  code_header: '#E8E9ED'
+  code_header: '#1E2030'
   code_text: '{colors.code_text}'
   text_color: '{colors.ink}'
   heading_color: '{colors.ink}'
@@ -188,4 +205,3 @@ layout_defaults:
   badge_text: '{components.badge.text}'
   badge_alt_bg: '{components.badge_accent.bg}'
   badge_alt_text: '{components.badge_accent.text}'
-

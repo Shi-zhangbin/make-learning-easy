@@ -160,6 +160,18 @@ components:
     color: rgba(107,125,143,0.4)
     size: 14px
     weight: 500
+visual_style_guide: |
+  设计分镜和配图描述时，采用赛博朋克科技风。具体要求：
+  1. 使用霓虹光效、暗色背景、发光线条的视觉语言
+  2. 技术概念用科技感方式表达（比如：数据流变成发光线路、服务器变成光柱阵列）
+  3. 每页像一帧赛博朋克风格渲染图，高对比、暗调氛围
+  4. 色调与 dark-teal 风格色板协调（主色青绿 #4FC3A1、深灰底 #0A0C0E）
+  5. 避免明亮/卡通/扁平风格
+
+image_style: "赛博朋克科技风，霓虹光效，暗色背景"
+
+imagegen_style_prefix: "cyberpunk style, neon glow, teal and dark color scheme, high contrast, dark atmosphere, futuristic tech"
+
 layout_defaults:
   canvas_bg: '#0A0C0E'
   content_bg: '#0A0C0E'

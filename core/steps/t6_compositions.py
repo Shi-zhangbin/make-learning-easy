@@ -1,5 +1,5 @@
 """
-v3/steps/t6_compositions.py — Element-driven HyperFrames engine
+core/steps/t6_compositions.py — Element-driven HyperFrames engine
 
 No fixed layouts. Each scene is an array of elements.
 Each element type maps to a renderer + GSAP entrance animation.
@@ -7,10 +7,10 @@ All in one HyperFrames composition with push transitions + ambient.
 """
 import json, os, shutil, re
 from pathlib import Path
-from v3.config import FILE_NAMES, resolve_episode_path
-from v3.steps.base import StepHandler, StepResult
-from v3.designs.base import load_preset
-from v3.sprite_runner import get_runner_path, SPRITES_DIR_NAME, SPRITE_FILE_NAME, list_presets, make_preset_runner
+from core.config import FILE_NAMES, resolve_episode_path
+from core.steps.base import StepHandler, StepResult
+from core.designs.base import load_preset
+from core.sprite_runner import get_runner_path, SPRITES_DIR_NAME, SPRITE_FILE_NAME, list_presets, make_preset_runner
 from pathlib import Path
 
 # Load GSAP locally to avoid CDN dependency
@@ -527,7 +527,7 @@ def _page_spec_to_elements(spec):
     flowchart, card_grid, quote, section_divider, outro) to distinct visual
     element structures so every page has a unique layout.
     """
-    from v3.pagespec import PageSpec, Section
+    from core.pagespec import PageSpec, Section
     elements = []
 
     # ── Badge ──
@@ -668,7 +668,7 @@ def _page_spec_to_elements(spec):
 def _try_load_page_plans(episode_dir, slides, images):
     """Try to load 02-page-plans.json and convert to PageSpec list.
     Returns None if file doesn't exist or is invalid (triggers fallback to heuristic)."""
-    from v3.config import FILE_NAMES
+    from core.config import FILE_NAMES
     plans_path = Path(episode_dir) / FILE_NAMES.get("page_plans", "02-page-plans.json")
 
     if not plans_path.exists():
@@ -687,7 +687,7 @@ def _try_load_page_plans(episode_dir, slides, images):
     valid_layouts = {"hero", "concept", "flipped", "comparison", "code_block",
                      "flowchart", "card_grid", "quote", "section_divider", "outro"}
 
-    from v3.pagespec import PageSpec, Section, Card as PSCard, CodeBlock, ComparisonGroup
+    from core.pagespec import PageSpec, Section, Card as PSCard, CodeBlock, ComparisonGroup
 
     specs = []
     prev_surface = ""
@@ -795,10 +795,22 @@ def _try_load_page_plans(episode_dir, slides, images):
 
 
 def _match_image(page_num, images):
-    """Match an image filename to a page number, or return empty string."""
+    """Match an image filename to a page number, or return empty string.
+    Supports both naming conventions:
+      - Zero-padded: p01_xxx.png, P01_xxx.png  (from legacy heuristic)
+      - Page-plans:  page1_hero.png, page3_concept.png, p1_xxx.png
+    """
+    padded = f"p{page_num:02d}"
     for fn in images:
-        if f"p{page_num:02d}" in fn.lower() or f"P{page_num:02d}" in fn:
+        if padded in fn.lower():
             return fn
+    # Fallback: match page{N}_ or p{N}_ or _page{N}_ without zero-padding
+    patterns = [f"page{page_num}_", f"p{page_num}_"]
+    for fn in images:
+        fn_lower = fn.lower()
+        for pat in patterns:
+            if pat in fn_lower:
+                return fn
     return ""
 
 class CompositionHandler(StepHandler):
@@ -865,7 +877,7 @@ class CompositionHandler(StepHandler):
             print(f"  \U0001f4d0 Using model-driven layout from 02-page-plans.json")
         else:
             # Fallback: heuristic layout selection via pagespec
-            from v3.pagespec import build_all_pages
+            from core.pagespec import build_all_pages
             specs = build_all_pages(slides, images)
             print(f"  \U0001f4d0 Using heuristic layout selection (no page-plans)")
 
@@ -942,30 +954,97 @@ class CompositionHandler(StepHandler):
         # The main 06-composition.html keeps GSAP for HyperFrames T7 rendering;
         # index.html gets a stripped version without GSAP so users can open
         # it directly in a browser and see all scenes as a static slide deck.
-        import re as _rp
         _pv = html
-        _pv = _rp.sub(r'<script>/\* inlined: assets/gsap\.min\.js \*/.*?</script>', '', _pv, count=1, flags=_rp.DOTALL)
-        _pv = _rp.sub(r'<script>\s*window\.__timelines[\s\S]*?</script>', '', _pv, count=1, flags=_rp.DOTALL)
 
-        _nav = '<style>.danmaku,.danmaku-overlay{display:none!important}body{transform-origin:top left;overflow:hidden;margin:0;}#_preview-nav{position:fixed;bottom:28px;right:28px;z-index:99999;display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.4);color:#fff;padding:6px 16px 6px 12px;border-radius:999px;font:13px/1.4 sans-serif;user-select:none;pointer-events:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}#_preview-nav button{background:rgba(255,255,255,0.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font:16px/1 sans-serif;display:flex;align-items:center;justify-content:center;transition:background .15s;}#_preview-nav button:hover{background:rgba(255,255,255,0.35);}#_preview-nav ._pc{min-width:32px;text-align:center;font-variant-numeric:tabular-nums;}</style><script>(function(){var ps=document.querySelectorAll(\'[id^="s"]\');if(!ps.length)return;var c=0;function g(n){if(n<0||n>=ps.length)return;ps[c].style.opacity=\'0\';c=n;ps[c].style.opacity=\'1\';}document.addEventListener(\'keydown\',function(e){if(e.key==\'ArrowRight\'||e.key==\'ArrowDown\'||e.key==\' \'){e.preventDefault();g(c+1)}if(e.key==\'ArrowLeft\'||e.key==\'ArrowUp\'){e.preventDefault();g(c-1)}});document.addEventListener(\'click\',function(e){if(e.target.closest(\'#_preview-nav\'))return;g(c+1)});function fit(){var sx=window.innerWidth/1920,sy=window.innerHeight/1080,s=Math.min(sx,sy);document.body.style.transform=\'scale(\'+s+\')\';document.body.style.width=1920/s+\'px\';document.body.style.height=1080/s+\'px\';}window.addEventListener(\'resize\',fit);fit();var nav=document.createElement(\'div\');nav.id=\'_preview-nav\';nav.innerHTML=\'<button onclick="g(Math.max(0,c-1))">&larr;</button><span class="_pc">1/\'+ps.length+\'</span><button onclick="g(Math.min(ps.length-1,c+1))">&rarr;</button>\';document.body.appendChild(nav);var _g=g;g=function(n){_g(n);var pc=nav.querySelector(\'._pc\');if(pc)pc.textContent=(c+1)+\'/\'+ps.length};g(0);})();</script>'
+        # Remove the large GSAP inline script block: find <script> with the GSAP comment
+        # and remove everything from there to the matching </script>
+        _gsap_marker = 'inlined: assets/gsap.min.js'
+        _gsap_start = _pv.find(f'<script>/* {_gsap_marker} */')
+        if _gsap_start >= 0:
+            _gsap_end = _pv.find('</script>', _gsap_start)
+            if _gsap_end >= 0:
+                _pv = _pv[:_gsap_start] + _pv[_gsap_end + len('</script>'):]
 
-        # Remove danmaku overlay HTML elements from preview
-        _dm = _pv.find('<!-- Danmaku overlay -->')
-        if _dm >= 0:
-            _ov = _pv.find('<div class="danmaku-overlay">', _dm)
-            if _ov >= 0:
-                _d, _p = 0, _ov
-                while _p < len(_pv):
-                    _no = _pv.find('<div ', _p + 1)
-                    _nc = _pv.find('</div>', _p + 1)
-                    if _nc < 0: break
-                    if _no >= 0 and _no < _nc:
-                        _d += 1; _p = _no + 5
+        # Remove the timelines script block (window.__timelines)
+        _tl_marker = 'window.__timelines'
+        _tl_start = _pv.find(f'<script>')
+        while _tl_start >= 0:
+            _tl_end = _pv.find('</script>', _tl_start)
+            if _tl_end < 0:
+                break
+            _block = _pv[_tl_start:_tl_end]
+            if _tl_marker in _block:
+                _pv = _pv[:_tl_start] + _pv[_tl_end + len('</script>'):]
+                break
+            _tl_start = _pv.find('<script>', _tl_end + 1)
+
+        # Remove danmaku overlay HTML elements from preview (from comment to closing </div>)
+        _dm_start = _pv.find('<!-- Danmaku overlay -->')
+        if _dm_start >= 0:
+            _close_start = _pv.find('<div', _dm_start)
+            if _close_start >= 0:
+                depth = 0
+                pos = _close_start
+                while pos < len(_pv):
+                    next_open = _pv.find('<div ', pos + 1)
+                    next_close = _pv.find('</div>', pos + 1)
+                    if next_close < 0:
+                        break
+                    if next_open >= 0 and next_open < next_close:
+                        depth += 1
+                        pos = next_open + 5
                     else:
-                        if _d == 0: _pv = _pv[:_dm] + _pv[_nc + 6:]; break
-                        _d -= 1; _p = _nc + 6
+                        if depth == 0:
+                            _pv = _pv[:_dm_start] + _pv[next_close + 6:]
+                            break
+                        depth -= 1
+                        pos = next_close + 6
+
+        # Update viewport for browser
         _pv = _pv.replace('content="width=1920, height=1080"', 'content="width=device-width, initial-scale=1.0"')
+
+        # Inject preview navigation
+        _nav = (
+            '<style>'
+            '.danmaku,.danmaku-overlay{display:none!important}'
+            'body{transform-origin:top left;overflow:hidden;margin:0;}'
+            '#_preview-nav{position:fixed;bottom:28px;right:28px;z-index:99999;'
+            'display:flex;align-items:center;gap:8px;'
+            'background:rgba(0,0,0,0.4);color:#fff;padding:6px 16px 6px 12px;'
+            'border-radius:999px;font:13px/1.4 sans-serif;user-select:none;'
+            'pointer-events:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}'
+            '#_preview-nav button{background:rgba(255,255,255,0.2);border:none;color:#fff;'
+            'width:28px;height:28px;border-radius:50%;cursor:pointer;'
+            'font:16px/1 sans-serif;display:flex;align-items:center;justify-content:center;transition:background .15s;}'
+            '#_preview-nav button:hover{background:rgba(255,255,255,0.35);}'
+            '#_preview-nav ._pc{min-width:32px;text-align:center;font-variant-numeric:tabular-nums;}'
+            '</style>'
+            '<script>'
+            '(function(){'
+            'var ps=document.querySelectorAll(\'[id^="s"]\');if(!ps.length)return;'
+            'var c=0;'
+            'function g(n){if(n<0||n>=ps.length)return;ps[c].style.opacity=\'0\';c=n;ps[c].style.opacity=\'1\';}'
+            'document.addEventListener(\'keydown\',function(e){'
+            'if(e.key==\'ArrowRight\'||e.key==\'ArrowDown\'||e.key==\' \'){e.preventDefault();g(c+1)}'
+            'if(e.key==\'ArrowLeft\'||e.key==\'ArrowUp\'){e.preventDefault();g(c-1)'
+            '}});'
+            'document.addEventListener(\'click\',function(e){if(e.target.closest(\'#_preview-nav\'))return;g(c+1)});'
+            'function fit(){var sx=window.innerWidth/1920,sy=window.innerHeight/1080,s=Math.min(sx,sy);'
+            'document.body.style.transform=\'scale(\'+s+\')\';'
+            'document.body.style.width=1920/s+\'px\';'
+            'document.body.style.height=1080/s+\'px\';}'
+            'window.addEventListener(\'resize\',fit);fit();'
+            'var nav=document.createElement(\'div\');nav.id=\'_preview-nav\';'
+            'nav.innerHTML=\'<button onclick="g(Math.max(0,c-1))">&larr;</button>'
+            '<span class="_pc">1/\'+ps.length+\'</span>'
+            '<button onclick="g(Math.min(ps.length-1,c+1))">&rarr;</button>\';'
+            'document.body.appendChild(nav);'
+            'var _g=g;g=function(n){_g(n);var pc=nav.querySelector(\'._pc\');if(pc)pc.textContent=(c+1)+\'/\'+ps.length};'
+            'g(0);})();'
+            '</script>'
+        )
         _pv = _pv.replace('</body>', _nav + '\n</body>')
+
         idx_link = self.episode_dir / "index.html"
         with open(idx_link, "w", encoding="utf-8") as f:
             f.write(_pv)
