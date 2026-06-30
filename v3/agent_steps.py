@@ -110,7 +110,7 @@ class ScriptHandler(StepHandler):
         print(f"     来源: {FILE_NAMES["outline"]}")
         print(f"     输出: {FILE_NAMES["script"]}")
         print(f"     参考 SKILL.md T2 章节")
-        print(f"     风格: 程序员脱口秀 — 用段子讲干货，自嘲式叙述")
+        print(f"     风格: B站科技UP主 — 跟朋友聊天的感觉，用梗讲干货")
         if feedback:
             print(f"     反馈: {feedback}")
         
@@ -120,9 +120,9 @@ class ScriptHandler(StepHandler):
             "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
-            "tone_style": "standup_comedy",
+            "tone_style": "bilibili_up主",
             "script_style_guide": (
-                "以程序员脱口秀的形式输出口播稿。具体要求：\n1. 开头用一个程序员日常翻车场景破题，比如修bug、上线事故、跟产品经理battle\n2. 每个知识点由一个程序员梗或自嘲引出，不要干巴巴直接讲概念\n3. 把技术概念类比成程序员日常（比如：Git分支就像你周五下午改完代码没commit就下班）\n4. 使用'咱就是说'、'你懂的'这种程序员社交语气\n5. 每段正文后可以跟一句吐槽或反省\n6. 干货内核必须保留，不能为了搞笑牺牲准确性\n7. 标题风格参考'给傻子的X教程'、'从入门到跑路'\n8. 用人类听得懂的方式讲技术故事"
+                "以B站科技UP主的口吻输出口播稿。具体要求：\n1. 开头用一个日常生活场景或互联网热点破题，让观众有代入感（比如刷到个新闻、刷视频时的发现、买了个新设备），不用程序员办公室段子\n2. 语气像跟朋友聊天，多用'家人们'、'懂的都懂'、'咱就是说'、'你细品'等UP主常用口癖\n3. 每个知识点之间用网络热梗或B站名场面过渡，保持年轻化表达节奏\n4. 把技术概念类比成大家熟悉的日常场景，少用程序员专属类比\n5. 适当加入'三连'、'投币'、'弹幕护体'等B站文化元素，让观众有参与感\n6. 干货内核必须保留，不能为了玩梗牺牲准确性\n7. 每段结尾可以加一句互动式结尾，模拟和观众对话\n8. 排版上像随口在聊，不用追求每句都押韵或节奏工整，要的是'听着不累'"
             ),
             "validation_rules": {
                 "must_not_contain": [
@@ -137,7 +137,7 @@ class ScriptHandler(StepHandler):
                     "分页标记（--- P1, --- P2, ...）",
                 ],
                 "minimum_pages": 5,
-                "tone": "程序员脱口秀，口语化，纯口播文字"
+                "tone": "B站科技UP主，口语化，像跟朋友聊天，纯口播文字"
             },
             "page_plan_required": True,
             "page_plan_filename": "02-page-plans.json",
@@ -164,7 +164,7 @@ class StoryboardHandler(StepHandler):
         print(f"     来源: {FILE_NAMES["script"]}")
         print(f"     输出: {FILE_NAMES["storyboard"]} + {FILE_NAMES["image_slots"]}")
         print(f"     参考 SKILL.md T4 章节")
-        print(f"     风格: 漫画/二次元视觉 — 每页像一帧梗图")
+        print(f"     风格: 二次元动漫视觉 — 每页像一帧B站动画截图")
         if feedback:
             print(f"     反馈: {feedback}")
         
@@ -174,9 +174,9 @@ class StoryboardHandler(StepHandler):
             "design_style": self.design.get("name", "bilibili"),
             "forbidden_patterns": ["卡片", "图片", "图表", "TKTK", "TODO", "占位", "placeholder", "此处插入", "这里放", "请插入", "示例文本"],
             "min_duration_hint": "目标10分钟以上（约3000-4000字），不要压缩内容",
-            "tone_style": "standup_comedy",
+            "tone_style": "bilibili_up主",
             "visual_style_guide": (
-                "设计分镜和配图描述时，采用漫画/二次元风格。具体要求：\n1. image_slots 中的 prompt 描述应指向插画/漫画风格，不要写实照片\n2. 每页视觉参考'梗图'的感觉：大字+夸张表情+简洁背景\n3. 程序员场景用抽象化、夸张化的视觉表达（比如：bug变成小怪兽）\n4. 代码截图页面保持清晰，但周围可以加吐槽标注\n5. 避免恐怖、血腥、恐怖谷等不适内容\n6. 每一页的视觉焦点要明确，配合脱口秀节奏"
+                "设计分镜和配图描述时，采用日系二次元动漫风格。具体要求：\n1. image_slots 中的 prompt 描述必须指向 anime / 动漫绘画风格，禁止写实照片\n2. 参考新海诚/京都动画等视觉语言：柔和的线条、鲜艳但有层次的色彩、光影通透\n3. 人物（如有）使用二次元画风：大眼睛表情丰富、头发有光泽、肤色柔和\n4. 技术概念和抽象内容用动漫化方式表达（比如：数据流变成发光的魔法阵、Bug变成卖萌的小怪兽）\n5. 每页像一帧动画截图，有明确的视觉焦点和氛围感\n6. 背景用渐变天空/云彩/光晕等 anime 经典元素增强沉浸感\n7. 色调与 bilibili 风格色板协调（主色粉 #FB7299、辅助蓝 #00A1D6）\n8. 避免恐怖、血腥、恐怖谷等不适内容\n9. 参考 B站动画区常见视觉风格，让观众第一眼就知道这是二次元向内容"
             ),
             "validation_rules": {
                 "image_slots_required_fields": ["filename", "prompt", "page", "slot_index"],
@@ -184,7 +184,7 @@ class StoryboardHandler(StepHandler):
                 "must_not_contain": [
                     "占位符（TKTK TODO 图片 此处插入）"
                 ],
-                "image_style": "漫画/二次元风格配图描述，插画风格"
+                "image_style": "日系二次元动漫风格配图描述，anime绘画风格"
             },
             "image_intent_available_from": "02-page-plans.json",
             "image_intent_instructions": (

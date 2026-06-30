@@ -279,7 +279,7 @@ def generate_all_images(slots: list[dict], output_dir: str,
     canvas = (design or {}).get("colors", {}).get("canvas", "#faf9f5")
     design_name = (design or {}).get("name", "")
     style_hints = {
-        "bilibili": "anime style, vibrant illustration, digital art, cartoon, flat vector art, bright colors",
+        "bilibili": "anime aesthetic, cel shading style, vibrant colors, soft gradients, studio ghibli inspired, expressive eyes, dreamy atmosphere, japanese animation style, radiant lighting",
         "talk-show": "cartoon illustration, comic book style, expressive, flat vector art, bold colors, exaggerated expressions",
         "claude": "warm illustration, painterly style, soft edges, digital art",
         "dark-teal": "cyberpunk style, neon accents, dark background, digital art",
@@ -338,4 +338,3 @@ if __name__ == "__main__":
     with open(out, "wb") as f:
         f.write(data)
     print(f"Saved to {out}")
-
