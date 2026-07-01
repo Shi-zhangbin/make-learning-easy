@@ -368,6 +368,12 @@ def process_grid_sprite(
         r = f.resize((uw, uh), Image.LANCZOS)
         c = Image.new("RGBA", (frame_size, frame_size), (0, 0, 0, 0))
         c.paste(r, ((frame_size - uw) // 2, (frame_size - uh) // 2), r)
+        # Final cleanup: pixels with very low alpha (resize artifacts) → fully transparent
+        pixels = c.load()
+        for y in range(frame_size):
+            for x in range(frame_size):
+                if pixels[x, y][3] < 20:
+                    pixels[x, y] = (0, 0, 0, 0)
         results.append(c)
 
     strip = Image.new("RGBA", (frame_size * len(results), frame_size), (0, 0, 0, 0))
