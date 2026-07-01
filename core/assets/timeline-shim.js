@@ -144,7 +144,9 @@
     },
     // Called by HyperFrames for each rendered frame
     progress: function (p) {
+      this._lastP = p;
       var t = p * this._totalDur;
+      this._lastTime = t;
       var i, j, track, els, el, localT, eased, fromState, toState;
 
       // Phase 1: Reset all tracked elements to CSS natural state
@@ -275,5 +277,18 @@
         }
       };
     }
+
+    // GSAP compatibility methods
+    totalDuration: function () { return this._totalDur; },
+    duration: function () { return this._totalDur; },
+    time: function () {
+        // Return current time based on last progress call
+        return this._lastTime || 0;
+    },
+    // Allow HyperFrames to seek via time() as well
+    seek: function (t) {
+        this.progress(t / this._totalDur);
+    },
+
   };
 })();

@@ -183,23 +183,6 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
     /* 3D: Subtle vignette overlay */
     .vignette {{ position:absolute; top:0; left:0; width:1920px; height:1080px; pointer-events:none; z-index:40; background:radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.20) 100%); }}
     
-    /* Danmaku / bullet comments overlay */
-    .danmaku-overlay {{ position:absolute; top:0; left:0; width:1920px; height:1080px; overflow:hidden; pointer-events:none; z-index:500; }}
-    .danmaku {{ position:absolute; white-space:nowrap; font-family:"Noto Sans SC",sans-serif; font-size:22px; font-weight:700; color:var(--accent); text-shadow:0 0 8px rgba(0,0,0,0.3),0 0 2px white; opacity:0.7; animation:danmakuFly 8s linear forwards; }}
-    .danmaku-1 {{ top:80px; animation-duration:9s; }}
-    .danmaku-2 {{ top:160px; animation-duration:11s; animation-delay:2s; }}
-    .danmaku-3 {{ top:600px; animation-duration:7s; animation-delay:4s; }}
-    .danmaku-4 {{ top:720px; animation-duration:10s; animation-delay:1s; }}
-    .danmaku-5 {{ top:240px; animation-duration:12s; animation-delay:6s; font-size:18px; color:var(--accent_amber); }}
-    .danmaku-6 {{ top:380px; animation-duration:8s; animation-delay:3s; font-size:20px; color:var(--accent_blue); }}
-    .danmaku-7 {{ top:850px; animation-duration:9s; animation-delay:5s; color:var(--accent_green); }}
-    .danmaku-8 {{ top:450px; animation-duration:11s; animation-delay:7s; font-size:24px; color:var(--accent_amber); }}
-    @keyframes danmakuFly {{
-  0% {{ transform:translateX(1920px); opacity:0; }}
-  5% {{ opacity:0.8; }}
-  90% {{ opacity:0.8; }}
-  100% {{ transform:translateX(-100%); opacity:0; }}
-}}
 
     /* Comic speech bubble for highlights */
     .speech-bubble {{ position:relative; display:inline-block; background:var(--accent); color:white; border-radius:16px; padding:8px 16px; font-size:18px; font-weight:600; font-family:var(--hf); }}
@@ -493,17 +476,6 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
       <div class="dancer" id="pr"></div>
     </div>
     <span class="progress-label" id="pl">1/{n}</span>
-  </div>
-  <!-- Danmaku overlay -->
-  <div class="danmaku-overlay">
-    <div class="danmaku danmaku-1">学到了！</div>
-    <div class="danmaku danmaku-2">哈哈真实</div>
-    <div class="danmaku danmaku-3">妙啊</div>
-    <div class="danmaku danmaku-4">就这？</div>
-    <div class="danmaku danmaku-5">是我了</div>
-    <div class="danmaku danmaku-6">这也太真实了</div>
-    <div class="danmaku danmaku-7">已三连</div>
-    <div class="danmaku danmaku-8">下次一定</div>
   </div>
 </div>
 <script>
@@ -1055,7 +1027,7 @@ class CompositionHandler(StepHandler):
         idx_link = self.episode_dir / "index.html"
         with open(idx_link, "w", encoding="utf-8") as f:
             f.write(_pv)
-        print(f"  🔗 index.html (preview — no GSAP, danmaku removed, navigate with ◀ ▶ ← → space)")
+        print(f"  🔗 index.html (preview — navigate with ◀ ▶ ← → space)")
 
         print(f"  ✅ Element-driven composition: {len(slides)} scenes, {total_dur}s")
         return StepResult(True, {"pages": len(slides), "total_duration": total_dur, "path": str(idx_path)})
