@@ -34,16 +34,18 @@ SPRITE_PRESETS = {
         "name": "小男孩",
         "desc": "Cute chibi boy running",
         "grid_prompt": (
-            "A precise 3x3 sprite sheet, 9 cells. ONE cute chibi boy side-view "
-            "running animation, simple flat vector art, white background. "
-            "Cell 1 is the START pose of the running cycle. "
-            "Cell 9 is the END pose. "
-            "Cell 1 and Cell 9 must be DIFFERENT poses — "
-            "they should flow smoothly when the animation loops (frame 9 → frame 1). "
-            "All 9 cells form ONE complete running cycle with smooth frame-to-frame "
-            "transitions. Identical character SIZE and POSITION in every cell. "
-            "No vertical bounce. Minimal leg/arm angle change per frame. "
-            "Simple pixel-art style, thick outlines, clear leg positions."
+            "A 3x3 sprite sheet showing a side-view running animation cycle. "
+            "One cute chibi boy character in all 9 cells. "
+            "The 9 frames form a complete smooth running cycle: "
+            "contact pose → recoil → passing pose → mid-stride → "
+            "contact → recoil → passing pose → mid-stride → "
+            "transition to loop start. "
+            "CRITICAL: The character must be IDENTICAL in size, position, height "
+            "and appearance in EVERY cell. Zero vertical bouncing. "
+            "The only differences between cells are subtle leg and arm angle changes "
+            "for the running motion. "
+            "Flat vector pixel art with thick outlines. White background. "
+            "Minimal frame-to-frame change for smooth animation."
         ),
     },
     "dino": {

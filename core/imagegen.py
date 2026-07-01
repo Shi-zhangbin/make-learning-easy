@@ -21,18 +21,17 @@ except ImportError:
 # Tier 1: wuyinkeji (AI async generation)
 # ══════════════════════════════════════════════════════════════════
 
-def _wuyinkeji_generate(prompt: str, size: str = "16:9", timeout: int = 180) -> bytes:
+def _wuyinkeji_generate(prompt: str, size: str = "16:9", timeout: int = 180, urls: list = None) -> bytes:
     """Generate image via wuyinkeji async API. Returns image bytes."""
     if not requests:
         raise RuntimeError("requests not installed")
     api_size = WUYINKEJI_SIZE_MAP.get(size, "16:9")
 
     # Submit
-    r = requests.post(WUYINKEJI_SUBMIT_URL, json={
-        "prompt": prompt,
-        "size": api_size,
-        "key": WUYINKEJI_KEY,
-    }, timeout=15)
+    body = {"prompt": prompt, "size": api_size, "key": WUYINKEJI_KEY}
+    if urls:
+        body["urls"] = urls
+    r = requests.post(WUYINKEJI_SUBMIT_URL, json=body, timeout=15)
     data = r.json()
     if data.get("code") != 200:
         raise RuntimeError(f"wuyinkeji submit failed: {data.get('msg', '?')}")
