@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=0.4">
+<title>所有 Layout 类型一览 — Make Learning Easy</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC',sans-serif; background:#f5f6f7; color:#18191c; padding:40px; }
+
+header { margin-bottom:40px; }
+header h1 { font-size:36px; font-weight:700; }
+header p { font-size:16px; color:#86909c; margin-top:6px; }
+
+/* ── Design presets ── */
+.theme-bilibili { --accent:#FB7299; --accent-active:#F25D88; --ink:#18191C; --body:#4E5969; --muted:#86909C; --card:#FFF; --canvas:#F5F6F7; --border:#E5E6EB; --code-bg:#F2F3F5; --code-fg:#4E5969; --hf:"Noto Sans SC",sans-serif; --bf:"Noto Sans SC","PingFang SC",sans-serif; }
+
+/* ── Grid of slides ── */
+.slides-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.slide-card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.slide-card .label { padding:12px 20px; font-size:13px; font-weight:600; color:var(--muted); background:#fafbfc; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+.slide-card .label .badge-label { display:inline-block; padding:1px 10px; border-radius:4px; font-size:11px; font-weight:500; }
+
+/* ── 1920×1080 canvas (scaled) ── */
+.canvas { width:100%; aspect-ratio:16/9; background:var(--canvas,#f5f6f7); position:relative; overflow:hidden; font-family:var(--bf,sans-serif); color:var(--ink); }
+.canvas .accent { color:var(--accent,#FB7299); }
+
+/* ── Shared elements ── */
+.slide { display:flex; flex-direction:column; width:100%; height:100%; padding:40px 56px; gap:10px; position:relative; }
+.slide .badge { display:inline-block; align-self:flex-start; background:color-mix(in srgb,var(--accent)12%,transparent); color:var(--accent); padding:2px 12px; border-radius:6px; font-size:11px; font-weight:600; }
+.slide .h-xl { font-size:min(3.6vw,42px); font-weight:700; line-height:1.05; font-family:var(--hf); }
+.slide .h-lg { font-size:min(2.8vw,32px); font-weight:700; line-height:1.1; font-family:var(--hf); }
+.slide .h-md { font-size:min(2vw,22px); font-weight:600; line-height:1.2; font-family:var(--hf); }
+.slide .h-sm { font-size:min(1.5vw,18px); font-weight:600; font-family:var(--hf); }
+.slide .p-md { font-size:min(1.1vw,14px); color:var(--body); line-height:1.5; }
+.slide .p-sm { font-size:min(.95vw,12px); color:var(--muted); }
+.slide .accent-line { width:40px; height:3px; background:var(--accent); border-radius:2px; margin:4px 0; }
+
+.card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 16px; display:flex; flex-direction:column; gap:4px; }
+.card-ci { font-size:18px; }
+.card-ct { font-size:14px; font-weight:600; font-family:var(--hf); }
+.card-cb { font-size:12px; color:var(--body); line-height:1.45; }
+
+.card-alt { border-left:3px solid var(--accent); border-radius:8px; background:var(--card); padding:8px 14px; display:flex; align-items:center; gap:10px; }
+.card-alt .ca-name { font-size:13px; font-weight:500; color:var(--ink); }
+
+.split { display:flex; flex-direction:row; gap:18px; flex:1; min-height:0; }
+.split-l,.split-r { display:flex; flex-direction:column; gap:10px; min-width:0; }
+.split-l { flex:1; }
+.split-r { flex:0 1 auto; max-width:50%; }
+
+.img-wrap { display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:8px; background:#e8e8f0; border:1px dashed var(--border); flex:1; min-height:60px; }
+.img-wrap .ph { font-size:24px; opacity:.3; }
+
+.card-row { display:flex; flex-direction:column; gap:10px; flex-shrink:0; }
+.chip-row { display:flex; gap:6px; flex-wrap:wrap; }
+.chip { font-size:10px; font-weight:500; color:var(--accent); padding:3px 10px; border:1px solid color-mix(in srgb,var(--accent)20%,transparent); border-radius:14px; }
+
+.grid-2x2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; flex-shrink:0; }
+.grid-2x2 > .card:last-child:nth-child(3) { grid-column:1 / -1; }
+
+.quote-wrap { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; height:100%; padding:60px; gap:16px; }
+.quote-wrap .qt { font-size:min(2.6vw,30px); font-weight:400; line-height:1.4; color:var(--ink); max-width:80%; font-family:var(--hf); }
+.quote-wrap .qa { font-size:14px; color:var(--accent); }
+
+.code-w { background:var(--code-bg); border-radius:8px; overflow:hidden; display:flex; flex-direction:column; flex:1; }
+.code-w .ch { height:24px; display:flex; align-items:center; padding:0 10px; gap:4px; flex-shrink:0; }
+.code-w .ch span { width:7px; height:7px; border-radius:50%; }
+.code-w .cb { padding:10px 14px; font-family:monospace; font-size:11px; line-height:1.5; color:var(--code-fg); white-space:pre-wrap; flex:1; overflow-y:hidden; }
+
+.fq-grid { display:flex; flex-direction:column; gap:12px; flex:1; }
+.fq { display:flex; align-items:flex-start; gap:12px; }
+.fq-n { font-size:28px; font-weight:700; color:color-mix(in srgb,var(--accent)20%,transparent); line-height:1; width:30px; flex-shrink:0; }
+.fq-q { font-size:16px; font-weight:600; color:var(--ink); line-height:1.3; }
+.fq-a { font-size:12px; color:var(--body); line-height:1.4; }
+
+/* ── Extended layouts ── */
+.big-quote { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; height:100%; padding:60px; gap:16px; }
+.big-quote .qi { font-size:36px; opacity:.25; }
+.big-quote .qt { font-size:min(3vw,36px); font-weight:400; line-height:1.4; color:var(--ink); max-width:80%; font-family:var(--hf); }
+.big-quote .qa { font-size:14px; color:var(--accent); font-weight:500; }
+
+.data-hero { display:flex; flex-direction:column; justify-content:center; gap:18px; height:100%; padding:60px; }
+.data-hero .dr { display:flex; gap:18px; justify-content:center; }
+.data-hero .di { text-align:center; flex:1; }
+.data-hero .dn { font-size:min(3.6vw,48px); font-weight:800; color:var(--accent); line-height:1; letter-spacing:-1px; font-family:var(--hf); }
+.data-hero .dl { font-size:12px; color:var(--body); margin-top:4px; }
+
+.multi-card { display:flex; flex-direction:column; height:100%; padding:40px 56px; gap:10px; }
+.multi-card .cw { display:flex; gap:12px; flex:1; min-height:0; }
+.multi-card .cw .card { flex:1; justify-content:center; }
+
+/* ── Sections ── */
+.layout-section { margin-bottom:48px; }
+.layout-section h2 { font-size:24px; font-weight:700; margin-bottom:4px; display:flex; align-items:center; gap:10px; }
+.layout-section h2 .tag { display:inline-block; font-size:12px; font-weight:500; color:#fff; background:#86909c; padding:2px 10px; border-radius:6px; }
+.layout-section > p { font-size:14px; color:#86909c; margin-bottom:16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📐 所有 Layout 类型一览</h1>
+  <p>管线现有 10 种 layout + 3 种扩展 demo — 共 13 种，全部使用 Bilibili 主题色</p>
+</header>
+
+<!-- ──── Hero ──── -->
+<div class="layout-section">
+  <h2>① hero <span class="tag">现有</span></h2>
+  <p>开场封面，带 chips 标签 + 卡片 + 背景图</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">hero</span> 封面 / 开场</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">开场 1</div>
+      <div class="h-xl">📖 先查后答的神器</div>
+      <div class="p-md">RAG 让 LLM 从闭卷变成开卷考试</div>
+      <div class="accent-line"></div>
+      <div class="chip-row"><span class="chip">RAG</span><span class="chip">大语言模型</span><span class="chip">AI科普</span></div>
+      <div class="card-row" style="flex:1;">
+        <div class="card"><div class="card-ci">🤔</div><div class="card-ct">LLM的局限</div><div class="card-cb">知识截止于训练数据，无法获取实时信息</div></div>
+        <div class="card"><div class="card-ci">💡</div><div class="card-ct">RAG的解法</div><div class="card-cb">回答问题前先检索参考资料，基于结果生成答案</div></div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Concept ──── -->
+<div class="layout-section">
+  <h2>② concept <span class="tag">现有</span></h2>
+  <p>核心概念页，左列卡片 + 右列图片</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">concept</span> 核心概念</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">核心概念 2</div>
+      <div class="h-lg">📝 开卷考试</div>
+      <div class="p-md">RAG = 检索增强生成</div>
+      <div class="split" style="flex:1;">
+        <div class="split-l"><div class="card-row">
+          <div class="card"><div class="card-ci">🔒</div><div class="card-ct">闭卷考试</div><div class="card-cb">传统LLM，知识固化在模型参数里</div></div>
+          <div class="card"><div class="card-ci">📖</div><div class="card-ct">开卷考试</div><div class="card-cb">RAG让LLM在回答前先查资料</div></div>
+          <div class="card"><div class="card-ci">⚡</div><div class="card-ct">优雅思路</div><div class="card-cb">不改变模型，只改变上下文输入</div></div>
+        </div></div>
+        <div class="split-r"><div class="img-wrap"><div class="ph">🖼️</div></div></div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Flipped ──── -->
+<div class="layout-section">
+  <h2>③ flipped <span class="tag">现有</span></h2>
+  <p>concept 的镜像版，图片在左、卡片在右</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">flipped</span> 深入理解（镜像）</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">深入理解 3</div>
+      <div class="h-lg">🔄 从另一个角度</div>
+      <div class="p-md">图片在左、解释在右的镜像布局</div>
+      <div class="split" style="flex:1;">
+        <div class="split-r" style="max-width:40%;"><div class="img-wrap" style="flex:1;min-height:0;"><div class="ph">🖼️</div></div></div>
+        <div class="split-l"><div class="card-row">
+          <div class="card"><div class="card-ci">🔍</div><div class="card-ct">视角一</div><div class="card-cb">从不同角度理解同一概念</div></div>
+          <div class="card"><div class="card-ci">📊</div><div class="card-ct">视角二</div><div class="card-cb">补充信息加深理解</div></div>
+        </div></div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Comparison ──── -->
+<div class="layout-section">
+  <h2>④ comparison <span class="tag">现有</span></h2>
+  <p>左右对比，两栏等宽</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">comparison</span> 对比</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">对比 4</div>
+      <div class="h-lg">⚖️ RAG vs 微调</div>
+      <div class="p-md">各有千秋，组合使用更佳</div>
+      <div class="split" style="flex:1;">
+        <div class="split-l" style="flex:1;"><div class="h-sm">RAG</div>
+          <div class="card-alt"><div class="ca-name">知识更新只需改文档库</div></div>
+          <div class="card-alt"><div class="ca-name">答案有据可查可溯源</div></div>
+          <div class="card-alt"><div class="ca-name">门槛低，搭建快</div></div>
+        </div>
+        <div class="split-r" style="flex:1;"><div class="h-sm">微调</div>
+          <div class="card-alt"><div class="ca-name">需要重新训练模型</div></div>
+          <div class="card-alt"><div class="ca-name">更擅长领域话术风格</div></div>
+          <div class="card-alt"><div class="ca-name">需要数据集和训练经验</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Code Block ──── -->
+<div class="layout-section">
+  <h2>⑤ code_block <span class="tag">现有</span></h2>
+  <p>代码窗口 + 注解卡片左右分栏</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">code_block</span> 代码实践</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">代码实践 5</div>
+      <div class="h-lg">💻 RAG 实现示例</div>
+      <div class="p-md">LangChain 快速搭建 RAG 管线</div>
+      <div class="split" style="flex:1;">
+        <div class="split-l" style="flex:1.4;"><div class="code-w">
+          <div class="ch"><span style="background:#ff5f56;"></span><span style="background:#ffbd2e;"></span><span style="background:#27c93f;"></span></div>
+          <div class="cb"><span style="color:#c0caf5;">from</span> <span style="color:#89ddff;">langchain</span> <span style="color:#c0caf5;">import</span> ...<br>
+<span style="color:#82aaff;">retriever</span> = vector_store.<span style="color:#89ddff;">as_retriever</span>()<br>
+<span style="color:#82aaff;">chain</span> = (<br>
+&nbsp;&nbsp;{<span style="color:#c792ea;">"context"</span>: retriever, <span style="color:#c792ea;">"question"</span>: <span style="color:#89ddff;">RunnablePassthrough</span>()}<br>
+&nbsp;&nbsp;| <span style="color:#89ddff;">prompt</span><br>
+&nbsp;&nbsp;| <span style="color:#89ddff;">llm</span><br>
+)</div></div></div>
+        <div class="split-r"><div class="card-alt"><div class="ca-name">Runnable 接口链式调用</div></div>
+          <div class="card-alt"><div class="ca-name">检索与生成解耦可独立升级</div></div>
+          <div class="card-alt"><div class="ca-name">支持多种向量数据库后端</div></div>
+        </div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Flowchart ──── -->
+<div class="layout-section">
+  <h2>⑥ flowchart <span class="tag">现有</span></h2>
+  <p>步骤流程图，带编号和过渡箭头</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">flowchart</span> 流程</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">流程 6</div>
+      <div class="h-lg">🔄 RAG 四步流程</div>
+      <div class="p-md">索引 → 检索 → 增强 → 生成</div>
+      <div class="fq-grid" style="flex:1;">
+        <div class="fq"><div class="fq-n">01</div><div><div class="fq-q">索引构建</div><div class="fq-a">文档切块 → 向量化 → 存入向量数据库</div></div></div>
+        <div class="fq"><div class="fq-n">02</div><div><div class="fq-q">检索</div><div class="fq-a">用户提问向量化 → 相似度搜索</div></div></div>
+        <div class="fq"><div class="fq-n">03</div><div><div class="fq-q">增强</div><div class="fq-a">检索片段拼入 Prompt 作为参考</div></div></div>
+        <div class="fq"><div class="fq-n">04</div><div><div class="fq-q">生成</div><div class="fq-a">LLM 基于完整上下文输出答案</div></div></div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Card Grid ──── -->
+<div class="layout-section">
+  <h2>⑦ card_grid <span class="tag">现有</span></h2>
+  <p>2×2 网格卡片 + 右侧图片（有图时）/ 单独显示（无图时）</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">card_grid</span> 要点归纳</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">要点 7</div>
+      <div class="h-lg">🚀 RAG 应用场景</div>
+      <div class="p-md">四大典型应用</div>
+      <div class="split" style="flex:1;">
+        <div class="split-l"><div class="grid-2x2">
+          <div class="card"><div class="card-ci">🤖</div><div class="card-ct">智能客服</div><div class="card-cb">基于产品文档回答问题</div></div>
+          <div class="card"><div class="card-ci">🏢</div><div class="card-ct">知识库问答</div><div class="card-cb">公司文档做成问答系统</div></div>
+          <div class="card"><div class="card-ci">🌐</div><div class="card-ct">AI搜索引擎</div><div class="card-cb">先搜网页再生成回答</div></div>
+          <div class="card"><div class="card-ci">💻</div><div class="card-ct">代码库问答</div><div class="card-cb">检索代码后回答问题</div></div>
+        </div></div>
+        <div class="split-r"><div class="img-wrap"><div class="ph">🖼️</div></div></div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Quote ──── -->
+<div class="layout-section">
+  <h2>⑧ quote <span class="tag">现有</span></h2>
+  <p>居中深色大引用，深色背景</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">quote</span> 引述</div>
+    <div class="canvas theme-bilibili"><div class="quote-wrap" style="background:var(--code-bg);">
+      <div class="qi" style="font-size:40px;opacity:.2;">❝</div>
+      <div class="qt" style="font-size:24px;line-height:1.5;">检索增强生成，就是给了大语言模型一本可以随时翻阅的参考书。</div>
+      <div class="qa">让 LLM 从"死记硬背"变成"会查资料"</div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Section Divider ──── -->
+<div class="layout-section">
+  <h2>⑨ section_divider <span class="tag">现有</span></h2>
+  <p>章节幕封，大字标题 + 强调线</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">section_divider</span> 章节幕封</div>
+    <div class="canvas theme-bilibili"><div class="slide" style="justify-content:center;align-items:center;text-align:center;">
+      <div class="badge">章节 8</div>
+      <div class="h-xl">⏸️ 中场休息</div>
+      <div class="accent-line" style="margin:8px auto;"></div>
+      <div class="p-md">接下来我们聊聊 RAG 的挑战与优化</div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Outro ──── -->
+<div class="layout-section">
+  <h2>⑩ outro <span class="tag">现有</span></h2>
+  <p>结尾总结页，卡片 + 结束语气泡</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#FB72991A;color:#FB7299;">outro</span> 总结</div>
+    <div class="canvas theme-bilibili"><div class="slide">
+      <div class="badge">总结 9</div>
+      <div class="h-lg">🎯 动手试试</div>
+      <div class="p-md">RAG 让 AI 从死记硬背到会查资料</div>
+      <div class="card-row" style="flex:1;justify-content:center;">
+        <div class="card"><div class="card-ci">📖</div><div class="card-ct">核心四字</div><div class="card-cb">先查后答——搜索与生成的结合</div></div>
+        <div class="card"><div class="card-ci">🌟</div><div class="card-ct">未来方向</div><div class="card-cb">Agentic RAG、Graph RAG 不断扩展</div></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;"><div style="background:var(--accent);color:white;border-radius:12px;padding:8px 16px;font-size:15px;font-weight:600;">我们下期见！</div></div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ════════ 扩展 Layout（Demo）════════ -->
+
+<div class="layout-section" style="margin-top:60px;padding-top:40px;border-top:2px dashed #ddd;">
+  <h2>扩展 Layout（demo）</h2>
+  <p>从 guizang-ppt-skill 借鉴的新布局类型，视觉自适应设计预设</p>
+</div>
+
+<!-- ──── Big Quote ──── -->
+<div class="layout-section">
+  <h2>⑪ big_quote <span class="tag" style="background:#4FC3A1;color:#fff;">扩展</span></h2>
+  <p>quote 的增强版——更大字体、更轻字重、更多的呼吸空间</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#4FC3A1;color:#fff;">big_quote</span> 大引用·全屏</div>
+    <div class="canvas theme-bilibili"><div class="big-quote">
+      <div class="qi">❝</div>
+      <div class="qt">检索增强生成，就是给了大语言模型一本可以随时翻阅的参考书。</div>
+      <div class="qa">让 LLM 从"死记硬背"变成"会查资料"</div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Data Hero ──── -->
+<div class="layout-section">
+  <h2>⑫ data_hero <span class="tag" style="background:#4FC3A1;color:#fff;">扩展</span></h2>
+  <p>大字 KPI 数据展示，适合抛硬数据/关键指标</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#4FC3A1;color:#fff;">data_hero</span> 数据大字报</div>
+    <div class="canvas theme-bilibili"><div class="data-hero">
+      <div class="badge">数据亮点</div>
+      <div class="dr">
+        <div class="di"><div class="dn">94%</div><div class="dl">检索命中率</div></div>
+        <div class="di"><div class="dn">3.2×</div><div class="dl">回答准确度提升</div></div>
+        <div class="di"><div class="dn">60%</div><div class="dl">幻觉率降低</div></div>
+      </div>
+      <div class="p-md" style="text-align:center;color:var(--muted);">基于 5000 条测试数据的 RAG 质量评估</div>
+    </div></div>
+  </div></div>
+</div>
+
+<!-- ──── Multi Card ──── -->
+<div class="layout-section">
+  <h2>⑬ multi_card <span class="tag" style="background:#4FC3A1;color:#fff;">扩展</span></h2>
+  <p>3+ 卡片横向均匀排列，介于 concept 和 card_grid 之间</p>
+  <div class="slides-grid"><div class="slide-card">
+    <div class="label"><span class="badge-label" style="background:#4FC3A1;color:#fff;">multi_card</span> 多卡片均分</div>
+    <div class="canvas theme-bilibili"><div class="multi-card">
+      <div class="badge">核心要点</div>
+      <div class="h-lg">RAG 的三大优势</div>
+      <div class="cw">
+        <div class="card"><div class="card-ci">🔄</div><div class="card-ct">实时更新</div><div class="card-cb">文档库改了，检索自动更新</div></div>
+        <div class="card"><div class="card-ci">🎯</div><div class="card-ct">可溯源</div><div class="card-cb">答案附有来源链接可验证</div></div>
+        <div class="card"><div class="card-ci">⚡</div><div class="card-ct">低门槛</div><div class="card-cb">十几分钟搭一套 RAG 系统</div></div>
+      </div>
+    </div></div>
+  </div></div>
+</div>
+
+</body>
+</html>
