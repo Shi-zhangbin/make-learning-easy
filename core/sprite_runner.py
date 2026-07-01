@@ -34,18 +34,21 @@ SPRITE_PRESETS = {
         "name": "小男孩",
         "desc": "Cute chibi boy running",
         "grid_prompt": (
-            "A 3x3 sprite sheet showing a side-view running animation cycle. "
-            "One cute chibi boy character in all 9 cells. "
-            "The 9 frames form a complete smooth running cycle: "
-            "contact pose → recoil → passing pose → mid-stride → "
-            "contact → recoil → passing pose → mid-stride → "
-            "transition to loop start. "
-            "CRITICAL: The character must be IDENTICAL in size, position, height "
-            "and appearance in EVERY cell. Zero vertical bouncing. "
-            "The only differences between cells are subtle leg and arm angle changes "
-            "for the running motion. "
-            "Flat vector pixel art with thick outlines. White background. "
-            "Minimal frame-to-frame change for smooth animation."
+            "A 3x3 sprite sheet, 9 cells, showing ONE cute chibi boy "
+            "side-view running animation, pixel art, white background. "
+            "All cells: IDENTICAL character size, position, height, and appearance. "
+            "No vertical bouncing. Each cell is one frame of a running cycle:\n"
+            "Cell 1 (top-left): both feet together, body upright, start pose.\n"
+            "Cell 2 (top-center): left leg forward stepping, right leg back.\n"
+            "Cell 3 (top-right): both feet passing under body, arms swinging.\n"
+            "Cell 4 (middle-left): right leg forward stepping, left leg back.\n"
+            "Cell 5 (middle-center): both feet under body again, mid-stride.\n"
+            "Cell 6 (middle-right): left leg forward reaching, torso leans forward.\n"
+            "Cell 7 (bottom-left): both feet passing, right leg starting forward.\n"
+            "Cell 8 (bottom-center): right leg forward stride, left leg trailing.\n"
+            "Cell 9 (bottom-right): both feet coming together, ready to cycle back.\n"
+            "Minimal angle change between consecutive cells for smooth animation. "
+            "Simple flat vector, thick outlines."
         ),
     },
     "dino": {
