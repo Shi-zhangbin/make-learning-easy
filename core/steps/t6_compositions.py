@@ -102,8 +102,10 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .p-sm {{ font-size:14px; font-weight:400; color:var(--muted); line-height:1.5; }}
     .accent-line {{ width:60px; height:3px; background:var(--accent); border-radius:2px; }}
 
-    .card-row {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; flex:1; min-height:0; }}
-    .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 24px; display:flex; flex-direction:column; gap:6px; }}
+    .card-row {{ display:flex; gap:14px; flex:1; min-height:0; }}
+    .card-row-h {{ flex-direction:row; }}
+    .card-row-v {{ flex-direction:column; }}
+    .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 24px; flex:1; display:flex; flex-direction:column; gap:6px; }}
     .card .ci {{ font-size:26px; }}
     .card .ct {{ font-family:var(--hf); font-size:20px; font-weight:600; color:var(--ink); }}
     .card .cb {{ font-size:15px; color:var(--body); line-height:1.5; }}
@@ -223,7 +225,9 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
                 title = f'<div class="ct">{c.get("title","")}</div>' if c.get("title") else ""
                 body = f'<div class="cb">{c.get("body","")}</div>' if c.get("body") else ""
                 cards += f'<div class="card">{icon}{title}{body}</div>'
-            return f'<div class="card-row">{cards}</div>'
+            direction = el.get("direction", "h")
+            cls = "card-row card-row-h" if direction in ("h", "row") else "card-row card-row-v"
+            return f'<div class="{cls}">{cards}</div>'
         elif t == "card-alt":
             icon = f'<div class="ci">{el.get("icon","")}</div>' if el.get("icon") else ""
             tag = f'<div class="ca-tag">{el.get("tag","")}</div>' if el.get("tag") else ""
@@ -573,18 +577,19 @@ def _page_spec_to_elements(spec):
             right = [{"type": "card-alt-row", "cards": alt_cards}] if alt_cards else []
         elif img_pos == "bottom":
             if cards:
-                elements.append({"type": "card-row", "cards": cards[:3]})
+                elements.append({"type": "card-row", "cards": cards[:3], "direction": "row"})
             if spec.image_slot:
                 elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
             left, right = None, None
         elif img_pos == "background":
             if cards:
-                elements.append({"type": "card-row", "cards": cards[:3]})
+                elements.append({"type": "card-row", "cards": cards[:3], "direction": "row"})
             if spec.image_slot:
                 elements.append({"type": "image", "src": spec.image_slot, "size": "fill"})
             left, right = None, None
         else:
-            left = [{"type": "card-row", "cards": cards[:3]}] if cards else []
+            # Default (right): cards are in split-l, vertical to fill height
+            left = [{"type": "card-row", "cards": cards[:3], "direction": "v"}] if cards else []
             right = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
 
         if left is not None and right is not None and (left or right):
@@ -631,7 +636,7 @@ def _page_spec_to_elements(spec):
         for s in spec.sections:
             if s.cards:
                 elements.append({
-                    "type": "card-row",
+                    "type": "card-row", "direction": "row",
                     "cards": [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards[:3]]
                 })
         elements.append({"type": "speech-bubble", "text": "我们下期见！"})
