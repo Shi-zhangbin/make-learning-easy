@@ -34,15 +34,16 @@ SPRITE_PRESETS = {
         "name": "小男孩",
         "desc": "Cute chibi boy running",
         "grid_prompt": (
-            "3x3 grid sprite sheet, 9 cells, ONE cute chibi boy side-view running animation, "
-            "simple flat vector style, white background. "
-            "CRITICAL: identical character SIZE, POSITION, and design in ALL 9 cells. "
-            "No vertical bounce, character stays at same height. "
-            "Row 1 (3 cells): left foot forward stance, slight foot angle change across row. "
-            "Row 2 (3 cells): both feet passing under body, leg positions shift gradually. "
-            "Row 3 (3 cells): right foot forward stance, subtle arm position changes. "
-            "Gentle transitions between frames, minimal pose variation per cell, "
-            "smooth walking-to-running cycle. Clean minimal art, thick outlines."
+            "A precise 3x3 sprite sheet, 9 cells. ONE cute chibi boy side-view "
+            "running animation, simple flat vector art, white background. "
+            "Cell 1 is the START pose of the running cycle. "
+            "Cell 9 is the END pose. "
+            "Cell 1 and Cell 9 must be DIFFERENT poses — "
+            "they should flow smoothly when the animation loops (frame 9 → frame 1). "
+            "All 9 cells form ONE complete running cycle with smooth frame-to-frame "
+            "transitions. Identical character SIZE and POSITION in every cell. "
+            "No vertical bounce. Minimal leg/arm angle change per frame. "
+            "Simple pixel-art style, thick outlines, clear leg positions."
         ),
     },
     "dino": {
@@ -256,15 +257,43 @@ def process_grid_sprite(
     img = Image.open(input_path).convert("RGBA")
     fw, fh = img.width // grid_cols, img.height // grid_rows
 
-    # Step 1: Extract + remove bg + crop per frame
-    raw_frames = []
+    # Step 1: Extract frames (raw, before any processing)
+    raw_frames_raw = []
     for row in range(grid_rows):
         for col in range(grid_cols):
             frame = img.crop((col * fw, row * fh, (col + 1) * fw, (row + 1) * fh))
-            bg = _detect_background(frame)
-            cleaned = _remove_background(frame, bg)
-            cropped = _autocrop(cleaned, padding=3)
-            raw_frames.append(cropped)
+            raw_frames_raw.append(frame)
+
+    # Step 1a: Detect global background color across ALL frames
+    # Sample corner pixels from every frame and find the majority color
+    all_samples = []
+    for f in raw_frames_raw:
+        for dx in range(5):
+            for dy in range(5):
+                for px, py in [(dx, dy), (fw-1-dx, dy), (dx, fh-1-dy), (fw-1-dx, fh-1-dy)]:
+                    r, g, b, a = f.getpixel((px, py))
+                    if a > 50:  # only consider non-transparent corner pixels
+                        all_samples.append((r // 8 * 8, g // 8 * 8, b // 8 * 8))
+    from collections import Counter
+    global_bg_q = Counter(all_samples).most_common(1)[0][0]
+    global_bg = (global_bg_q[0] + 4, global_bg_q[1] + 4, global_bg_q[2] + 4)
+
+    # Step 1b: Remove background using GLOBAL color with aggressive threshold
+    # Also set ANY pixel with near-bg color to transparent, not just corners
+    raw_frames = []
+    for f in raw_frames_raw:
+        rgba = f.convert("RGBA")
+        pixels = rgba.load()
+        for y in range(fh):
+            for x in range(fw):
+                r, g, b, a = pixels[x, y]
+                # Aggressive: pixels near background color OR near-white with low alpha
+                diff = abs(r - global_bg[0]) + abs(g - global_bg[1]) + abs(b - global_bg[2])
+                is_near_white = (r > 200 and g > 200 and b > 200)
+                if diff < 80 or (is_near_white and a < 200):
+                    pixels[x, y] = (r, g, b, 0)
+        cropped = _autocrop(rgba, padding=3)
+        raw_frames.append(cropped)
 
     # Step 1.5: Align all frames by vertical centroid to eliminate bounce
     # Compute center of mass for each frame, then align so all centroids
