@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>精灵帧调试</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:sans-serif; background:#1a1a2e; color:#fff; padding:40px; }
+h1 { font-size:28px; margin-bottom:6px; }
+p { color:rgba(255,255,255,.5); margin-bottom:30px; }
+section { margin-bottom:40px; }
+h2 { font-size:20px; margin-bottom:12px; border-left:3px solid #FB7299; padding-left:12px; }
+
+.grid { display:flex; gap:6px; flex-wrap:wrap; }
+.grid .f { width:80px; text-align:center; }
+.grid .f canvas { width:80px; height:80px; image-rendering:pixelated; background:#333; border-radius:4px; }
+.grid .f .n { font-size:11px; color:rgba(255,255,255,.4); margin-top:2px; font-family:monospace; }
+
+.preview-box { display:flex; align-items:center; gap:30px; flex-wrap:wrap; }
+.preview-canvas { width:200px; height:200px; background:#333; border-radius:8px; image-rendering:pixelated; }
+.controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.controls button { padding:6px 16px; border:none; border-radius:4px; cursor:pointer; background:#FB7299; color:#fff; font-size:13px; }
+.controls button:hover { background:#F25D88; }
+
+table { border-collapse:collapse; font-size:12px; }
+td, th { padding:4px 10px; border:1px solid rgba(255,255,255,.1); text-align:center; }
+th { background:rgba(255,255,255,.05); color:rgba(255,255,255,.6); }
+td { font-family:monospace; }
+
+.motion-chart { background:#333; border-radius:8px; }
+</style>
+</head><body>
+<h1>🔍 精灵动画调试</h1>
+<p>9 帧拆解 + 循环预览</p>
+
+<section>
+<h2>9 帧网格</h2>
+<div class="grid" id="frameGrid"></div>
+</section>
+
+<section>
+<h2>动画循环预览</h2>
+<div class="preview-box">
+<canvas class="preview-canvas" id="animCanvas"></canvas>
+<div>
+<div class="controls">
+<button onclick="togglePlay()" id="playBtn">⏸ 暂停</button>
+<button onclick="speedUp()">⏩ 加快</button>
+<button onclick="speedDown()">⏪ 减慢</button>
+<span id="speedLabel" style="color:rgba(255,255,255,.5);font-size:13px;">周期: 1.2s</span>
+</div>
+<div style="margin-top:8px;">
+  <input type="range" id="frameSlider" min="0" max="8" value="0" style="width:200px;" oninput="setFrame(this.value)">
+  <span id="frameLabel" style="font-size:12px;color:rgba(255,255,255,.4);">帧 1/9</span>
+</div>
+</div>
+<div style="margin-left:20px;">
+<canvas class="motion-chart" id="motionCanvas" width="360" height="100"></canvas>
+<p style="margin-top:4px;font-size:11px;color:rgba(255,255,255,.3);">● 垂直质心轨迹（越平=越流畅）&nbsp;&nbsp;<span id="verdict" style="color:#fff;"></span></p>
+</div>
+</div>
+</section>
+
+<section>
+<h2>帧一致性分析</h2>
+<table id="dataTable"><tr><th>帧</th><th>像素量</th><th>水平质心</th><th>垂直质心</th><th>宽</th><th>高</th></tr></table>
+</section>
+
+<script>
+(async function() {
+const img = new Image();
+img.onload = function() {
+    const fw = 60, fh = 60, n = 9;
+
+    // Extract frames into a canvas each
+    const frames = [];
+    const data = [];
+
+    for (let i = 0; i < n; i++) {
+        const c = document.createElement('canvas');
+        c.width = fw; c.height = fh;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, -i*fw, 0, img.width, img.height);
+        frames.push(c);
+
+        // Analyze
+        const id = ctx.getImageData(0,0,fw,fh);
+        const px = id.data;
+        let mass=0,cx=0,cy=0, minX=fw,maxX=0,minY=fh,maxY=0;
+        for (let y=0;y<fh;y++) for(let x=0;x<fw;x++) {
+            const a = px[(y*fw+x)*4+3];
+            if (a>0) { mass+=a; cx+=x*a; cy+=y*a;
+                minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+                minY=Math.min(minY,y);maxY=Math.max(maxY,y); }
+        }
+        if(mass>0){cx/=mass;cy/=mass;}
+        data.push({mass,cx,cy,w:maxX-minX+1,h:maxY-minY+1});
+
+        // Grid display
+        const g = document.querySelector('#frameGrid');
+        const d = document.createElement('div'); d.className='f';
+        const cc = document.createElement('canvas'); cc.width=fw; cc.height=fh;
+        cc.getContext('2d').drawImage(c,0,0);
+        cc.style.width='80px'; cc.style.height='80px';
+        const n2 = document.createElement('div'); n2.className='n';
+        n2.textContent = `#${i+1}  ${(mass/1000).toFixed(0)}kpx`;
+        d.appendChild(cc); d.appendChild(n2);
+        g.appendChild(d);
+    }
+
+    // Table
+    const tbl = document.querySelector('#dataTable');
+    data.forEach((d,i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i+1}</td><td>${d.mass.toFixed(0)}</td><td>${d.cx.toFixed(1)}</td><td>${d.cy.toFixed(1)}</td><td>${d.w}</td><td>${d.h}</td>`;
+        tbl.appendChild(tr);
+    });
+
+    // Motion chart
+    const mc = document.getElementById('motionCanvas');
+    const mctx = mc.getContext('2d');
+    const minY = Math.min(...data.map(d=>d.cy));
+    const maxY = Math.max(...data.map(d=>d.cy));
+    const range = Math.max(maxY-minY, 0.1);
+    const pad = 30, w2=360-pad*2, h2=60;
+
+    mctx.fillStyle='#333'; mctx.fillRect(0,0,360,100);
+
+    // Draw dots and lines
+    data.forEach((d,i) => {
+        const x = pad + i * w2/(n-1);
+        const y = 20 + (d.cy-minY)/range*h2;
+        if(i>0){
+            const px2 = pad + (i-1)*w2/(n-1);
+            const py2 = 20 + (data[i-1].cy-minY)/range*h2;
+            mctx.strokeStyle='rgba(255,255,255,.3)'; mctx.lineWidth=1;
+            mctx.beginPath(); mctx.moveTo(px2,py2); mctx.lineTo(x,y); mctx.stroke();
+        }
+        mctx.beginPath(); mctx.arc(x,y,3,0,Math.PI*2);
+        mctx.fillStyle = d.cy === minY ? '#4FC3A1' : d.cy === maxY ? '#ff5f56' : '#FB7299';
+        mctx.fill();
+        mctx.fillStyle='rgba(255,255,255,.4)'; mctx.font='9px monospace'; mctx.textAlign='center';
+        mctx.fillText(i+1,x,y-8);
+    });
+
+    mctx.fillStyle='rgba(255,255,255,.3)'; mctx.font='10px sans-serif'; mctx.textAlign='left';
+    const diff = (maxY-minY).toFixed(1);
+    let verdict = diff < 1 ? '✅ 流畅' : diff < 2 ? '⚠️ 轻微抖动' : '❌ 卡顿';
+    mctx.fillText(`垂直偏移: ${diff}px — ${verdict}`, 10, 90);
+    document.getElementById('verdict').textContent = verdict;
+
+    // Animation
+    const ac = document.getElementById('animCanvas');
+    const actx = ac.getContext('2d');
+    ac.width = 200; ac.height = 200;
+
+    let playing = true, currentFrame = 0, cycleTime = 1.2;
+    const frameDur = cycleTime / 9;
+    let fps = 60;
+
+    function drawFrame(idx) {
+        const f = Math.floor(idx) % 9;
+        actx.clearRect(0,0,200,200);
+        actx.save();
+        actx.translate(100, 100);
+        const scale = 200 / fw * 0.85;
+        actx.scale(scale, scale);
+        actx.drawImage(frames[f], -fw/2, -fh/2);
+        actx.restore();
+        document.getElementById('frameLabel').textContent = `帧 ${f+1}/9`;
+    }
+
+    let lastT = 0, accum = 0;
+    function loop(t) {
+        const dt = (t - lastT) / 1000;
+        lastT = t;
+        if(playing && dt < 0.1) {
+            accum += dt;
+            if(accum >= frameDur) {
+                currentFrame = (currentFrame + 1) % 9;
+                accum -= frameDur;
+            }
+        }
+        drawFrame(currentFrame);
+        requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    window.togglePlay = function(){ playing=!playing;
+        document.getElementById('playBtn').textContent=playing?'⏸ 暂停':'▶ 播放'; };
+    window.speedUp = function(){ cycleTime=Math.max(0.2,cycleTime-0.2);
+        document.getElementById('speedLabel').textContent=`周期: ${cycleTime.toFixed(1)}s`; };
+    window.speedDown = function(){ cycleTime=Math.min(3,cycleTime+0.2);
+        document.getElementById('speedLabel').textContent=`周期: ${cycleTime.toFixed(1)}s`; };
+    window.setFrame = function(v){ currentFrame=parseInt(v); drawFrame(currentFrame); };
+};
+img.src = 'sprites/runner.png';
+})();
+</script>
+</body></html>
