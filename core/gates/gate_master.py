@@ -243,6 +243,39 @@ def check_t2(episode_dir: str) -> GateResult:
     tone_issues = _check_tone_script(episode_dir, state)
     issues.extend(tone_issues)
 
+    # T2-D: 每页时长检查 — 科普页 ≤45s，代码页不限
+    _max_sec = 45
+    _pp_path = os.path.join(episode_dir, FILE_NAMES.get("page_plans", "02-page-plans.json"))
+    _page_layouts = {}
+    if os.path.exists(_pp_path):
+        try:
+            _pp_raw = json.load(open(_pp_path, encoding="utf-8"))
+            _pp_pages = _pp_raw if isinstance(_pp_raw, list) else _pp_raw.get("pages", [])
+            for _p in _pp_pages:
+                _page_layouts[_p.get("page")] = _p.get("layout", "")
+        except:
+            pass
+    for _pm in page_markers:
+        _m = re.match(r"---+\s*P(\d+)", _pm)
+        if not _m:
+            continue
+        _pn = int(_m.group(1))
+        _layout = _page_layouts.get(_pn, "")
+        if _layout == "code_block":
+            continue
+        # 提取该页正文内容
+        _pat = re.compile(
+            rf"^---+\s*P{_pn}\s*---+\s*\n(.*?)(?=\n---+\s*P|\Z)", re.DOTALL | re.MULTILINE)
+        _m2 = _pat.search(content)
+        if not _m2:
+            continue
+        _page_chars = len(re.findall(r'[一-鿿\w]', _m2.group(1)))
+        _page_sec = _page_chars / TTS_EFFECTIVE_CHARS_PER_SEC
+        if _page_sec > _max_sec:
+            issues.append(
+                f"P{_pn} 估计 {_page_sec:.0f}s ({_page_chars}字/{TTS_EFFECTIVE_CHARS_PER_SEC}字/s)，"
+                f"超过科普页上限 {_max_sec}s。请将 P{_pn} 拆分为多页。")
+
     if not issues:
         return GateResult(True, [], "")
     return GateResult(False, issues, "T2")

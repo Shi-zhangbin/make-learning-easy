@@ -39,4 +39,6 @@ validation_rules:
   must_contain:
     - "分页标记（--- P1, --- P2, ...）"
   minimum_pages: 5
+  max_seconds_per_slide: 45
+  max_seconds_per_slide_except: ["code_block"]
   tone: "程序员脱口秀，自黑吐槽，口语化，像跟同事疯狂吐槽"

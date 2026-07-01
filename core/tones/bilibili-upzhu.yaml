@@ -32,4 +32,6 @@ validation_rules:
   must_contain:
     - "分页标记（--- P1, --- P2, ...）"
   minimum_pages: 5
+  max_seconds_per_slide: 45
+  max_seconds_per_slide_except: ["code_block"]
   tone: "B站科技UP主，口语化，像跟朋友聊天，纯口播文字"

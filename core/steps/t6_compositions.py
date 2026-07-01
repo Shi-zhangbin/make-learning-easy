@@ -102,7 +102,7 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
     .p-sm {{ font-size:14px; font-weight:400; color:var(--muted); line-height:1.5; }}
     .accent-line {{ width:60px; height:3px; background:var(--accent); border-radius:2px; }}
 
-    .card-row {{ display:flex; gap:18px; flex-shrink:0; }}
+    .card-row {{ display:flex; flex-direction:column; gap:14px; flex-shrink:0; }}
     .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 24px; flex:1; display:flex; flex-direction:column; gap:6px; }}
     .card .ci {{ font-size:26px; }}
     .card .ct {{ font-family:var(--hf); font-size:20px; font-weight:600; color:var(--ink); }}
@@ -115,14 +115,16 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
     .card-alt .ca-tag {{ font-family:var(--cf); font-size:12px; font-weight:500; color:var(--accent); margin-left:auto; }}
 
     .grid-2x2 {{ display:grid; grid-template-columns:1fr 1fr; gap:18px; flex-shrink:0; }}
+    .grid-2x2 > .card:last-child:nth-child(3) {{ grid-column:1 / -1; }}
+    .grid-2x2:empty {{ display:none; }}
 
     .split {{ display:flex; flex-direction:row; gap:24px; flex:1; min-height:0; }}
-    .split-l,.split-r {{ display:flex; flex-direction:column; gap:14px; }}
-    .split-l {{ flex:1.2; }}
-    .split-r {{ flex:1; }}
+    .split-l,.split-r {{ display:flex; flex-direction:column; gap:14px; min-width:0; }}
+    .split-l {{ flex:1; }}
+    .split-r {{ flex:0 1 auto; max-width:50%; }}
 
     .img-wrap {{ display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:12px; background:transparent; border:none; }}
-    .img-wrap img {{ width:100%; height:100%; object-fit:contain; padding:4px; }}
+    .img-wrap img {{ width:100%; height:auto; max-height:100%; object-fit:contain; padding:4px; }}
 
     .code-w {{ background:var(--code-bg); border-radius:12px; overflow:hidden; display:flex; flex-direction:column; }}
     .code-w .ch {{ background:#16161e; height:32px; display:flex; align-items:center; padding:0 14px; gap:6px; flex-shrink:0; }}
@@ -269,14 +271,12 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
                 src = images_dir + src[len("images"):]
             elif src and "/" not in src and not src.startswith("data:"):
                 src = images_dir + "/" + src
-            # Adaptive container: width determined by flex layout, height auto-calculated
-            # from 16:9 aspect ratio so images fill available space without blank gaps
-            size_css = {"small": "flex:0.6; aspect-ratio:16/9;",
-                        "medium": "flex:1; aspect-ratio:16/9;",
-                        "large": "flex:1.5; aspect-ratio:16/9;",
-                        "fill": "flex:1; min-height:100px;"}.get(sz, "flex:1; aspect-ratio:16/9;")
-            if sz == "fill":
-                return f'<div class="img-wrap" style="{size_css}"><img src="{src}"></div>'
+            # Adaptive container: fills available space by default,
+            # image inside scales with object-fit:contain
+            size_css = {"small": "flex:0.6;",
+                        "medium": "flex:1;",
+                        "large": "flex:1.5;",
+                        "fill": "flex:1; min-height:100px;"}.get(sz, "flex:1;")
             return f'<div class="img-wrap" style="{size_css}"><img src="{src}"></div>'
         elif t == "code":
             lines = el.get("code", el.get("text", ""))
@@ -290,9 +290,11 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
             right = ""
             for sub in el.get("right", []):
                 right += render_elem(sub, pg)
-            lw = el.get("left_weight", 1.2)
-            rw = el.get("right_weight", 1)
-            return f'<div class="split"><div class="split-l" style="flex:{lw}">{left}</div><div class="split-r" style="flex:{rw}">{right}</div></div>'
+            lw = el.get("left_weight")
+            rw = el.get("right_weight")
+            l_s = f' style="flex:{lw}"' if lw else ""
+            r_s = f' style="flex:{rw}"' if rw else ""
+            return f'<div class="split"><div class="split-l"{l_s}>{left}</div><div class="split-r"{r_s}>{right}</div></div>'
         elif t == "fq-row":
             rows = ""
             for i, r in enumerate(el.get("rows", [])):
@@ -567,6 +569,7 @@ def _page_spec_to_elements(spec):
                     "type": "split",
                     "left": [{"type": "heading", "size": "sm", "text": s.comparison.left_title}] + left_items,
                     "right": [{"type": "heading", "size": "sm", "text": s.comparison.right_title}] + right_items,
+                    "left_weight": 1, "right_weight": 1,
                 })
 
     elif spec.layout == "code_block":
@@ -581,8 +584,7 @@ def _page_spec_to_elements(spec):
         left = [{"type": "code", "code": code_text, "lang": code_lang}] if code_text else []
         right = [{"type": "card-alt-row", "cards": cards}] if cards else []
         if left or right:
-            elements.append({"type": "split", "left": left, "right": right,
-                             "left_weight": 1.4, "right_weight": 1})
+            elements.append({"type": "split", "left": left, "right": right})
 
     elif spec.layout in ("concept", "flipped"):
         cards = []
@@ -594,23 +596,22 @@ def _page_spec_to_elements(spec):
         img_pos = getattr(spec, "image_position", "right") or "right"
 
         if img_pos == "left":
-            # Image on left, cards on right (flipped-style)
             left = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
             alt_cards = [{"icon": c["icon"], "title": c["title"], "desc": c["body"], "tag": ""} for c in cards]
             right = [{"type": "card-alt-row", "cards": alt_cards}] if alt_cards else []
         elif img_pos == "bottom":
-            # Stack: cards on top, image below
             if cards:
                 elements.append({"type": "card-row", "cards": cards[:3]})
             if spec.image_slot:
                 elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
-            left, right = None, None  # skip split
+            left, right = None, None
         elif img_pos == "background":
-            # Full-page background — not fully supported yet, fallback to right
-            left = [{"type": "card-row", "cards": cards[:3]}] if cards else []
-            right = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
+            if cards:
+                elements.append({"type": "card-row", "cards": cards[:3]})
+            if spec.image_slot:
+                elements.append({"type": "image", "src": spec.image_slot, "size": "fill"})
+            left, right = None, None
         else:
-            # Default: image on right (concept-style)
             left = [{"type": "card-row", "cards": cards[:3]}] if cards else []
             right = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
 
@@ -629,13 +630,20 @@ def _page_spec_to_elements(spec):
             elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
 
     elif spec.layout == "card_grid":
+        grid_cards = []
         for s in spec.sections:
             if s.cards:
-                elements.append({
-                    "type": "grid-2x2",
-                    "cards": [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards[:4]]
-                })
-        if spec.image_slot:
+                grid_cards = [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards[:4]]
+        if grid_cards and spec.image_slot:
+            # Side-by-side: grid on left, image on right
+            elements.append({
+                "type": "split",
+                "left": [{"type": "grid-2x2", "cards": grid_cards}],
+                "right": [{"type": "image", "src": spec.image_slot, "size": "medium"}],
+            })
+        elif grid_cards:
+            elements.append({"type": "grid-2x2", "cards": grid_cards})
+        elif spec.image_slot:
             elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
 
     elif spec.layout == "quote":

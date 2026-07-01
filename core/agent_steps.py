@@ -156,6 +156,8 @@ class ScriptHandler(StepHandler):
                     "分页标记（--- P1, --- P2, ...）",
                 ]),
                 "minimum_pages": tone_vrules.get("minimum_pages", 5),
+                "max_seconds_per_slide": tone_vrules.get("max_seconds_per_slide", 45),
+                "max_seconds_per_slide_except": tone_vrules.get("max_seconds_per_slide_except", ["code_block"]),
                 "tone": tone_vrules.get("tone", "B站科技UP主，口语化，像跟朋友聊天，纯口播文字"),
             },
             "page_plan_required": True,
