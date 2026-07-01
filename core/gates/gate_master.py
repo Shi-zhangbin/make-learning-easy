@@ -243,7 +243,7 @@ def check_t2(episode_dir: str) -> GateResult:
     tone_issues = _check_tone_script(episode_dir, state)
     issues.extend(tone_issues)
 
-    # T2-D: 每页时长检查 — 科普页 ≤45s，代码页不限
+    # T2-D: 每页时长检查 — 科普页 ≤max_sec，代码页不限
     _max_sec = 45
     _pp_path = os.path.join(episode_dir, FILE_NAMES.get("page_plans", "02-page-plans.json"))
     _page_layouts = {}
@@ -272,9 +272,12 @@ def check_t2(episode_dir: str) -> GateResult:
         _page_chars = len(re.findall(r'[一-鿿\w]', _m2.group(1)))
         _page_sec = _page_chars / TTS_EFFECTIVE_CHARS_PER_SEC
         if _page_sec > _max_sec:
+            _suggest = max(2, round(_page_sec / _max_sec))
             issues.append(
                 f"P{_pn} 估计 {_page_sec:.0f}s ({_page_chars}字/{TTS_EFFECTIVE_CHARS_PER_SEC}字/s)，"
-                f"超过科普页上限 {_max_sec}s。请将 P{_pn} 拆分为多页。")
+                f"超过{_max_sec}s上限。建议将 P{_pn} 拆分为 {_suggest} 页"
+                f"（如 P{_pn}-A ~ P{_pn}-{chr(64+_suggest)}），"
+                f"每页约 {_page_chars//_suggest}字/{_max_sec}s。")
 
     if not issues:
         return GateResult(True, [], "")
@@ -405,6 +408,21 @@ def check_t4(episode_dir: str) -> GateResult:
             if re.search(pat, _text_only):
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
+    
+    # guizang-checklist inspired: layout diversity check
+    _pp_path = os.path.join(episode_dir, "02-page-plans.json")
+    if os.path.exists(_pp_path):
+        try:
+            with open(_pp_path) as _f:
+                _pp_raw = json.load(_f)
+            _pp_pages = _pp_raw if isinstance(_pp_raw, list) else _pp_raw.get("pages", [])
+            _used_layouts = set(p.get("layout", "") for p in _pp_pages if p.get("layout"))
+            if len(_used_layouts) < min(3, len(_pp_pages)):
+                issues.append(
+                    f"布局类型单一: 仅用了 {len(_used_layouts)} 种 layout ({', '.join(_used_layouts)})，"
+                    f"建议多样化(≥{min(3, len(_pp_pages))}种)")
+        except:
+            pass
     
     if not issues:
         return GateResult(True, [], "")
@@ -542,6 +560,21 @@ def check_t6(episode_dir: str) -> GateResult:
             if re.search(pat, _text_only):
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
+    
+    # guizang-checklist inspired: layout diversity check
+    _pp_path = os.path.join(episode_dir, "02-page-plans.json")
+    if os.path.exists(_pp_path):
+        try:
+            with open(_pp_path) as _f:
+                _pp_raw = json.load(_f)
+            _pp_pages = _pp_raw if isinstance(_pp_raw, list) else _pp_raw.get("pages", [])
+            _used_layouts = set(p.get("layout", "") for p in _pp_pages if p.get("layout"))
+            if len(_used_layouts) < min(3, len(_pp_pages)):
+                issues.append(
+                    f"布局类型单一: 仅用了 {len(_used_layouts)} 种 layout ({', '.join(_used_layouts)})，"
+                    f"建议多样化(≥{min(3, len(_pp_pages))}种)")
+        except:
+            pass
     
     if not issues:
         return GateResult(True, [], "")
@@ -723,6 +756,21 @@ def check_t5(episode_dir: str) -> GateResult:
             if re.search(pat, _text_only):
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
+    
+    # guizang-checklist inspired: layout diversity check
+    _pp_path = os.path.join(episode_dir, "02-page-plans.json")
+    if os.path.exists(_pp_path):
+        try:
+            with open(_pp_path) as _f:
+                _pp_raw = json.load(_f)
+            _pp_pages = _pp_raw if isinstance(_pp_raw, list) else _pp_raw.get("pages", [])
+            _used_layouts = set(p.get("layout", "") for p in _pp_pages if p.get("layout"))
+            if len(_used_layouts) < min(3, len(_pp_pages)):
+                issues.append(
+                    f"布局类型单一: 仅用了 {len(_used_layouts)} 种 layout ({', '.join(_used_layouts)})，"
+                    f"建议多样化(≥{min(3, len(_pp_pages))}种)")
+        except:
+            pass
     
     if not issues:
         return GateResult(True, [], "")

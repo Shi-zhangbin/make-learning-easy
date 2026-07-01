@@ -1010,11 +1010,13 @@ class CompositionHandler(StepHandler):
         # Update viewport for browser
         _pv = _pv.replace('content="width=1920, height=1080"', 'content="width=device-width, initial-scale=1.0"')
 
-        # Inject preview navigation
+        # Inject preview navigation with fade transition
         _nav = (
             '<style>'
             '.danmaku,.danmaku-overlay{display:none!important}'
             'body{transform-origin:top left;overflow:hidden;margin:0;}'
+            '.sc{transition:opacity .35s ease,transform .35s ease!important;}'
+            '.sc:not([style*="opacity:1"]){transform:scale(.98)!important;}'
             '#_preview-nav{position:fixed;bottom:28px;right:28px;z-index:99999;'
             'display:flex;align-items:center;gap:8px;'
             'background:rgba(0,0,0,0.4);color:#fff;padding:6px 16px 6px 12px;'

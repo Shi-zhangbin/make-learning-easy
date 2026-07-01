@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=0.5">
+<title>动画策略演示 — Make Learning Easy</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans SC',sans-serif; background:#1a1a2e; color:#fff; overflow-x:hidden; }
+header { padding:60px 80px 30px; border-bottom:1px solid rgba(255,255,255,.08); }
+header h1 { font-size:42px; font-weight:700; }
+header p { font-size:18px; color:rgba(255,255,255,.5); margin-top:8px; }
+
+.demo-grid { display:grid; grid-template-columns:1fr 1fr; gap:60px; padding:60px 80px; }
+.demo-card { background:rgba(255,255,255,.04); border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,.06); }
+.demo-card h2 { font-size:22px; font-weight:600; padding:24px 30px 0; }
+.demo-card .tag { display:inline-block; font-size:12px; font-weight:500; padding:3px 12px; border-radius:6px; margin:4px 0 0 30px; }
+.demo-card .desc { font-size:14px; color:rgba(255,255,255,.45); padding:8px 30px 16px; line-height:1.6; }
+
+/* Demo stage */
+.stage { position:relative; width:100%; height:340px; background:#232340; overflow:hidden; display:flex; flex-direction:column; justify-content:center; padding:30px; }
+
+/* Element styles */
+.el { background:rgba(255,255,255,.06); border-radius:10px; padding:16px 20px; margin:4px 0; border-left:3px solid var(--c,#FB7299); display:flex; align-items:center; gap:12px; }
+.el .icon { font-size:20px; flex-shrink:0; }
+.el .text { font-size:15px; font-weight:400; color:rgba(255,255,255,.7); line-height:1.4; }
+.el .title { font-size:17px; font-weight:600; color:#fff; }
+
+/* Row layout for split demo */
+.row { display:flex; gap:16px; }
+.col { flex:1; display:flex; flex-direction:column; gap:4px; }
+
+/* ── Animation strategies ── */
+
+/* 1. cascade: fade-in sequence */
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.cascade .el { opacity:0; animation:fadeUp .4s ease-out forwards; }
+.cascade .el:nth-child(1) { animation-delay:.1s; }
+.cascade .el:nth-child(2) { animation-delay:.18s; }
+.cascade .el:nth-child(3) { animation-delay:.26s; }
+.cascade .el:nth-child(4) { animation-delay:.34s; }
+
+/* 2. hero: slow dramatic entrance */
+@keyframes heroIn { from { opacity:0; transform:translateY(30px) scale(.97); filter:blur(4px); } to { opacity:1; transform:translateY(0) scale(1); filter:blur(0); } }
+.hero .el { opacity:0; animation:heroIn .8s cubic-bezier(.16,1,.3,1) forwards; }
+.hero .el:nth-child(1) { animation-delay:.4s; }
+.hero .el:nth-child(2) { animation-delay:.9s; }
+.hero .el:nth-child(3) { animation-delay:1.4s; }
+.hero .el:nth-child(4) { animation-delay:1.9s; }
+
+/* 3. quote: word-by-word reveal */
+@keyframes wordReveal { from { opacity:0; clip-path:inset(0 100% 0 0); } to { opacity:1; clip-path:inset(0 0 0 0); } }
+.quote .el { opacity:0; animation:wordReveal .6s ease-out forwards; }
+.quote .el:nth-child(1) { animation-delay:.2s; }
+.quote .el:nth-child(2) { animation-delay:.5s; }
+.quote .el:nth-child(3) { animation-delay:.8s; }
+
+/* 4. directional: left/right split */
+@keyframes slideLeft { from { opacity:0; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
+@keyframes slideRight { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+.directional .col { opacity:0; }
+.directional .col:first-child { animation:slideLeft .5s ease-out .15s forwards; }
+.directional .col:last-child { animation:slideRight .5s ease-out .35s forwards; }
+.directional .col .el:nth-child(2) { animation-delay:.25s,.55s; }  /* Firefox doesn't support multiple delays on shorthand, use individual */
+.directional .col .el { opacity:0; }
+.directional .col:first-child .el { animation:slideLeft .4s ease-out forwards; }
+.directional .col:first-child .el:nth-child(1) { animation-delay:.15s; }
+.directional .col:first-child .el:nth-child(2) { animation-delay:.25s; }
+.directional .col:first-child .el:nth-child(3) { animation-delay:.35s; }
+.directional .col:last-child .el { animation:slideRight .4s ease-out forwards; }
+.directional .col:last-child .el:nth-child(1) { animation-delay:.35s; }
+.directional .col:last-child .el:nth-child(2) { animation-delay:.45s; }
+.directional .col:last-child .el:nth-child(3) { animation-delay:.55s; }
+
+/* 5. pipeline: step progression */
+@keyframes stepIn { from { opacity:0; transform:translateX(-20px) scale(.95); } to { opacity:1; transform:translateX(0) scale(1); } }
+@keyframes arrowDraw { from { width:0; } to { width:100%; } }
+.pipeline .el { opacity:0; animation:stepIn .35s ease-out forwards; }
+.pipeline .el:nth-child(1) { animation-delay:.1s; }
+.pipeline .el:nth-child(2) { animation-delay:.5s; }
+.pipeline .el:nth-child(3) { animation-delay:.9s; }
+.pipeline .el:nth-child(4) { animation-delay:1.3s; }
+.pipeline .arrow { height:1px; background:linear-gradient(90deg,var(--c,#FB7299)50%,transparent); margin:0 12px; opacity:0; animation:arrowDraw .6s ease-out forwards; }
+.pipeline .arrow:nth-of-type(1) { animation-delay:.3s; }
+.pipeline .arrow:nth-of-type(2) { animation-delay:.7s; }
+.pipeline .arrow:nth-of-type(3) { animation-delay:1.1s; }
+
+.tag-cascade { background:rgba(251,114,153,.15); color:#FB7299; }
+.tag-hero { background:rgba(79,195,161,.15); color:#4FC3A1; }
+.tag-quote { background:rgba(204,120,92,.15); color:#cc785c; }
+.tag-directional { background:rgba(94,106,210,.15); color:#5e6ad2; }
+.tag-pipeline { background:rgba(0,161,214,.15); color:#00A1D6; }
+
+/* Apply button to replay */
+.btn-replay { position:absolute; top:12px; right:12px; background:rgba(255,255,255,.08); border:none; color:rgba(255,255,255,.5); padding:4px 14px; border-radius:6px; font-size:12px; cursor:pointer; font-family:inherit; }
+.btn-replay:hover { background:rgba(255,255,255,.12); color:#fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎬 动画策略演示</h1>
+  <p>5 种 GSAP 入场动效配方，按 layout 类型自动匹配 — 点击"重播"可反复观看</p>
+</header>
+
+<div class="demo-grid">
+
+  <!-- ① cascade -->
+  <div class="demo-card">
+    <h2>① Cascade 级联</h2>
+    <span class="tag tag-cascade">concept · card_grid · 默认</span>
+    <p class="desc">元素依次淡入上移，间隔 80ms，节奏均匀。适合大部分正文页。</p>
+    <div class="stage cascade" id="demo1">
+      <div class="el"><span class="icon">📖</span><div><div class="title">核心概念</div><div class="text">标准的自下而上淡入，信息逐个呈现</div></div></div>
+      <div class="el"><span class="icon">⚡</span><div><div class="title">第二要点</div><div class="text">每个元素独立入场，互不干扰</div></div></div>
+      <div class="el"><span class="icon">🔧</span><div><div class="title">第三要点</div><div class="text">观看者自然跟随元素出现的节奏</div></div></div>
+      <div class="el"><span class="icon">🎯</span><div><div class="title">第四要点</div><div class="text">80ms stagger 是人眼最舒适的节奏</div></div></div>
+      <button class="btn-replay" onclick="replay('demo1')">↻ 重播</button>
+    </div>
+  </div>
+
+  <!-- ② hero -->
+  <div class="demo-card">
+    <h2>② Hero 仪式感</h2>
+    <span class="tag tag-hero">hero · section_divider</span>
+    <p class="desc">慢启动 + 缩放 + 模糊消除，cubic-bezier 缓出。适合封面、章节幕封。</p>
+    <div class="stage hero" id="demo2">
+      <div class="el"><span class="icon">🚀</span><div><div class="title">开场标题</div><div class="text">第一个元素等待 0.4s 后缓慢放大进入</div></div></div>
+      <div class="el"><span class="icon">💡</span><div><div class="title">副标题区</div><div class="text">幕封页特有的大间隔入场节奏</div></div></div>
+      <div class="el"><span class="icon">📊</span><div><div class="title">数据亮点</div><div class="text">每个元素间隔 ~0.5s，营造仪式感</div></div></div>
+      <div class="el"><span class="icon">🎯</span><div><div class="title">引导提示</div><div class="text">与 cascade 的区别在于更慢、更重</div></div></div>
+      <button class="btn-replay" onclick="replay('demo2')">↻ 重播</button>
+    </div>
+  </div>
+
+  <!-- ③ quote -->
+  <div class="demo-card">
+    <h2>③ Quote 逐句揭示</h2>
+    <span class="tag tag-quote">quote · big_quote</span>
+    <p class="desc">clip-path 逐句展开，像揭幕一样。适合大引用页、金句页。</p>
+    <div class="stage quote" id="demo3">
+      <div class="el" style="border-left-color:#cc785c;"><span class="icon">💬</span><div><div class="text" style="font-size:24px;font-weight:500;">"检索增强生成，就是给了大语言模型一本可以随时翻阅的参考书。"</div></div></div>
+      <div class="el" style="border-left-color:#cc785c;"><span class="icon">✍️</span><div><div class="text">—— 从"死记硬背"变成"会查资料"</div></div></div>
+      <div class="el" style="border-left-color:#cc785c;"><span class="icon">📚</span><div><div class="text">引入类比：闭卷考试 vs 开卷考试</div></div></div>
+    </div>
+    <button class="btn-replay" onclick="replay('demo3')">↻ 重播</button>
+  </div>
+
+  <!-- ④ directional -->
+  <div class="demo-card">
+    <h2>④ Directional 分向入场</h2>
+    <span class="tag tag-directional">comparison · flipped</span>
+    <p class="desc">左右分栏从各自方向滑入，形成对比动势。适合对比页、Before/After。</p>
+    <div class="stage directional" id="demo4">
+      <div class="row">
+        <div class="col">
+          <div class="el" style="border-left-color:#4FC3A1;"><span class="icon">✅</span><div><div class="title">RAG</div><div class="text">知识更新只需改文档库</div></div></div>
+          <div class="el" style="border-left-color:#4FC3A1;"><span class="icon">✅</span><div><div class="title">RAG</div><div class="text">答案有据可查可溯源</div></div></div>
+          <div class="el" style="border-left-color:#4FC3A1;"><span class="icon">✅</span><div><div class="title">RAG</div><div class="text">门槛低，搭建快</div></div></div>
+        </div>
+        <div class="col">
+          <div class="el" style="border-left-color:#FB7299;"><span class="icon">🔄</span><div><div class="title">微调</div><div class="text">需要重新训练模型</div></div></div>
+          <div class="el" style="border-left-color:#FB7299;"><span class="icon">🔄</span><div><div class="title">微调</div><div class="text">更擅长领域话术风格</div></div></div>
+          <div class="el" style="border-left-color:#FB7299;"><span class="icon">🔄</span><div><div class="title">微调</div><div class="text">需要数据集和训练经验</div></div></div>
+        </div>
+      </div>
+      <button class="btn-replay" onclick="replay('demo4')">↻ 重播</button>
+    </div>
+  </div>
+
+  <!-- ⑤ pipeline -->
+  <div class="demo-card">
+    <h2>⑤ Pipeline 步骤推进</h2>
+    <span class="tag tag-pipeline">flowchart</span>
+    <p class="desc">每步从左滑入 + 箭头渐绘，步骤之间有间隔模拟推进感。适合流程图。</p>
+    <div class="stage pipeline" id="demo5" style="--c:#00A1D6;">
+      <div class="el" style="border-left-color:#00A1D6;"><span class="icon">📚</span><div><div class="title">索引构建</div><div class="text">文档切块 → 向量化 → 存入数据库</div></div></div>
+      <div class="arrow"></div>
+      <div class="el" style="border-left-color:#00A1D6;"><span class="icon">🔍</span><div><div class="title">检索</div><div class="text">用户提问 → 向量搜索</div></div></div>
+      <div class="arrow"></div>
+      <div class="el" style="border-left-color:#00A1D6;"><span class="icon">🧩</span><div><div class="title">增强</div><div class="text">检索片段拼入 Prompt</div></div></div>
+      <div class="arrow"></div>
+      <div class="el" style="border-left-color:#00A1D6;"><span class="icon">💬</span><div><div class="title">生成</div><div class="text">LLM 基于完整上下文输出答案</div></div></div>
+      <button class="btn-replay" onclick="replay('demo5')">↻ 重播</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function replay(id) {
+  const stage = document.getElementById(id);
+  stage.style.animation = 'none';
+  stage.offsetHeight; // reflow
+  stage.style.animation = '';
+  // Re-trigger child animations
+  const els = stage.querySelectorAll('.el,.arrow,.col');
+  els.forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
+}
+</script>
+</body>
+</html>

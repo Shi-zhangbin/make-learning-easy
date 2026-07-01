@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920, initial-scale=0.5">
+<title>布局扩展演示 — Make Learning Easy</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+/* ── Design preset themes (excerpts from core/designs/presets/) ── */
+
+/* bilibili */
+.theme-bilibili { --accent:#FB7299; --accent-active:#F25D88; --ink:#18191C; --body:#4E5969; --muted:#86909C; --card:#FFF; --canvas:#F5F6F7; --border:#E5E6EB; --code-bg:#F2F3F5; --hf:"Noto Sans SC",sans-serif; --bf:"Noto Sans SC","PingFang SC",sans-serif; }
+
+/* claude */
+.theme-claude { --accent:#cc785c; --accent-active:#b86a4f; --ink:#2c241f; --body:#5c4f45; --muted:#9b8b80; --card:#FFF; --canvas:#faf9f5; --border:#e3ddd6; --code-bg:#f5f0e8; --hf:"Noto Sans SC",sans-serif; --bf:"Noto Sans SC","PingFang SC",sans-serif; }
+
+/* dark-teal */
+.theme-dark-teal { --accent:#4FC3A1; --accent-active:#3DAF8E; --ink:#E8E8E8; --body:#A0A0A8; --muted:#6B6B74; --card:#1E2024; --canvas:#0A0C0E; --border:#2E3036; --code-bg:#16171b; --hf:"Noto Sans SC",sans-serif; --bf:"Noto Sans SC","PingFang SC",sans-serif; }
+
+body { font-family:var(--bf, sans-serif); background:var(--canvas); color:var(--ink); overflow-x:hidden; }
+
+header { padding:60px 80px 30px; border-bottom:1px solid var(--border); }
+header h1 { font-size:38px; font-weight:700; }
+header p { font-size:16px; color:var(--muted); margin-top:6px; }
+
+/* Theme switcher */
+.theme-nav { display:flex; gap:12px; padding:20px 80px; }
+.theme-nav button { padding:8px 24px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--ink); font-size:14px; font-weight:500; cursor:pointer; font-family:inherit; }
+.theme-nav button.active { border-color:var(--accent); color:var(--accent); }
+
+/* Sections */
+.section { padding:40px 80px; }
+.section h2 { font-size:28px; font-weight:700; margin-bottom:8px; }
+.section > p { font-size:15px; color:var(--muted); margin-bottom:24px; }
+
+/* 1920×1080 slide canvas */
+.slide-canvas { position:relative; width:100%; aspect-ratio:16/9; background:var(--canvas); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:12px; }
+
+/* ── Shared layout elements ── */
+.slide { display:flex; flex-direction:column; width:100%; height:100%; padding:60px 80px; gap:12px; position:relative; }
+.slide .badge { display:inline-block; align-self:flex-start; background:color-mix(in srgb,var(--accent)12%,transparent); color:var(--accent); padding:3px 14px; border-radius:6px; font-size:12px; font-weight:600; }
+.slide .h-lg { font-size:32px; font-weight:700; line-height:1.1; font-family:var(--hf); }
+.slide .h-xl { font-size:48px; font-weight:700; line-height:1.05; font-family:var(--hf); }
+.slide .h-md { font-size:24px; font-weight:600; line-height:1.2; font-family:var(--hf); }
+.slide .h-sm { font-size:18px; font-weight:600; font-family:var(--hf); }
+.slide .p-md { font-size:14px; color:var(--body); line-height:1.55; }
+.slide .accent-line { width:40px; height:3px; background:var(--accent); border-radius:2px; }
+
+/* Card */
+.card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; display:flex; flex-direction:column; gap:4px; }
+.card-ci { font-size:20px; }
+.card-ct { font-size:16px; font-weight:600; font-family:var(--hf); }
+.card-cb { font-size:13px; color:var(--body); line-height:1.5; }
+
+/* ── big_quote layout ── */
+.big-quote { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:80px; gap:24px; height:100%; }
+.big-quote .quote-icon { font-size:48px; opacity:.3; }
+.big-quote .quote-text { font-size:min(4vw,44px); font-weight:400; line-height:1.4; color:var(--ink); max-width:80%; font-family:var(--hf); }
+.big-quote .quote-author { font-size:18px; color:var(--accent); font-weight:500; }
+
+/* ── data_hero layout ── */
+.data-hero { display:flex; flex-direction:column; justify-content:center; gap:24px; height:100%; padding:80px; }
+.data-hero .data-row { display:flex; gap:24px; justify-content:center; }
+.data-hero .data-item { text-align:center; flex:1; }
+.data-hero .data-num { font-size:min(5vw,64px); font-weight:800; color:var(--accent); line-height:1; letter-spacing:-1px; font-family:var(--hf); }
+.data-hero .data-unit { font-size:18px; font-weight:400; color:var(--muted); }
+.data-hero .data-label { font-size:14px; color:var(--body); margin-top:4px; }
+
+/* ── multi_card layout ── */
+.multi-card { display:flex; flex-direction:column; height:100%; padding:60px 80px; gap:12px; }
+.multi-card .card-wrap { display:flex; gap:14px; flex:1; min-height:0; }
+.multi-card .card-wrap .card { flex:1; justify-content:center; padding:18px 20px; }
+
+/* Layout label */
+.layout-label { position:absolute; top:8px; right:12px; font-size:11px; color:var(--muted); font-weight:500; opacity:.4; }
+
+/* Grid for comparison */
+.demo-row { display:flex; gap:24px; }
+.demo-row .slide-canvas { flex:1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📐 布局类型扩展</h1>
+  <p>三种新增 layout 类型，颜色跟随 Design Preset 自适应</p>
+</header>
+
+<div class="theme-nav">
+  <button class="active" onclick="switchTheme('bilibili')">🎨 Bilibili</button>
+  <button onclick="switchTheme('claude')">🎨 Claude</button>
+  <button onclick="switchTheme('dark-teal')">🎨 Dark Teal</button>
+</div>
+
+<!-- big_quote -->
+<div class="section">
+  <h2>🔖 big_quote — 大引用页</h2>
+  <p>深色全屏大字体引用，适合金句/总结/幕封。对标 guizang Layout 8。</p>
+  <div class="slide-canvas theme-bilibili" id="demo-big-quote">
+    <div class="big-quote">
+      <div class="quote-icon">❝</div>
+      <div class="quote-text">检索增强生成，就是给了大语言模型一本可以随时翻阅的参考书。</div>
+      <div class="quote-author">— 让 LLM 从"死记硬背"变成"会查资料"</div>
+    </div>
+    <div class="layout-label">big_quote</div>
+  </div>
+</div>
+
+<!-- data_hero -->
+<div class="section">
+  <h2>📊 data_hero — 数据大字报</h2>
+  <p>大字 KPI 数据展示，适合抛硬数据/关键指标。对标 guizang Layout 3。</p>
+  <div class="slide-canvas theme-bilibili" id="demo-data-hero">
+    <div class="data-hero">
+      <div class="badge">数据亮点 KPI</div>
+      <div class="data-row">
+        <div class="data-item">
+          <div class="data-num">94%</div>
+          <div class="data-label">检索命中率</div>
+        </div>
+        <div class="data-item">
+          <div class="data-num">3.2×</div>
+          <div class="data-label">回答准确度提升</div>
+        </div>
+        <div class="data-item">
+          <div class="data-num">60%</div>
+          <div class="data-label">幻觉率降低</div>
+        </div>
+      </div>
+      <div class="p-md" style="text-align:center;">基于 5000 条测试数据的 RAG 系统质量评估</div>
+    </div>
+    <div class="layout-label">data_hero</div>
+  </div>
+</div>
+
+<!-- multi_card -->
+<div class="section">
+  <h2>📋 multi_card — 多卡片均分</h2>
+  <p>3+ 卡片横向均匀排列，介于 concept 和 card_grid 之间，比 card_grid 少一行但比 concept 更规整。</p>
+  <div class="slide-canvas theme-bilibili" id="demo-multi-card">
+    <div class="multi-card">
+      <div class="badge">核心要点</div>
+      <div class="h-lg">RAG 的三大优势</div>
+      <div class="card-wrap">
+        <div class="card">
+          <div class="card-ci">🔄</div>
+          <div class="card-ct">实时更新</div>
+          <div class="card-cb">文档库改了，检索结果自动更新，无需重新训练模型</div>
+        </div>
+        <div class="card">
+          <div class="card-ci">🎯</div>
+          <div class="card-ct">可溯源</div>
+          <div class="card-cb">每个答案都附有来源链接，用户可以验证可信度</div>
+        </div>
+        <div class="card">
+          <div class="card-ci">⚡</div>
+          <div class="card-ct">低门槛</div>
+          <div class="card-cb">十几分钟就能搭一套 RAG 系统，不需要训练经验</div>
+        </div>
+        <div class="card">
+          <div class="card-ci">🔗</div>
+          <div class="card-ct">可组合</div>
+          <div class="card-cb">可与微调结合使用，双管齐下效果更佳</div>
+        </div>
+      </div>
+    </div>
+    <div class="layout-label">multi_card</div>
+  </div>
+</div>
+
+<!-- Theme comparison -->
+<div class="section">
+  <h2>🎭 主题对比</h2>
+  <p>同一 big_quote 布局在三种预设下的视觉效果</p>
+  <div class="demo-row">
+    <div class="slide-canvas theme-bilibili">
+      <div class="big-quote">
+        <div class="quote-icon">❝</div>
+        <div class="quote-text" style="font-size:min(3.5vw,36px);">核心流程四个字：先查后答</div>
+        <div class="quote-author">搜索系统与生成模型的完美结合</div>
+      </div>
+      <div class="layout-label">bilibili</div>
+    </div>
+    <div class="slide-canvas theme-claude">
+      <div class="big-quote">
+        <div class="quote-icon">❝</div>
+        <div class="quote-text" style="font-size:min(3.5vw,36px);">核心流程四个字：先查后答</div>
+        <div class="quote-author">搜索系统与生成模型的完美结合</div>
+      </div>
+      <div class="layout-label">claude</div>
+    </div>
+    <div class="slide-canvas theme-dark-teal">
+      <div class="big-quote">
+        <div class="quote-icon">❝</div>
+        <div class="quote-text" style="font-size:min(3.5vw,36px);">核心流程四个字：先查后答</div>
+        <div class="quote-author">搜索系统与生成模型的完美结合</div>
+      </div>
+      <div class="layout-label">dark-teal</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTheme(name) {
+  document.querySelectorAll('.theme-nav button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.slide-canvas').forEach(c => {
+    c.className = c.className.split(' ').filter(cn => !cn.startsWith('theme-')).join(' ');
+    c.classList.add('theme-' + name);
+  });
+}
+</script>
+</body>
+</html>
