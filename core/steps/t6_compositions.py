@@ -13,9 +13,9 @@ from core.designs.base import load_preset
 from core.sprite_runner import get_runner_path, SPRITES_DIR_NAME, SPRITE_FILE_NAME, list_presets, make_preset_runner
 from pathlib import Path
 
-# Load GSAP locally to avoid CDN dependency
-_GSAP_PATH = Path(__file__).resolve().parent.parent / "assets" / "gsap.min.js"
-_GSAP_INLINE = _GSAP_PATH.read_text(encoding="utf-8") if _GSAP_PATH.exists() else ""
+# Zero-dependency timeline shim (replaces GSAP)
+_SHIM_PATH = Path(__file__).resolve().parent.parent / "assets" / "timeline-shim.js"
+_SHIM_INLINE = _SHIM_PATH.read_text(encoding="utf-8") if _SHIM_PATH.exists() else ""
 
 
 def _load_design(episode_dir):
@@ -477,8 +477,8 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=1920, height=1080" />
 {gf_link}
-<script>/* inlined: assets/gsap.min.js */
-{_GSAP_INLINE}</script>
+<script>/* inlined: assets/timeline-shim.js */
+{_SHIM_INLINE}</script>
 <style>{css_vars}{common_css}{scene_css}</style>
 </head>
 <body>
@@ -508,12 +508,8 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
 </div>
 <script>
 window.__timelines = window.__timelines || {{}};
-const tl = gsap.timeline({{ paused: true }});
-tl.to(".bg-glow-1", {{ scale:1.1, opacity:0.6, duration:3, ease:"sine.inOut", yoyo:true, repeat:15 }}, 0);
-tl.to("#pf", {{ width:'100%', duration:{total_dur}, ease:'linear' }}, 0);
-tl.to("#pr", {{ left:'calc(100% - 30px)', duration:{total_dur}, ease:'linear' }}, 0);
-const _sc = {cycle_speed}, _sf = 9;
-tl.to("#pr", {{ duration:{total_dur}, ease:'none', onUpdate:function(){{ let f=Math.floor((this.time()%_sc)/_sc*_sf); this.targets()[0].style.backgroundPosition='-'+f*60+'px 0px'; }} }}, 0);
+const tl = new SimpleTimeline({{ totalDur: {total_dur} }});
+tl._setSprite({cycle_speed}, 9);
 {all_js}
 window.__timelines["main"] = tl;
 </script>
@@ -967,7 +963,7 @@ class CompositionHandler(StepHandler):
 
         # Remove the large GSAP inline script block: find <script> with the GSAP comment
         # and remove everything from there to the matching </script>
-        _gsap_marker = 'inlined: assets/gsap.min.js'
+        _gsap_marker = 'inlined: assets/timeline-shim.js'
         _gsap_start = _pv.find(f'<script>/* {_gsap_marker} */')
         if _gsap_start >= 0:
             _gsap_end = _pv.find('</script>', _gsap_start)

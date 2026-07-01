@@ -573,6 +573,10 @@ def check_t6(episode_dir: str) -> GateResult:
         except:
             pass
 
+    if not issues:
+        return GateResult(True, [], "")
+    return GateResult(False, issues, "T4")
+
 
 # ══════════════════════════════════════════════════════════════
 # T7 Gate — 渲染后视频质量
