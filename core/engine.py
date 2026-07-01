@@ -363,7 +363,7 @@ def cmd_init(args):
         tone_style = "talk-show"
 
     # Write initial state
-    sprite_style = getattr(args, "sprite_style", "") or "boy"
+    sprite_style = getattr(args, "sprite_style", "") or "dino"
     state = {
         "episode": name,
         "topic": topic,
@@ -446,7 +446,7 @@ def cmd_create(args):
             f.write(f"# {name}\n\n{topic}\n")
 
         # Init state
-        sprite_style = getattr(args, "sprite_style", "") or "boy"
+        sprite_style = getattr(args, "sprite_style", "") or "dino"
         state = {
             "episode": name,
             "topic": topic,

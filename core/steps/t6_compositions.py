@@ -31,7 +31,7 @@ def _load_design(episode_dir):
         return load_preset("claude")
 
 
-def _render(design, slides, audio_path="", html_path="", sprite_style="boy"):
+def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     """Element-driven HyperFrames composition generator."""
 
     # Sprite animation cycle speed per style (seconds per full frame cycle)

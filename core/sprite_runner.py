@@ -34,21 +34,21 @@ SPRITE_PRESETS = {
         "name": "小男孩",
         "desc": "Cute chibi boy running",
         "grid_prompt": (
-            "A 3x3 sprite sheet, 9 cells, showing ONE cute chibi boy "
+            "A 3x3 sprite sheet, 9 cells, ONE cute chibi boy "
             "side-view running animation, pixel art, white background. "
-            "All cells: IDENTICAL character size, position, height, and appearance. "
-            "No vertical bouncing. Each cell is one frame of a running cycle:\n"
-            "Cell 1 (top-left): both feet together, body upright, start pose.\n"
-            "Cell 2 (top-center): left leg forward stepping, right leg back.\n"
-            "Cell 3 (top-right): both feet passing under body, arms swinging.\n"
-            "Cell 4 (middle-left): right leg forward stepping, left leg back.\n"
-            "Cell 5 (middle-center): both feet under body again, mid-stride.\n"
-            "Cell 6 (middle-right): left leg forward reaching, torso leans forward.\n"
-            "Cell 7 (bottom-left): both feet passing, right leg starting forward.\n"
-            "Cell 8 (bottom-center): right leg forward stride, left leg trailing.\n"
-            "Cell 9 (bottom-right): both feet coming together, ready to cycle back.\n"
-            "Minimal angle change between consecutive cells for smooth animation. "
-            "Simple flat vector, thick outlines."
+            "IDENTICAL character size, position and height in ALL cells. "
+            "No bouncing. 9-frame running cycle:\n"
+            "Cell 1: both legs slightly bent, body upright, neutral standing pose.\n"
+            "Cell 2: left leg stepping forward, right leg behind.\n"
+            "Cell 3: both legs passing under body at midpoint.\n"
+            "Cell 4: right leg reaching forward, left leg pushing off.\n"
+            "Cell 5: both legs passing again at midpoint.\n"
+            "Cell 6: left leg striding wide forward, right leg trailing.\n"
+            "Cell 7: right leg pushing forward, body leaning forward more.\n"
+            "Cell 8: both legs wider apart, accelerating stride.\n"
+            "Cell 9: maximum forward lean, longest stride, sprint pose — "
+            "completely different from cell 1 (standing).\n"
+            "Minimal angle change per cell. Flat vector, thick outlines."
         ),
     },
     "dino": {
@@ -297,12 +297,11 @@ def process_grid_sprite(
                 is_near_white = (r > 200 and g > 200 and b > 200)
                 if diff < 80 or (is_near_white and a < 200):
                     pixels[x, y] = (r, g, b, 0)
-        cropped = _autocrop(rgba, padding=3)
-        raw_frames.append(cropped)
+        raw_frames.append(rgba)
 
-    # Step 1.5: Align all frames by vertical centroid to eliminate bounce
-    # Compute center of mass for each frame, then align so all centroids
-    # are at the same vertical position.
+    # Step 1.5: Align all frames by centroid (horizontal + vertical)
+    # Keep the full canvas size during alignment. After alignment,
+    # find a common bounding box so the crop is uniform.
     centroids = []
     for f in raw_frames:
         total_mass = 0
@@ -319,39 +318,55 @@ def process_grid_sprite(
         else:
             centroids.append((f.width / 2, f.height / 2))
 
-    # Target vertical centroid = average of all frames
+    # Target centroids = average of all frames (both horizontal and vertical)
+    avg_cx = sum(c[0] for c in centroids) / len(centroids)
     avg_cy = sum(c[1] for c in centroids) / len(centroids)
 
     aligned = []
     for i, f in enumerate(raw_frames):
+        dx = int(avg_cx - centroids[i][0])
         dy = int(avg_cy - centroids[i][1])
         c = Image.new("RGBA", (f.width, f.height), (0, 0, 0, 0))
-        c.paste(f, (0, dy), f)
+        c.paste(f, (dx, dy), f)
         aligned.append(c)
 
-    # Step 2: Find max content dimensions across all aligned frames
-    max_w = max(f.width for f in aligned)
-    max_h = max(f.height for f in aligned)
-
-    # Step 3: Pad each frame to MAX size (no cropping, all content preserved)
-    # Center each frame's content on a uniform canvas of (max_w, max_h).
-    # All frames end up the same size with their content positioned
-    # consistently regardless of individual frame sizes.
-    padded = []
+    # Step 2: Find common bounding box across all aligned frames
+    # (minimum x,y and maximum x,y that is non-transparent in ALL frames)
+    fw = aligned[0].width
+    fh = aligned[0].height
+    min_x = fw; max_x = 0; min_y = fh; max_y = 0
     for f in aligned:
-        c = Image.new("RGBA", (max_w, max_h), (0, 0, 0, 0))
-        c.paste(f, ((max_w - f.width) // 2, (max_h - f.height) // 2), f)
-        padded.append(c)
+        for y in range(fh):
+            for x in range(fw):
+                if f.getpixel((x, y))[3] > 10:
+                    min_x = min(min_x, x); max_x = max(max_x, x)
+                    min_y = min(min_y, y); max_y = max(max_y, y)
 
-    # Step 4: Scale uniformly to target size
-    scale = min(frame_size / max_w, frame_size / max_h)
-    fw_u, fh_u = max(1, int(max_w * scale)), max(1, int(max_h * scale))
+    # Add padding
+    pad = 3
+    min_x = max(0, min_x - pad)
+    min_y = max(0, min_y - pad)
+    max_x = min(fw - 1, max_x + pad)
+    max_y = min(fh - 1, max_y + pad)
+    cw = max_x - min_x + 1
+    ch = max_y - min_y + 1
+
+    # Step 3: Crop all frames to common bounding box
+    cropped = []
+    for f in aligned:
+        c = f.crop((min_x, min_y, max_x + 1, max_y + 1))
+        cropped.append(c)
+
+    # Step 4: Scale uniformly to target frame size
+    scale = min(frame_size / cw, frame_size / ch)
+    uw = max(1, int(cw * scale))
+    uh = max(1, int(ch * scale))
 
     results = []
-    for f in padded:
-        r = f.resize((fw_u, fh_u), Image.LANCZOS)
+    for f in cropped:
+        r = f.resize((uw, uh), Image.LANCZOS)
         c = Image.new("RGBA", (frame_size, frame_size), (0, 0, 0, 0))
-        c.paste(r, ((frame_size - fw_u) // 2, (frame_size - fh_u) // 2), r)
+        c.paste(r, ((frame_size - uw) // 2, (frame_size - uh) // 2), r)
         results.append(c)
 
     strip = Image.new("RGBA", (frame_size * len(results), frame_size), (0, 0, 0, 0))
