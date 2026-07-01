@@ -34,16 +34,15 @@ SPRITE_PRESETS = {
         "name": "小男孩",
         "desc": "Cute chibi boy running",
         "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute chibi boy running animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character design in all 9 cells. "
-            "Row 1 (left to right): left foot forward landing, "
-            "both feet together under body, right foot pushing forward. "
-            "Row 2 (left to right): right foot landing forward, "
-            "both feet off ground in airborne stride, left foot swinging forward. "
-            "Row 3 (left to right): left foot landing forward, "
-            "both feet together mid-stride, right foot striding ahead. "
-            "Simple flat vector art, minimal detail, clear leg positions showing running motion."
+            "3x3 grid sprite sheet, 9 cells, ONE cute chibi boy side-view running animation, "
+            "simple flat vector style, white background. "
+            "CRITICAL: identical character SIZE, POSITION, and design in ALL 9 cells. "
+            "No vertical bounce, character stays at same height. "
+            "Row 1 (3 cells): left foot forward stance, slight foot angle change across row. "
+            "Row 2 (3 cells): both feet passing under body, leg positions shift gradually. "
+            "Row 3 (3 cells): right foot forward stance, subtle arm position changes. "
+            "Gentle transitions between frames, minimal pose variation per cell, "
+            "smooth walking-to-running cycle. Clean minimal art, thick outlines."
         ),
     },
     "dino": {
@@ -267,16 +266,45 @@ def process_grid_sprite(
             cropped = _autocrop(cleaned, padding=3)
             raw_frames.append(cropped)
 
-    # Step 2: Find max content dimensions across all frames
-    max_w = max(f.width for f in raw_frames)
-    max_h = max(f.height for f in raw_frames)
+    # Step 1.5: Align all frames by vertical centroid to eliminate bounce
+    # Compute center of mass for each frame, then align so all centroids
+    # are at the same vertical position.
+    centroids = []
+    for f in raw_frames:
+        total_mass = 0
+        cx = cy = 0
+        for y in range(f.height):
+            for x in range(f.width):
+                a = f.getpixel((x, y))[3]
+                if a > 0:
+                    total_mass += a
+                    cx += x * a
+                    cy += y * a
+        if total_mass > 0:
+            centroids.append((cx / total_mass, cy / total_mass))
+        else:
+            centroids.append((f.width / 2, f.height / 2))
+
+    # Target vertical centroid = average of all frames
+    avg_cy = sum(c[1] for c in centroids) / len(centroids)
+
+    aligned = []
+    for i, f in enumerate(raw_frames):
+        dy = int(avg_cy - centroids[i][1])
+        c = Image.new("RGBA", (f.width, f.height), (0, 0, 0, 0))
+        c.paste(f, (0, dy), f)
+        aligned.append(c)
+
+    # Step 2: Find max content dimensions across all aligned frames
+    max_w = max(f.width for f in aligned)
+    max_h = max(f.height for f in aligned)
 
     # Step 3: Pad each frame to MAX size (no cropping, all content preserved)
     # Center each frame's content on a uniform canvas of (max_w, max_h).
     # All frames end up the same size with their content positioned
     # consistently regardless of individual frame sizes.
     padded = []
-    for f in raw_frames:
+    for f in aligned:
         c = Image.new("RGBA", (max_w, max_h), (0, 0, 0, 0))
         c.paste(f, ((max_w - f.width) // 2, (max_h - f.height) // 2), f)
         padded.append(c)
