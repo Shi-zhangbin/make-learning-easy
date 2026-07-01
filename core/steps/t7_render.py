@@ -110,12 +110,12 @@ class RenderHandler(StepHandler):
         idx_path = episode_dir / "index.html"
         if comp_path.exists():
             _pv = comp_path.read_text(encoding="utf-8")
-            _gsap_marker = 'inlined: assets/gsap.min.js'
-            _gsap_start = _pv.find(f'<script>/* {_gsap_marker} */')
-            if _gsap_start >= 0:
-                _gsap_end = _pv.find('</script>', _gsap_start)
-                if _gsap_end >= 0:
-                    _pv = _pv[:_gsap_start] + _pv[_gsap_end + len('</script>'):]
+            _shim_marker = 'inlined: assets/timeline-shim.js'
+            _shim_start = _pv.find(f'<script>/* {_shim_marker} */')
+            if _shim_start >= 0:
+                _shim_end = _pv.find('</script>', _shim_start)
+                if _shim_end >= 0:
+                    _pv = _pv[:_shim_start] + _pv[_shim_end + len('</script>'):]
             _tl_marker = 'window.__timelines'
             _tl_start = _pv.find('<script>')
             while _tl_start >= 0:

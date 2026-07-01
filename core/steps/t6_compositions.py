@@ -963,12 +963,12 @@ class CompositionHandler(StepHandler):
 
         # Remove the large GSAP inline script block: find <script> with the GSAP comment
         # and remove everything from there to the matching </script>
-        _gsap_marker = 'inlined: assets/timeline-shim.js'
-        _gsap_start = _pv.find(f'<script>/* {_gsap_marker} */')
-        if _gsap_start >= 0:
-            _gsap_end = _pv.find('</script>', _gsap_start)
-            if _gsap_end >= 0:
-                _pv = _pv[:_gsap_start] + _pv[_gsap_end + len('</script>'):]
+        _shim_marker = 'inlined: assets/timeline-shim.js'
+        _shim_start = _pv.find(f'<script>/* {_shim_marker} */')
+        if _shim_start >= 0:
+            _shim_end = _pv.find('</script>', _shim_start)
+            if _shim_end >= 0:
+                _pv = _pv[:_shim_start] + _pv[_shim_end + len('</script>'):]
 
         # Remove the timelines script block (window.__timelines)
         _tl_marker = 'window.__timelines'
