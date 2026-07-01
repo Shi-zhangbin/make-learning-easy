@@ -103,9 +103,10 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .accent-line {{ width:60px; height:3px; background:var(--accent); border-radius:2px; }}
 
     .card-row {{ display:flex; gap:14px; flex:1; min-height:0; }}
-    .card-row-h {{ flex-direction:row; }}
+    .card-row-h {{ flex-direction:row; justify-content:center; }}
     .card-row-v {{ flex-direction:column; }}
-    .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px 24px; flex:1 1 0; min-width:0; display:flex; flex-direction:column; gap:6px; }}
+    .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; flex:1; display:flex; flex-direction:column; gap:6px; }}
+    .card-row-h > .card {{ flex:0 1 auto; min-width:200px; max-width:420px; }}
     .card .ci {{ font-size:26px; }}
     .card .ct {{ font-family:var(--hf); font-size:20px; font-weight:600; color:var(--ink); }}
     .card .cb {{ font-size:15px; color:var(--body); line-height:1.5; }}
