@@ -919,9 +919,11 @@ class CompositionHandler(StepHandler):
             sprite_style = _state.get("sprite_style")
 
         if sprite_style and sprite_style in list_presets():
-            # Generate sprite for this style
-            print(f"  🎨 Generating sprite style: {sprite_style}")
-            make_preset_runner(sprite_style, str(dst_sprite), timeout=300)
+            if dst_sprite.exists():
+                print(f"  ✅ Sprite {sprite_style} already exists, skipping generation")
+            else:
+                print(f"  🎨 Generating sprite style: {sprite_style}")
+                make_preset_runner(sprite_style, str(dst_sprite), timeout=300)
         else:
             # Use existing sprite (from asset or previous generation)
             src_sprite = get_runner_path(str(self.episode_dir))
