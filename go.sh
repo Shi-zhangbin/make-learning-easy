@@ -34,6 +34,9 @@ case "$CMD" in
   tones)
     python3 -m core.engine tones
     ;;
+  layouts)
+    python3 -m core.engine layouts
+    ;;
   help)
     cat << USAGE
 Make Learning Easy Pipeline

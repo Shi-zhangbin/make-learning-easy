@@ -409,20 +409,7 @@ def check_t4(episode_dir: str) -> GateResult:
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
     
-    # guizang-checklist inspired: layout diversity check
-    _pp_path = os.path.join(episode_dir, "02-page-plans.json")
-    if os.path.exists(_pp_path):
-        try:
-            with open(_pp_path) as _f:
-                _pp_raw = json.load(_f)
-            _pp_pages = _pp_raw if isinstance(_pp_raw, list) else _pp_raw.get("pages", [])
-            _used_layouts = set(p.get("layout", "") for p in _pp_pages if p.get("layout"))
-            if len(_used_layouts) < min(3, len(_pp_pages)):
-                issues.append(
-                    f"布局类型单一: 仅用了 {len(_used_layouts)} 种 layout ({', '.join(_used_layouts)})，"
-                    f"建议多样化(≥{min(3, len(_pp_pages))}种)")
-        except:
-            pass
+
     
     if not issues:
         return GateResult(True, [], "")
@@ -561,24 +548,30 @@ def check_t6(episode_dir: str) -> GateResult:
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
     
-    # guizang-checklist inspired: layout diversity check
+        # Layout validation: unknown layouts + diversity (check_t6)
     _pp_path = os.path.join(episode_dir, "02-page-plans.json")
     if os.path.exists(_pp_path):
         try:
             with open(_pp_path) as _f:
                 _pp_raw = json.load(_f)
+            from core.pagespec import LAYOUTS as _valid_layouts
+            _valid_set = set(_valid_layouts)
             _pp_pages = _pp_raw if isinstance(_pp_raw, list) else _pp_raw.get("pages", [])
+            # Check unknown layouts
+            _unknown = [p.get("layout", "") for p in _pp_pages 
+                       if p.get("layout") and p["layout"] not in _valid_set]
+            if _unknown:
+                issues.append(
+                    f"T6: unknown layout(s): {', '.join(set(_unknown))}. "
+                    f"valid: {', '.join(_valid_layouts)}")
+            # Check layout diversity
             _used_layouts = set(p.get("layout", "") for p in _pp_pages if p.get("layout"))
             if len(_used_layouts) < min(3, len(_pp_pages)):
                 issues.append(
-                    f"布局类型单一: 仅用了 {len(_used_layouts)} 种 layout ({', '.join(_used_layouts)})，"
-                    f"建议多样化(≥{min(3, len(_pp_pages))}种)")
+                    f"T6: few layout types: {len(_used_layouts)} ({', '.join(_used_layouts)}), "
+                    f"need >= {min(3, len(_pp_pages))}")
         except:
             pass
-    
-    if not issues:
-        return GateResult(True, [], "")
-    return GateResult(False, issues, "T4")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -757,20 +750,7 @@ def check_t5(episode_dir: str) -> GateResult:
                 issues.append(f"HTML含占位符: [{pat}]")
                 break
     
-    # guizang-checklist inspired: layout diversity check
-    _pp_path = os.path.join(episode_dir, "02-page-plans.json")
-    if os.path.exists(_pp_path):
-        try:
-            with open(_pp_path) as _f:
-                _pp_raw = json.load(_f)
-            _pp_pages = _pp_raw if isinstance(_pp_raw, list) else _pp_raw.get("pages", [])
-            _used_layouts = set(p.get("layout", "") for p in _pp_pages if p.get("layout"))
-            if len(_used_layouts) < min(3, len(_pp_pages)):
-                issues.append(
-                    f"布局类型单一: 仅用了 {len(_used_layouts)} 种 layout ({', '.join(_used_layouts)})，"
-                    f"建议多样化(≥{min(3, len(_pp_pages))}种)")
-        except:
-            pass
+
     
     if not issues:
         return GateResult(True, [], "")

@@ -597,6 +597,28 @@ def cmd_tones(args):
     print()
 
 
+def cmd_layouts(args):
+    """List available layout types."""
+    from core.pagespec import LAYOUTS, MIN_LAYERS
+    print("\n  Available layout types:")
+    for l in LAYOUTS:
+        layers = MIN_LAYERS.get(l, 4)
+        desc = {
+            "hero": "开场封面，带标签+卡片+背景图",
+            "concept": "核心概念，左列卡片+右列图片",
+            "flipped": "concept 镜像，图片在左",
+            "comparison": "左右等宽对比栏",
+            "code_block": "代码窗口+注解卡分栏",
+            "flowchart": "步骤编号列表",
+            "card_grid": "2×2 网格卡片+可选图片",
+            "quote": "居中深色大引用",
+            "section_divider": "章节幕封，大字+强调线",
+            "outro": "结尾总结，卡片+结束语",
+        }.get(l, "")
+        print(f"     {l:20s} min{layers}层  {desc}")
+    print()
+
+
 def main():
     import argparse
     p = argparse.ArgumentParser(description="Make Learning Easy Pipeline")
@@ -619,6 +641,7 @@ def main():
     sp = s.add_parser("list")
     sp = s.add_parser("designs")
     sp = s.add_parser("tones")
+    sp = s.add_parser("layouts")
 
     sp = s.add_parser("create")
     sp.add_argument("name", help='Episode name (e.g. 2026-06-27_什么是API_[Codex])')
@@ -637,6 +660,7 @@ def main():
         "list": cmd_list,
         "designs": cmd_designs,
         "tones": cmd_tones,
+        "layouts": cmd_layouts,
         "create": cmd_create,
     }
     dispatch[args.cmd](args)
