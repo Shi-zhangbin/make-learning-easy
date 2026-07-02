@@ -30,42 +30,67 @@ SPRITE_FILE_NAME = "runner.png"
 # Each template enforces: identical character, no bounce, smooth loop, white bg
 ANIMATION_CYCLES = {
     "run": (
-        "9-frame running cycle loop, contact→support→pass→reach pattern repeated:\n"
-        "Cell 1: left foot landing forward on ground, right leg trailing back.\n"
-        "Cell 2: left foot flat on ground, body over foot, right leg behind.\n"
-        "Cell 3: both legs passing under body at midpoint.\n"
-        "Cell 4: right leg reaching forward, left leg pushing behind.\n"
-        "Cell 5: right foot landing forward on ground, left leg trailing.\n"
-        "Cell 6: right foot flat, body over foot, left leg behind.\n"
-        "Cell 7: both legs passing under body again.\n"
-        "Cell 8: left leg reaching forward, right leg pushing behind.\n"
-        "Cell 9: left leg reaching forward, still in the air about to land — "
-        "DIFFERENT from cell 1 which has already landed. "
-        "The loop: cell 9 (mid-reach) → cell 1 (just landed) is seamless."
+        "9-frame running cycle. Each cell is a DISTINCT pose — "
+        "all limbs move: legs alternate, arms swing opposite to legs, "
+        "head and torso bob slightly with each stride.\n"
+        "Cell 9 → cell 1 loop is a continuous cycle.\n"
+        "Cell 1: left foot landing forward, right foot trailing behind, "
+        "right arm forward, left arm back.\n"
+        "Cell 2: left foot flat, weight over, right leg coming through, "
+        "arms at sides.\n"
+        "Cell 3: both legs passing under body, right leg mid-swing, "
+        "arms starting to swap positions.\n"
+        "Cell 4: right leg reaching forward, left leg pushing off, "
+        "left arm forward, right arm back.\n"
+        "Cell 5: right foot landing forward, left foot trailing, "
+        "arms fully swapped.\n"
+        "Cell 6: right foot flat, weight over, left leg coming through, "
+        "arms at sides again.\n"
+        "Cell 7: both legs passing again, left leg mid-swing, "
+        "arms starting to swap.\n"
+        "Cell 8: left leg reaching forward, right leg pushing off, "
+        "right arm forward.\n"
+        "Cell 9: left leg reaching forward mid-air about to land — "
+        "DIFFERENT pose from cell 1 which has already landed. "
+        "Loop: cell 9 (airborne) → cell 1 (landed)."
     ),
     "walk": (
-        "9-frame walking cycle loop, slower than running, gentle transitions:\n"
-        "Cell 1: left foot stepping forward, heel touching ground.\n"
-        "Cell 2: left foot flat on ground, body centered, right foot behind.\n"
-        "Cell 3: both feet passing under body, casual pace.\n"
-        "Cell 4: right foot stepping forward, heel touching.\n"
+        "9-frame walking cycle. Each cell is a DISTINCT pose — "
+        "legs step alternately, arms swing gently, "
+        "body sways slightly with each step.\n"
+        "Cell 9 → cell 1 loop is continuous.\n"
+        "Cell 1: left heel touching ground, right foot back, "
+        "right arm slightly forward.\n"
+        "Cell 2: left foot flat, body centered over it, right foot behind.\n"
+        "Cell 3: both feet passing under body at casual pace, arms neutral.\n"
+        "Cell 4: right heel touching ground, left foot back, "
+        "left arm slightly forward.\n"
         "Cell 5: right foot flat, body centered, left foot behind.\n"
-        "Cell 6: both feet passing again.\n"
-        "Cell 7: left foot starting to step forward.\n"
-        "Cell 8: left foot reaching forward.\n"
-        "Cell 9: left foot about to touch ground — seamless to cell 1."
+        "Cell 6: both feet passing again, gentle arm swing.\n"
+        "Cell 7: left foot starting to lift and step forward.\n"
+        "Cell 8: left foot swinging forward, right foot pushing gently.\n"
+        "Cell 9: left foot about to touch ground — flows into cell 1."
     ),
     "jump": (
-        "9-frame jumping/hopping forward cycle loop:\n"
-        "Cell 1: standing upright, legs together, preparing to jump.\n"
-        "Cell 2: crouching down, knees bent, arms back.\n"
-        "Cell 3: springing upward, arms rising, legs extending.\n"
-        "Cell 4: fully airborne, legs tucked under body.\n"
-        "Cell 5: reaching peak height, body extended.\n"
-        "Cell 6: starting descent, legs extending downward.\n"
-        "Cell 7: landing on both feet, knees bending to absorb.\n"
-        "Cell 8: crouched after landing, recovering balance.\n"
-        "Cell 9: rising back to standing — seamless to cell 1."
+        "9-frame jumping cycle. Each cell is a DISTINCT pose — "
+        "full body in motion: legs bend and extend, arms swing for momentum, "
+        "body rises and falls.\n"
+        "Cell 9 → cell 1 loops continuously.\n"
+        "Cell 1: standing upright, arms at sides, ready to jump.\n"
+        "Cell 2: crouching down, knees deeply bent, arms swinging back.\n"
+        "Cell 3: springing upward, arms thrusting forward and up, "
+        "legs pushing off ground.\n"
+        "Cell 4: fully airborne, legs tucked up under body, "
+        "arms pulling in.\n"
+        "Cell 5: reaching peak height, body fully extended, "
+        "arms reaching up.\n"
+        "Cell 6: starting descent, arms coming down, "
+        "legs extending toward ground.\n"
+        "Cell 7: landing on both feet, knees bending deeply to absorb impact, "
+        "arms forward for balance.\n"
+        "Cell 8: crouched low after landing, still absorbing, arms at sides.\n"
+        "Cell 9: rising back up toward standing position — "
+        "transitions into cell 1."
     ),
     "cycle": (
         "9-frame bicycle riding cycle loop:\n"
@@ -133,9 +158,12 @@ ANIMATION_CYCLES = {
 
 # ── Shared prompt builder ──
 _BASE_QUALITY = (
-    "IDENTICAL character SIZE, POSITION, HEIGHT and APPEARANCE in ALL 9 cells. "
-    "No vertical bouncing. Minimal frame-to-frame change for smooth animation. "
-    "Cell 9 should flow seamlessly into cell 1 when animation loops. "
+    "CRITICAL: IDENTICAL character SIZE, POSITION and HEIGHT in all 9 cells. "
+    "All 9 cells MUST be distinctly different poses — "
+    "this is a full animation cycle, NOT 9 similar drawings. "
+    "Every limb moves: legs, arms, head, and torso all change position per cell. "
+    "Cell 9 must be DIFFERENT from cell 1 but flow seamlessly into it for looping. "
+    "No vertical bouncing. Minimal pixel change between consecutive cells. "
     "Simple flat vector pixel art, thick outlines, white background."
 )
 
@@ -152,7 +180,7 @@ def _build_grid_prompt(character_desc: str, anim_type: str) -> str:
 # ── Sprite Presets (each just specifies character + animation type) ──
 SPRITE_PRESETS = {
     "boy":    {"name": "小男孩",  "desc": "Cute chibi boy running",        "anim_type": "run",        "char": "cute chibi boy"},
-    "dino":   {"name": "小恐龙",  "desc": "Cute blue dinosaur running",    "anim_type": "run",        "char": "cute baby blue dinosaur with tiny arms, big head, visible tail"},
+    "dino":   {"name": "小恐龙",  "desc": "Cute blue dinosaur running",    "anim_type": "run",        "char": "cute baby blue dinosaur with tiny arms, big head, and long tail that bounces with each stride"},
     "walk":   {"name": "散步",    "desc": "Cute chibi boy walking casually","anim_type": "walk",       "char": "cute chibi boy"},
     "cycle":  {"name": "骑车",    "desc": "Cute chibi boy riding bicycle", "anim_type": "cycle",      "char": "cute chibi boy with small bicycle"},
     "skateboard": {"name": "滑板", "desc": "Cool chibi boy skateboarding", "anim_type": "skateboard", "char": "cool chibi boy with skateboard"},
@@ -445,8 +473,7 @@ var d=document.createElement('div');d.className='f';
 var cc=document.createElement('canvas');cc.width=FW;cc.height=FH;
 cc.getContext('2d').drawImage(frames[i],0,0);
 var lb=document.createElement('div');lb.className='n';
-lb.textContent='#'+(i+1);
-d.appendChild(cc);d.appendChild(lb);
+d.appendChild(cc);
 document.getElementById('grid').appendChild(d);
 }}
 var ac=document.getElementById('anim').getContext('2d');
