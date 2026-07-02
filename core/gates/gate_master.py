@@ -72,9 +72,16 @@ def _check_tone_script(episode_dir: str, state: dict) -> list[str]:
         content = f.read()
 
     # Check must_not_contain patterns
+    # Extract meaningful keywords: skip single CJK characters ("一","二","三" etc.)
+    # to avoid false matches on common text.
     for pattern_desc in vrules.get("must_not_contain", []):
         for keyword in re.findall(r'[一-鿿\w]+', pattern_desc):
-            if keyword and keyword in content:
+            if not keyword:
+                continue
+            # Skip single CJK characters — too common, causes false positives
+            if len(keyword) == 1 and '一' <= keyword <= '鿿':
+                continue
+            if keyword in content:
                 issues.append(f"[话风门禁] tone={tone_name}: 内容含禁用词「{keyword}」({pattern_desc})")
                 break
 
