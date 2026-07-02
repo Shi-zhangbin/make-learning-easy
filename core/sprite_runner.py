@@ -39,8 +39,9 @@ ANIMATION_CYCLES = {
         "Cell 6: right foot flat, body over foot, left leg behind.\n"
         "Cell 7: both legs passing under body again.\n"
         "Cell 8: left leg reaching forward, right leg pushing behind.\n"
-        "Cell 9: left leg reaching forward about to touch ground — similar to cell 1 "
-        "but slightly earlier. The loop: cell 9 → cell 1 is seamless."
+        "Cell 9: left leg reaching forward, still in the air about to land — "
+        "DIFFERENT from cell 1 which has already landed. "
+        "The loop: cell 9 (mid-reach) → cell 1 (just landed) is seamless."
     ),
     "walk": (
         "9-frame walking cycle loop, slower than running, gentle transitions:\n"
@@ -68,27 +69,29 @@ ANIMATION_CYCLES = {
     ),
     "cycle": (
         "9-frame bicycle riding cycle loop:\n"
-        "Cell 1: left pedal at lowest point pushing down.\n"
-        "Cell 2: left pedal coming up, right pedal going down.\n"
-        "Cell 3: both pedals at middle height, even.\n"
-        "Cell 4: right pedal at lowest point pushing down.\n"
-        "Cell 5: right pedal coming up, left pedal going down.\n"
-        "Cell 6: both pedals even again.\n"
-        "Cell 7: left pedal starting to push down.\n"
-        "Cell 8: left pedal near lowest point.\n"
-        "Cell 9: left pedal at lowest — seamless to cell 1."
+        "Cell 1: left pedal starting to push down from highest point.\n"
+        "Cell 2: left pedal going down, right pedal coming up.\n"
+        "Cell 3: both pedals at middle height crossing.\n"
+        "Cell 4: right pedal at highest point pushing down.\n"
+        "Cell 5: right pedal going down, left pedal coming up.\n"
+        "Cell 6: both pedals crossing at middle again.\n"
+        "Cell 7: left pedal near highest point, starting to push.\n"
+        "Cell 8: left pedal starting its downward stroke.\n"
+        "Cell 9: left pedal partway down, continuing stroke — flows into cell 1.\n"
+        "Cell 9 and cell 1 are DIFFERENT phases of the pedal stroke, not the same."
     ),
     "skateboard": (
         "9-frame skateboarding cycle loop, smooth rolling:\n"
-        "Cell 1: standing centered on board, cruising.\n"
+        "Cell 1: standing centered on board, cruising forward.\n"
         "Cell 2: slight crouch, left foot pushing off ground.\n"
         "Cell 3: left foot off ground, both on board gliding.\n"
         "Cell 4: standing tall, arms out for balance.\n"
         "Cell 5: slight crouch, right foot pushing.\n"
         "Cell 6: both feet on board coasting.\n"
         "Cell 7: leaning forward, preparing next push.\n"
-        "Cell 8: crouching slightly, gaining speed.\n"
-        "Cell 9: back to centered cruising — seamless to cell 1."
+        "Cell 8: crouching slightly, shifting weight.\n"
+        "Cell 9: weight centered, about to stand upright — leads into cell 1.\n"
+        "Cell 9 is COMING INTO the cruising pose, cell 1 IS cruising. Different."
     ),
     "moonwalk": (
         "9-frame moonwalk (gliding backward) cycle loop:\n"
