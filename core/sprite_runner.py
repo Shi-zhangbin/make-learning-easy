@@ -62,94 +62,7 @@ ANIMATION_CYCLES = {
         "DIFFERENT pose from cell 1 which has already landed. "
         "Loop: cell 9 (airborne) → cell 1 (landed)."
     ),
-    "walk": (
-        "9-frame walking cycle. Each cell is a DISTINCT pose — "
-        "legs step alternately, arms swing gently, "
-        "body sways slightly with each step.\n"
-        "Cell 9 → cell 1 loop is continuous.\n"
-        "Cell 1: left heel touching ground, right foot back, "
-        "right arm slightly forward.\n"
-        "Cell 2: left foot flat, body centered over it, right foot behind.\n"
-        "Cell 3: both feet passing under body at casual pace, arms neutral.\n"
-        "Cell 4: right heel touching ground, left foot back, "
-        "left arm slightly forward.\n"
-        "Cell 5: right foot flat, body centered, left foot behind.\n"
-        "Cell 6: both feet passing again, gentle arm swing.\n"
-        "Cell 7: left foot starting to lift and step forward.\n"
-        "Cell 8: left foot swinging forward, right foot pushing gently.\n"
-        "Cell 9: left foot about to touch ground — flows into cell 1."
-    ),
-    "jump": (
-        "9-frame jumping cycle. Each cell is a DISTINCT pose — "
-        "full body in motion: legs bend and extend, arms swing for momentum, "
-        "body rises and falls.\n"
-        "Cell 9 → cell 1 loops continuously.\n"
-        "Cell 1: standing upright, arms at sides, ready to jump.\n"
-        "Cell 2: crouching down, knees deeply bent, arms swinging back.\n"
-        "Cell 3: springing upward, arms thrusting forward and up, "
-        "legs pushing off ground.\n"
-        "Cell 4: fully airborne, legs tucked up under body, "
-        "arms pulling in.\n"
-        "Cell 5: reaching peak height, body fully extended, "
-        "arms reaching up.\n"
-        "Cell 6: starting descent, arms coming down, "
-        "legs extending toward ground.\n"
-        "Cell 7: landing on both feet, knees bending deeply to absorb impact, "
-        "arms forward for balance.\n"
-        "Cell 8: crouched low after landing, still absorbing, arms at sides.\n"
-        "Cell 9: rising back up toward standing position — "
-        "transitions into cell 1."
-    ),
-    "cycle": (
-        "9-frame bicycle riding cycle loop:\n"
-        "Cell 1: left pedal starting to push down from highest point.\n"
-        "Cell 2: left pedal going down, right pedal coming up.\n"
-        "Cell 3: both pedals at middle height crossing.\n"
-        "Cell 4: right pedal at highest point pushing down.\n"
-        "Cell 5: right pedal going down, left pedal coming up.\n"
-        "Cell 6: both pedals crossing at middle again.\n"
-        "Cell 7: left pedal near highest point, starting to push.\n"
-        "Cell 8: left pedal starting its downward stroke.\n"
-        "Cell 9: left pedal partway down, continuing stroke — flows into cell 1.\n"
-        "Cell 9 and cell 1 are DIFFERENT phases of the pedal stroke, not the same."
-    ),
-    "skateboard": (
-        "9-frame skateboarding cycle loop, smooth rolling:\n"
-        "Cell 1: standing centered on board, cruising forward.\n"
-        "Cell 2: slight crouch, left foot pushing off ground.\n"
-        "Cell 3: left foot off ground, both on board gliding.\n"
-        "Cell 4: standing tall, arms out for balance.\n"
-        "Cell 5: slight crouch, right foot pushing.\n"
-        "Cell 6: both feet on board coasting.\n"
-        "Cell 7: leaning forward, preparing next push.\n"
-        "Cell 8: crouching slightly, shifting weight.\n"
-        "Cell 9: weight centered, about to stand upright — leads into cell 1.\n"
-        "Cell 9 is COMING INTO the cruising pose, cell 1 IS cruising. Different."
-    ),
-    "moonwalk": (
-        "9-frame moonwalk (gliding backward) cycle loop:\n"
-        "Cell 1: standing upright, feet together.\n"
-        "Cell 2: left foot sliding backward flat on ground.\n"
-        "Cell 3: left foot continues sliding, right heel lifts.\n"
-        "Cell 4: right foot sliding back, left foot flat.\n"
-        "Cell 5: both feet sliding back together.\n"
-        "Cell 6: right foot slides back more, left heel lifts.\n"
-        "Cell 7: left foot sliding back, right foot flat.\n"
-        "Cell 8: both feet together sliding.\n"
-        "Cell 9: feet together, about to start next cycle."
-    ),
-    "dance": (
-        "9-frame dance groove cycle loop, stepping in place:\n"
-        "Cell 1: arms up, stepping right foot out.\n"
-        "Cell 2: swaying hips, arms down.\n"
-        "Cell 3: twisting body, left arm up.\n"
-        "Cell 4: spin move, arms extended.\n"
-        "Cell 5: body wave, leaning back.\n"
-        "Cell 6: side step, arms low.\n"
-        "Cell 7: both arms up, knee up.\n"
-        "Cell 8: stepping left, arms out.\n"
-        "Cell 9: back to start pose — seamless to cell 1."
-    ),
+
     "typing": (
         "9-frame cat typing on computer cycle. Each cell is a DISTINCT pose — "
         "a ginger tabby cat sits at a desk in front of a computer, "
@@ -200,19 +113,7 @@ ANIMATION_CYCLES = {
         "Cell 9: left foot about to land, tail starting to drop — "
         "DIFFERENT from cell 1. Loop: cell 9 → cell 1 is seamless."
     ),
-    "fly": (
-        "9-frame superhero flying forward cycle loop:\n"
-        "Cell 1: both arms forward, diving slightly.\n"
-        "Cell 2: one arm forward, gliding level.\n"
-        "Cell 3: arms spread wide, soaring upward.\n"
-        "Cell 4: both fists forward, speeding up.\n"
-        "Cell 5: banking turn, one arm up.\n"
-        "Cell 6: level flight cruising.\n"
-        "Cell 7: diving again, arms close to body.\n"
-        "Cell 8: pulling up, arms wide.\n"
-        "Cell 9: preparing for next dive — seamless to cell 1."
-    ),
-}
+    }
 
 # ── Shared prompt builder ──
 _BASE_QUALITY = (
@@ -239,14 +140,15 @@ def _build_grid_prompt(character_desc: str, anim_type: str) -> str:
 SPRITE_PRESETS = {
     "boy":    {"name": "小男孩",  "desc": "Cute chibi boy running",        "anim_type": "run",        "char": "cute chibi boy"},
     "dino":   {"name": "小恐龙",  "desc": "Cute blue dinosaur running",    "anim_type": "run-dino",   "char": "baby blue dinosaur with round body, tiny arms, very big head, long bouncy tail, short legs"},
-    "walk":   {"name": "散步",    "desc": "Cute chibi boy walking casually","anim_type": "walk",       "char": "cute chibi boy"},
-    "cycle":  {"name": "骑车",    "desc": "Cute chibi boy riding bicycle", "anim_type": "cycle",      "char": "cute chibi boy with small bicycle"},
-    "skateboard": {"name": "滑板", "desc": "Cool chibi boy skateboarding", "anim_type": "skateboard", "char": "cool chibi boy with skateboard"},
-    "jump":   {"name": "跳跃",    "desc": "Bouncy chibi boy jumping",      "anim_type": "jump",       "char": "cute chibi boy"},
-    "moonwalk": {"name": "太空步","desc": "Funny chibi moonwalking",       "anim_type": "moonwalk",   "char": "cool chibi boy with confident expression"},
-    "dance":  {"name": "跳舞",    "desc": "Groovy chibi boy dancing",      "anim_type": "dance",      "char": "fun energetic chibi boy"},
-    "fly":    {"name": "飞翔",    "desc": "Superhero chibi boy flying",    "anim_type": "fly",        "char": "cute chibi boy superhero with flowing cape"},
-    "cat":    {"name": "打字猫",  "desc": "Cat typing on computer",        "anim_type": "typing",    "char": "ginger tabby orange cat with round head and pointy ears sitting at desk with computer screen and keyboard"},
+    
+    
+    
+    
+    
+    
+    
+    
+    "cat":    {"name": "打字猫",  "desc": "Cat typing on computer","anim_type": "typing","char": "ginger tabby orange cat with round head and pointy ears sitting at desk with computer screen and keyboard"},
 }
 
 
