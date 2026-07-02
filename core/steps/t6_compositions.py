@@ -104,8 +104,8 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
 
     .card-row {{ display:flex; gap:14px; flex:1; min-height:0; }}
     .card-row-h {{ flex-direction:row; flex-wrap:wrap; justify-content:center; }}
-    .card-row-v {{ flex-direction:column; }}
-    .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; flex:1; display:flex; flex-direction:column; gap:6px; }}
+    .card-row-v {{ flex-direction:column; justify-content:center; }}
+    .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; flex:0 1 auto; display:flex; flex-direction:column; gap:6px; }}
     .card-row-h > .card {{ flex:0 1 auto; min-width:200px; max-width:420px; }}
     .card .ci {{ font-size:26px; }}
     .card .ct {{ font-family:var(--hf); font-size:20px; font-weight:600; color:var(--ink); }}
