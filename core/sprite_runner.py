@@ -22,9 +22,17 @@ from core.imagegen import _wuyinkeji_generate
 # ── Constants ──
 DEFAULT_FRAMES = 9
 DEFAULT_FRAME_SIZE = 60
-ASSET_PATH = Path(V3_DIR) / "assets" / "sprite_runner.png"
+ASSETS_DIR = Path(V3_DIR) / "assets" / "sprites"
 SPRITES_DIR_NAME = "sprites"
-SPRITE_FILE_NAME = "runner.png"
+SPRITE_FILE_NAME = "runner.png"  # legacy fallback
+
+def _preset_path(style: str) -> Path:
+    """Return the canonical asset path for a given sprite preset."""
+    return ASSETS_DIR / f"{style}.png"
+
+def _episode_path(episode_dir: str, style: str) -> Path:
+    """Return the episode-local path for a given sprite style."""
+    return Path(episode_dir) / SPRITES_DIR_NAME / f"{style}.png"
 
 # ── Animation cycle templates (shared quality rules + 9-frame descriptions) ──
 # Each template enforces: identical character, no bounce, smooth loop, white bg
@@ -144,27 +152,27 @@ ANIMATION_CYCLES = {
     ),
     "typing": (
         "9-frame cat typing on computer cycle. Each cell is a DISTINCT pose — "
-        "the cat sits at a desk in front of a computer screen and keyboard, "
-        "paws move to press keys, tail curls behind, head and ears visible "
-        "above the screen. Features: round cat head with pointy ears, "
-        "body, keyboard (small rectangle), screen (larger rectangle above), "
-        "curled tail.\n"
+        "a ginger tabby cat sits at a desk in front of a computer, "
+        "paws move to press keys, tail curls behind, "
+        "pointy ears and round head above the screen, "
+        "orange fur with tabby stripes.\n"
         "Cell 9 → cell 1 loop repeats continuously.\n"
         "Cell 1: cat sitting upright, both paws hovering above keyboard, "
-        "eyes on screen, tail curled behind.\n"
+        "looking at screen.\n"
         "Cell 2: left paw pressing down on keyboard, right paw hovering, "
-        "body slightly leaning forward.\n"
-        "Cell 3: right paw pressing down, left paw lifting up, "
-        "body shifts back slightly.\n"
-        "Cell 4: both paws tapping alternately, tail sways gently.\n"
-        "Cell 5: pause — both paws off keys, cat looking at screen "
-        "with slight head tilt, tail tip twitching.\n"
-        "Cell 6: right paw holding a key down, left paw hovering, body still.\n"
-        "Cell 7: both paws stretching up above keyboard, "
-        "yawning, mouth open slightly, leaning back.\n"
-        "Cell 8: paws coming back down toward keyboard, body leaning forward.\n"
-        "Cell 9: both paws returning to hover over keyboard — "
-        "DIFFERENT from cell 1. Loop: cell 9 → cell 1."
+        "body leaning forward slightly.\n"
+        "Cell 3: right paw pressing down, left paw lifting up.\n"
+        "Cell 4: both paws tapping quickly, tail tip twitching.\n"
+        "Cell 5: pause — both paws off keys, head tilts slightly at screen.\n"
+        "Cell 6: both paws starting to stretch upward, "
+        "body beginning to lean back, mouth starting to open.\n"
+        "Cell 7: full stretch — both paws way up above keyboard, "
+        "back arched, mouth wide open in big yawn, eyes squinting.\n"
+        "Cell 8: paws coming down to keyboard level, "
+        "fingers about to touch keys.\n"
+        "Cell 9: paws landing on keyboard, touching the keys — "
+        "DIFFERENT from cell 1 (paws on keys vs hovering above). "
+        "Loop: cell 9 (landed) → cell 1 (hovering, about to type)."
     ),
     "run-dino": (
         "9-frame dinosaur running cycle. Each cell is a DISTINCT pose — "
@@ -238,7 +246,7 @@ SPRITE_PRESETS = {
     "moonwalk": {"name": "太空步","desc": "Funny chibi moonwalking",       "anim_type": "moonwalk",   "char": "cool chibi boy with confident expression"},
     "dance":  {"name": "跳舞",    "desc": "Groovy chibi boy dancing",      "anim_type": "dance",      "char": "fun energetic chibi boy"},
     "fly":    {"name": "飞翔",    "desc": "Superhero chibi boy flying",    "anim_type": "fly",        "char": "cute chibi boy superhero with flowing cape"},
-    "cat":    {"name": "打字猫",  "desc": "Cat typing on computer",        "anim_type": "typing",    "char": "cute cat with round head and pointy ears sitting at desk with computer screen and keyboard"},
+    "cat":    {"name": "打字猫",  "desc": "Cat typing on computer",        "anim_type": "typing",    "char": "ginger tabby orange cat with round head and pointy ears sitting at desk with computer screen and keyboard"},
 }
 
 
@@ -454,7 +462,9 @@ def make_preset_runner(
     if style not in SPRITE_PRESETS:
         raise ValueError(f"Unknown style '{style}'. Available: {', '.join(SPRITE_PRESETS)}")
     if not output_path:
-        output_path = str(ASSET_PATH)
+        # Use style-specific path to avoid overwriting other presets
+        _preset_path(style).parent.mkdir(parents=True, exist_ok=True)
+        output_path = str(_preset_path(style))
 
     preset = SPRITE_PRESETS[style]
     prompt = _build_grid_prompt(preset["char"], preset["anim_type"])
@@ -467,17 +477,26 @@ def make_preset_runner(
     if os.path.exists(grid_path):
         os.remove(grid_path)
     # Generate sprite preview HTML alongside the strip
-    generate_sprite_preview(result)
+    generate_sprite_preview(result, style)
     return result
 
 
-def get_runner_path(episode_dir: str) -> str:
-    """Resolve sprite path: episode-local > default asset."""
-    local = Path(episode_dir) / SPRITES_DIR_NAME / SPRITE_FILE_NAME
-    return str(local) if local.exists() else str(ASSET_PATH)
+def get_runner_path(episode_dir: str, style: str = "dino") -> str:
+    """Resolve sprite path: episode-local > default asset, by style name."""
+    local = _episode_path(episode_dir, style)
+    if local.exists():
+        return str(local)
+    preset = _preset_path(style)
+    if preset.exists():
+        return str(preset)
+    # Fallback: legacy runner.png
+    legacy = Path(episode_dir) / SPRITES_DIR_NAME / SPRITE_FILE_NAME
+    if legacy.exists():
+        return str(legacy)
+    return str(_preset_path("dino"))  # ultimate fallback
 
 
-def generate_sprite_preview(strip_path: str) -> str:
+def generate_sprite_preview(strip_path: str, style: str = "") -> str:
     """Generate a standalone HTML preview of the 9-frame sprite animation.
     Saved alongside the strip as 'sprite-preview.html'."""
     import base64

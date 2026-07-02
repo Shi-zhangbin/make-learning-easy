@@ -887,7 +887,6 @@ class CompositionHandler(StepHandler):
 
         sprites_dir = self.episode_dir / SPRITES_DIR_NAME
         sprites_dir.mkdir(parents=True, exist_ok=True)
-        dst_sprite = sprites_dir / SPRITE_FILE_NAME
 
         # Check if pipeline state specifies a sprite style
         sprite_style = None
@@ -895,9 +894,13 @@ class CompositionHandler(StepHandler):
         if os.path.exists(state_path_resolved):
             with open(state_path_resolved) as _sf:
                 _state = json.load(_sf)
-            sprite_style = _state.get("sprite_style")
+            sprite_style = _state.get("sprite_style") or "dino"
+        else:
+            sprite_style = "dino"
 
-        if sprite_style and sprite_style in list_presets():
+        dst_sprite = sprites_dir / f"{sprite_style}.png"
+
+        if sprite_style in list_presets():
             if dst_sprite.exists():
                 print(f"  ✅ Sprite {sprite_style} already exists, skipping generation")
             else:
@@ -905,7 +908,7 @@ class CompositionHandler(StepHandler):
                 make_preset_runner(sprite_style, str(dst_sprite), timeout=300)
         else:
             # Use existing sprite (from asset or previous generation)
-            src_sprite = get_runner_path(str(self.episode_dir))
+            src_sprite = get_runner_path(str(self.episode_dir), sprite_style)
             if os.path.exists(src_sprite) and src_sprite != str(dst_sprite):
                 shutil.copy2(src_sprite, dst_sprite)
                 print(f"  🏃 Sprite runner: {dst_sprite.name}")
