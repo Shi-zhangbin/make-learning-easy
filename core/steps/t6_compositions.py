@@ -103,7 +103,7 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .accent-line {{ width:60px; height:3px; background:var(--accent); border-radius:2px; }}
 
     .card-row {{ display:flex; gap:14px; flex:1; min-height:0; }}
-    .card-row-h {{ display:inline-flex; flex-direction:row; gap:14px; align-self:center; flex:none; }}
+    .card-row-h {{ display:flex; flex-direction:row; gap:14px; flex:1; min-height:0; }}
     .card-row-v {{ flex-direction:column; justify-content:center; }}
     .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; flex:0 1 auto; display:flex; flex-direction:column; gap:6px; justify-content:center; }}
     .card-row-h > .card {{ flex:1; min-width:180px; max-width:400px; }}
@@ -145,7 +145,7 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .fq-a {{ font-size:15px; font-weight:400; color:var(--body); line-height:1.5; }}
 
     .quote {{ background:var(--code-bg); border-radius:12px; padding:48px 60px; text-align:center; }}
-    .quote .qt {{ font-size:32px; font-weight:400; line-height:1.4; color:#e0e0e0; }}
+    .quote .qt {{ font-size:32px; font-weight:400; line-height:1.4; color:var(--body); }}
     .quote .qa {{ font-size:16px; color:var(--accent); margin-top:12px; }}
 
     .spacer {{ height:16px; }}
@@ -242,7 +242,7 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
                 icon = f'<div class="ci">{c.get("icon","")}</div>' if c.get("icon") else ""
                 tag = f'<div class="ca-tag">{c.get("tag","")}</div>' if c.get("tag") else ""
                 items += f'<div class="card-alt">{icon}<div style="flex:1"><div class="ca-name">{c.get("title","")}</div><div class="ca-desc">{c.get("desc","")}</div></div>{tag}</div>'
-            return f'<div style="display:flex;flex-direction:column;gap:12px;">{items}</div>'
+            return f'<div style="display:flex;flex-direction:column;gap:12px;flex:1;">{items}</div>'
         elif t == "grid-2x2":
             cards = ""
             for c in el.get("cards", []):
@@ -590,8 +590,8 @@ def _page_spec_to_elements(spec):
                 elements.append({"type": "image", "src": spec.image_slot, "size": "fill"})
             left, right = None, None
         else:
-            # Default (right): cards are in split-l, vertical to fill height
-            left = [{"type": "card-row", "cards": cards[:3], "direction": "v"}] if cards else []
+            # Default (right): cards sit horizontally side-by-side
+            left = [{"type": "card-row", "cards": cards[:3], "direction": "row"}] if cards else []
             right = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
 
         if left is not None and right is not None and (left or right):
@@ -612,7 +612,7 @@ def _page_spec_to_elements(spec):
         grid_cards = []
         for s in spec.sections:
             if s.cards:
-                grid_cards = [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards[:4]]
+                grid_cards = [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards]
         if grid_cards and spec.image_slot:
             # Side-by-side: grid on left, image on right
             elements.append({
