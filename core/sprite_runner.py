@@ -142,6 +142,30 @@ ANIMATION_CYCLES = {
         "Cell 8: stepping left, arms out.\n"
         "Cell 9: back to start pose — seamless to cell 1."
     ),
+    "typing": (
+        "9-frame cat typing on computer cycle. Each cell is a DISTINCT pose — "
+        "the cat sits at a desk in front of a computer screen and keyboard, "
+        "paws move to press keys, tail curls behind, head and ears visible "
+        "above the screen. Features: round cat head with pointy ears, "
+        "body, keyboard (small rectangle), screen (larger rectangle above), "
+        "curled tail.\n"
+        "Cell 9 → cell 1 loop repeats continuously.\n"
+        "Cell 1: cat sitting upright, both paws hovering above keyboard, "
+        "eyes on screen, tail curled behind.\n"
+        "Cell 2: left paw pressing down on keyboard, right paw hovering, "
+        "body slightly leaning forward.\n"
+        "Cell 3: right paw pressing down, left paw lifting up, "
+        "body shifts back slightly.\n"
+        "Cell 4: both paws tapping alternately, tail sways gently.\n"
+        "Cell 5: pause — both paws off keys, cat looking at screen "
+        "with slight head tilt, tail tip twitching.\n"
+        "Cell 6: right paw holding a key down, left paw hovering, body still.\n"
+        "Cell 7: both paws stretching up above keyboard, "
+        "yawning, mouth open slightly, leaning back.\n"
+        "Cell 8: paws coming back down toward keyboard, body leaning forward.\n"
+        "Cell 9: both paws returning to hover over keyboard — "
+        "DIFFERENT from cell 1. Loop: cell 9 → cell 1."
+    ),
     "run-dino": (
         "9-frame dinosaur running cycle. Each cell is a DISTINCT pose — "
         "full body in motion: short legs take quick steps, "
@@ -214,6 +238,7 @@ SPRITE_PRESETS = {
     "moonwalk": {"name": "太空步","desc": "Funny chibi moonwalking",       "anim_type": "moonwalk",   "char": "cool chibi boy with confident expression"},
     "dance":  {"name": "跳舞",    "desc": "Groovy chibi boy dancing",      "anim_type": "dance",      "char": "fun energetic chibi boy"},
     "fly":    {"name": "飞翔",    "desc": "Superhero chibi boy flying",    "anim_type": "fly",        "char": "cute chibi boy superhero with flowing cape"},
+    "cat":    {"name": "打字猫",  "desc": "Cat typing on computer",        "anim_type": "typing",    "char": "cute cat with round head and pointy ears sitting at desk with computer screen and keyboard"},
 }
 
 
