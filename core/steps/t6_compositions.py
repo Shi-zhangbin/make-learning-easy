@@ -102,7 +102,7 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .p-sm {{ font-size:14px; font-weight:400; color:var(--muted); line-height:1.5; }}
     .accent-line {{ width:60px; height:3px; background:var(--accent); border-radius:2px; }}
 
-    .card-row {{ display:flex; gap:12px; flex:1; min-height:0; }}
+    .card-row {{ display:flex; gap:12px; }}
     .card-row-h {{ display:flex; flex-direction:row; gap:12px; flex-wrap:wrap; align-content:flex-start; }}
     .card-row-v {{ flex-direction:column; justify-content:center; }}
     .card {{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; display:flex; flex-direction:column; gap:6px; }}
