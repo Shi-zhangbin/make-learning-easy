@@ -819,11 +819,8 @@ def _auto_card_direction(cards):
             return "row"
         return "v"
 
-    # ── 4 cards ──
+    # ── 4 cards — always vertical (2+2 wrapping looks unbalanced with image) ──
     if n == 4:
-        # horizontal if all consistently short
-        if est_lines <= 1.5 and max_len <= 70:
-            return "row"
         return "v"
 
     # ── 5+ cards ──
