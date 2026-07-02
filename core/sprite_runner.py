@@ -26,161 +26,137 @@ ASSET_PATH = Path(V3_DIR) / "assets" / "sprite_runner.png"
 SPRITES_DIR_NAME = "sprites"
 SPRITE_FILE_NAME = "runner.png"
 
-# ── Sprite Presets ──
-# Uses grid prompts: a single 3x3 image with specific per-cell descriptions.
-# One AI call = consistent character across all 9 frames.
+# ── Animation cycle templates (shared quality rules + 9-frame descriptions) ──
+# Each template enforces: identical character, no bounce, smooth loop, white bg
+ANIMATION_CYCLES = {
+    "run": (
+        "9-frame running cycle loop, contact→support→pass→reach pattern repeated:\n"
+        "Cell 1: left foot landing forward on ground, right leg trailing back.\n"
+        "Cell 2: left foot flat on ground, body over foot, right leg behind.\n"
+        "Cell 3: both legs passing under body at midpoint.\n"
+        "Cell 4: right leg reaching forward, left leg pushing behind.\n"
+        "Cell 5: right foot landing forward on ground, left leg trailing.\n"
+        "Cell 6: right foot flat, body over foot, left leg behind.\n"
+        "Cell 7: both legs passing under body again.\n"
+        "Cell 8: left leg reaching forward, right leg pushing behind.\n"
+        "Cell 9: left leg reaching forward about to touch ground — similar to cell 1 "
+        "but slightly earlier. The loop: cell 9 → cell 1 is seamless."
+    ),
+    "walk": (
+        "9-frame walking cycle loop, slower than running, gentle transitions:\n"
+        "Cell 1: left foot stepping forward, heel touching ground.\n"
+        "Cell 2: left foot flat on ground, body centered, right foot behind.\n"
+        "Cell 3: both feet passing under body, casual pace.\n"
+        "Cell 4: right foot stepping forward, heel touching.\n"
+        "Cell 5: right foot flat, body centered, left foot behind.\n"
+        "Cell 6: both feet passing again.\n"
+        "Cell 7: left foot starting to step forward.\n"
+        "Cell 8: left foot reaching forward.\n"
+        "Cell 9: left foot about to touch ground — seamless to cell 1."
+    ),
+    "jump": (
+        "9-frame jumping/hopping forward cycle loop:\n"
+        "Cell 1: standing upright, legs together, preparing to jump.\n"
+        "Cell 2: crouching down, knees bent, arms back.\n"
+        "Cell 3: springing upward, arms rising, legs extending.\n"
+        "Cell 4: fully airborne, legs tucked under body.\n"
+        "Cell 5: reaching peak height, body extended.\n"
+        "Cell 6: starting descent, legs extending downward.\n"
+        "Cell 7: landing on both feet, knees bending to absorb.\n"
+        "Cell 8: crouched after landing, recovering balance.\n"
+        "Cell 9: rising back to standing — seamless to cell 1."
+    ),
+    "cycle": (
+        "9-frame bicycle riding cycle loop:\n"
+        "Cell 1: left pedal at lowest point pushing down.\n"
+        "Cell 2: left pedal coming up, right pedal going down.\n"
+        "Cell 3: both pedals at middle height, even.\n"
+        "Cell 4: right pedal at lowest point pushing down.\n"
+        "Cell 5: right pedal coming up, left pedal going down.\n"
+        "Cell 6: both pedals even again.\n"
+        "Cell 7: left pedal starting to push down.\n"
+        "Cell 8: left pedal near lowest point.\n"
+        "Cell 9: left pedal at lowest — seamless to cell 1."
+    ),
+    "skateboard": (
+        "9-frame skateboarding cycle loop, smooth rolling:\n"
+        "Cell 1: standing centered on board, cruising.\n"
+        "Cell 2: slight crouch, left foot pushing off ground.\n"
+        "Cell 3: left foot off ground, both on board gliding.\n"
+        "Cell 4: standing tall, arms out for balance.\n"
+        "Cell 5: slight crouch, right foot pushing.\n"
+        "Cell 6: both feet on board coasting.\n"
+        "Cell 7: leaning forward, preparing next push.\n"
+        "Cell 8: crouching slightly, gaining speed.\n"
+        "Cell 9: back to centered cruising — seamless to cell 1."
+    ),
+    "moonwalk": (
+        "9-frame moonwalk (gliding backward) cycle loop:\n"
+        "Cell 1: standing upright, feet together.\n"
+        "Cell 2: left foot sliding backward flat on ground.\n"
+        "Cell 3: left foot continues sliding, right heel lifts.\n"
+        "Cell 4: right foot sliding back, left foot flat.\n"
+        "Cell 5: both feet sliding back together.\n"
+        "Cell 6: right foot slides back more, left heel lifts.\n"
+        "Cell 7: left foot sliding back, right foot flat.\n"
+        "Cell 8: both feet together sliding.\n"
+        "Cell 9: feet together, about to start next cycle."
+    ),
+    "dance": (
+        "9-frame dance groove cycle loop, stepping in place:\n"
+        "Cell 1: arms up, stepping right foot out.\n"
+        "Cell 2: swaying hips, arms down.\n"
+        "Cell 3: twisting body, left arm up.\n"
+        "Cell 4: spin move, arms extended.\n"
+        "Cell 5: body wave, leaning back.\n"
+        "Cell 6: side step, arms low.\n"
+        "Cell 7: both arms up, knee up.\n"
+        "Cell 8: stepping left, arms out.\n"
+        "Cell 9: back to start pose — seamless to cell 1."
+    ),
+    "fly": (
+        "9-frame superhero flying forward cycle loop:\n"
+        "Cell 1: both arms forward, diving slightly.\n"
+        "Cell 2: one arm forward, gliding level.\n"
+        "Cell 3: arms spread wide, soaring upward.\n"
+        "Cell 4: both fists forward, speeding up.\n"
+        "Cell 5: banking turn, one arm up.\n"
+        "Cell 6: level flight cruising.\n"
+        "Cell 7: diving again, arms close to body.\n"
+        "Cell 8: pulling up, arms wide.\n"
+        "Cell 9: preparing for next dive — seamless to cell 1."
+    ),
+}
+
+# ── Shared prompt builder ──
+_BASE_QUALITY = (
+    "IDENTICAL character SIZE, POSITION, HEIGHT and APPEARANCE in ALL 9 cells. "
+    "No vertical bouncing. Minimal frame-to-frame change for smooth animation. "
+    "Cell 9 should flow seamlessly into cell 1 when animation loops. "
+    "Simple flat vector pixel art, thick outlines, white background."
+)
+
+def _build_grid_prompt(character_desc: str, anim_type: str) -> str:
+    """Build a complete grid prompt from character description + animation type."""
+    cycle = ANIMATION_CYCLES.get(anim_type, ANIMATION_CYCLES["run"])
+    return (
+        f"A 3x3 sprite sheet, 9 cells, ONE {character_desc} "
+        f"side-view {anim_type} animation, pixel art, white background. "
+        f"{_BASE_QUALITY}\n"
+        f"{cycle}"
+    )
+
+# ── Sprite Presets (each just specifies character + animation type) ──
 SPRITE_PRESETS = {
-    "boy": {
-        "name": "小男孩",
-        "desc": "Cute chibi boy running",
-        "grid_prompt": (
-            "A 3x3 sprite sheet, 9 cells, ONE cute chibi boy "
-            "side-view running animation, pixel art, white background. "
-            "IDENTICAL character size, position and height in ALL cells. "
-            "No bouncing. 9-frame running cycle loop:\n"
-            "Cell 1: left leg landing forward on ground, right leg trailing back.\n"
-            "Cell 2: left foot flat on ground, body over foot, right leg behind.\n"
-            "Cell 3: both legs passing under body at midpoint.\n"
-            "Cell 4: right leg reaching forward, left leg pushing behind.\n"
-            "Cell 5: right leg landing forward on ground, left leg trailing.\n"
-            "Cell 6: right foot flat, body over foot, left leg behind.\n"
-            "Cell 7: both legs passing under body again.\n"
-            "Cell 8: left leg reaching forward, right leg pushing behind.\n"
-            "Cell 9: left leg reaching forward, about to touch ground — "
-            "this should look SIMILAR to cell 1 but slightly earlier in the motion.\n"
-            "The cycle loops: cell 9 (about to land) → cell 1 (just landed).\n"
-            "Minimal angle change per cell. Flat vector, thick outlines."
-        ),
-    },
-    "dino": {
-        "name": "小恐龙",
-        "desc": "Cute blue dinosaur running",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute baby blue dinosaur running animation, "
-            "side view, game sprite style, pixel art, white background. "
-            "Exactly the same dinosaur design in all 9 cells. "
-            "Chubby cute dinosaur with tiny arms, big head, tail visible in every cell. "
-            "Row 1 (left to right): left foot forward landing, "
-            "both feet together body compressed, right foot pushing forward. "
-            "Row 2: right foot landing forward, small airborne hop, "
-            "left foot swinging forward. "
-            "Row 3: left foot landing forward, both together, "
-            "right foot striding ahead. "
-            "Simple flat vector art, clear running motion, identical character size in every cell."
-        ),
-    },
-    "walk": {
-        "name": "散步",
-        "desc": "Cute chibi boy walking casually",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute chibi boy walking animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character design in all 9 cells, same as running boy but slower pace. "
-            "Row 1 (left to right): left foot stepping forward lazily, "
-            "both feet flat on ground in mid-stride, right foot beginning to lift. "
-            "Row 2 (left to right): right foot stepping forward, "
-            "both feet together brief pause, left foot starting forward. "
-            "Row 3 (left to right): left foot landing forward, "
-            "both feet momentarily together, right foot dragging forward. "
-            "Relaxed posture, arms swinging casually, simple flat vector art."
-        ),
-    },
-    "cycle": {
-        "name": "骑车",
-        "desc": "Cute chibi boy riding a bicycle",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute chibi boy riding a bicycle animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character and bicycle design in all 9 cells. "
-            "Row 1 (left to right): left pedal down pushing, "
-            "both pedals horizontal mid-rotation, right pedal pushing down. "
-            "Row 2 (left to right): right pedal down, "
-            "both pedals level cruising, left foot pushing down. "
-            "Row 3 (left to right): left pedal down, "
-            "pedals level smooth rotation, right pedal starting down. "
-            "Small bicycle with visible wheels and pedal rotation, simple flat vector art."
-        ),
-    },
-    "skateboard": {
-        "name": "滑板",
-        "desc": "Cool chibi boy skateboarding",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cool chibi boy skateboarding animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character and skateboard design in all 9 cells. "
-            "Row 1 (left to right): crouched low pushing off with left foot, "
-            "both feet on board gliding, right foot dragging to brake. "
-            "Row 2 (left to right): standing tall cruising, "
-            "slight crouch absorbing bump, leaning forward accelerating. "
-            "Row 3 (left to right): pushing off with right foot, "
-            "both feet on board coasting, landing after small ollie. "
-            "Skateboard with visible wheels, relaxed cool posture, flat vector art."
-        ),
-    },
-    "jump": {
-        "name": "跳跃",
-        "desc": "Bouncy chibi boy jumping/hopping forward",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute chibi boy hopping forward animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character design in all 9 cells. "
-            "Row 1 (left to right): crouching down arms back preparing to jump, "
-            "springing upward arms rising, fully airborne legs tucked. "
-            "Row 2 (left to right): mid-air reaching peak height, "
-            "starting descent legs extending, landing on both feet crouching. "
-            "Row 3 (left to right): bouncing up again arms up, "
-            "full airborne star jump, landing softly bending knees. "
-            "Expressive jumping motion, happy expression, simple flat vector art."
-        ),
-    },
-    "moonwalk": {
-        "name": "太空步",
-        "desc": "Funny chibi moonwalking backward",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute chibi boy moonwalking animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character design in all 9 cells. "
-            "Row 1 (left to right): gliding backward left foot flat, "
-            "right foot sliding back heel down, left foot pulling back. "
-            "Row 2 (left to right): both feet sliding back smoothly, "
-            "right foot flat gliding, left foot sliding back toe. "
-            "Row 3 (left to right): left foot flat sliding back, "
-            "both feet gliding together, right foot toe slide. "
-            "Cool confident expression, Michael Jackson style, flat vector art."
-        ),
-    },
-    "dance": {
-        "name": "跳舞",
-        "desc": "Groovy chibi boy dancing in place while moving forward",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute chibi boy dancing animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character design in all 9 cells. "
-            "Row 1 (left to right): arms up grooving left foot out, "
-            "both arms down swaying hips, right arm up pointing. "
-            "Row 2 (left to right): twisting body left arms out, "
-            "spin move arms wide, body wave leaning back. "
-            "Row 3 (left to right): stepping side to side arms low, "
-            "both arms up cheering, groove pose knee up. "
-            "Fun energetic dancing, star sunglasses, simple flat vector art."
-        ),
-    },
-    "fly": {
-        "name": "飞翔",
-        "desc": "Superhero chibi boy flying forward",
-        "grid_prompt": (
-            "A precise 3x3 sprite sheet of ONE cute chibi boy superhero flying animation, "
-            "side view, game sprite pixel art style, white background. "
-            "Exact same character design in all 9 cells, cape flowing. "
-            "Row 1 (left to right): both arms forward diving down, "
-            "one arm forward gliding level, cape billowing behind. "
-            "Row 2 (left to right): arms spread wide soaring up, "
-            "both fists forward speeding up, banking turn one arm up. "
-            "Row 3 (left to right): diving again arms tucked, "
-            "level flight cruising, pulling up arms wide. "
-            "Superhero pose with flowing cape, determined expression, flat vector art."
-        ),
-    },
+    "boy":    {"name": "小男孩",  "desc": "Cute chibi boy running",        "anim_type": "run",        "char": "cute chibi boy"},
+    "dino":   {"name": "小恐龙",  "desc": "Cute blue dinosaur running",    "anim_type": "run",        "char": "cute baby blue dinosaur with tiny arms, big head, visible tail"},
+    "walk":   {"name": "散步",    "desc": "Cute chibi boy walking casually","anim_type": "walk",       "char": "cute chibi boy"},
+    "cycle":  {"name": "骑车",    "desc": "Cute chibi boy riding bicycle", "anim_type": "cycle",      "char": "cute chibi boy with small bicycle"},
+    "skateboard": {"name": "滑板", "desc": "Cool chibi boy skateboarding", "anim_type": "skateboard", "char": "cool chibi boy with skateboard"},
+    "jump":   {"name": "跳跃",    "desc": "Bouncy chibi boy jumping",      "anim_type": "jump",       "char": "cute chibi boy"},
+    "moonwalk": {"name": "太空步","desc": "Funny chibi moonwalking",       "anim_type": "moonwalk",   "char": "cool chibi boy with confident expression"},
+    "dance":  {"name": "跳舞",    "desc": "Groovy chibi boy dancing",      "anim_type": "dance",      "char": "fun energetic chibi boy"},
+    "fly":    {"name": "飞翔",    "desc": "Superhero chibi boy flying",    "anim_type": "fly",        "char": "cute chibi boy superhero with flowing cape"},
 }
 
 
@@ -398,7 +374,8 @@ def make_preset_runner(
     if not output_path:
         output_path = str(ASSET_PATH)
 
-    prompt = SPRITE_PRESETS[style]["grid_prompt"]
+    preset = SPRITE_PRESETS[style]
+    prompt = _build_grid_prompt(preset["char"], preset["anim_type"])
     print(f"  🎨 Generating {SPRITE_PRESETS[style]['name']} sprite...")
 
     # Generate 3x3 grid (temp file, cleaned up after)
