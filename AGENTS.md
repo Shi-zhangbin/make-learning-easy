@@ -409,8 +409,16 @@ Hero 布局现在只在有卡片内容的页面显示 chip-row（`入门科普 /
  │       ├── audio/         # TTS 产物
  │       ├── images/        # AI 配图
  │       └── 成品/          # 最终 MP4
- └── skills/                # 技能库（pipeline-rules 等）
+ └── skills/                # 技能库 — 见【项目 Skill 索引】
  ```
+ 
+### 项目 Skill 索引
+
+| Skill | 路径 | 用途 |
+|-------|------|------|
+| 口播话风 | `skills/narration-style.md` | B站UP主口播稿风格指南（半佛式技法/社会类比/callback） |
+| 精灵动画 | `skills/sprite-animation.md` | 9帧精灵图生成方法论 |
+| 精灵调试 | `skills/sprite-debug.html` | 精灵图 9 帧浏览器调试页 |
 
 ## 分支说明
 

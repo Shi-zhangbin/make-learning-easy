@@ -105,8 +105,8 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .card-row {{ display:flex; gap:12px; }}
     .card-row-h {{ display:flex; flex-direction:row; gap:12px; flex-wrap:wrap; align-content:flex-start; }}
     .card-row-v {{ flex-direction:column; gap:10px; }}
-    .card {{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; display:flex; flex-direction:column; gap:6px; }}
-    .card-row-h > .card {{ flex:1 1 200px; max-width:400px; }}
+    .card {{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px 20px; display:flex; flex-direction:column; gap:6px; }}
+    .card-row-h > .card {{ flex:1 1 220px; max-width:420px; }}
     .card-row-v > .card {{ }}
     .card .ci {{ font-size:22px; }}
     .card .ct {{ font-family:var(--hf); font-size:18px; font-weight:600; color:var(--ink); }}
@@ -786,19 +786,47 @@ def _try_load_page_plans(episode_dir, slides, images):
 def _auto_card_direction(cards):
     """Auto-detect horizontal or vertical card layout based on content.
     Horizontal: equal width, no wasted horizontal space, height adapts to content.
-    Vertical: equal column width, each card fits its content height."""
+    Vertical: equal column width, each card fits its content height.
+
+    Decision factors:
+      - n: card count
+      - avg_len: average text length per card
+      - max_len: longest card text (a single very long card drags horizontal)
+      - imbalance: ratio of longest/shortest card (uneven content → vertical)
+      - est_lines: estimated rendered lines in a card (~40 chars/line)
+    """
     if not cards:
         return "row"
     n = len(cards)
-    total_chars = sum(len(c.get("title", "") + c.get("body", "")) for c in cards)
-    avg_text = total_chars / n if n else 0
-    # 2 cards with short text → horizontal (side by side looks natural)
-    if n <= 2 and avg_text <= 60:
-        return "row"
-    # 3 cards with very short text → horizontal (fits in one row)
-    if n == 3 and avg_text <= 40:
-        return "row"
-    # Otherwise → vertical (more cards or longer text stack better)
+    lengths = [len(c.get("title", "") + c.get("body", "")) for c in cards]
+    avg_len = sum(lengths) / n
+    max_len = max(lengths)
+    min_len = max(min(lengths), 1)
+    imbalance = max_len / min_len  # how uneven the cards are
+    est_lines = avg_len / 40       # rough visual lines per card
+
+    # ── 2 cards ──
+    if n == 2:
+        # horizontal works unless one card is way longer than the other
+        if imbalance < 4 and est_lines <= 3.5:
+            return "row"
+        return "v"
+
+    # ── 3 cards ──
+    if n == 3:
+        # horizontal if roughly balanced and not too long
+        if imbalance < 3.5 and est_lines <= 2.5:
+            return "row"
+        return "v"
+
+    # ── 4 cards ──
+    if n == 4:
+        # horizontal if all consistently short
+        if est_lines <= 1.5 and max_len <= 70:
+            return "row"
+        return "v"
+
+    # ── 5+ cards ──
     return "v"
 
 
