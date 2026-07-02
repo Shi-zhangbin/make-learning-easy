@@ -90,7 +90,7 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .dsp {{ font-family:var(--hf); }}
 
     .sc {{ display:flex; position:absolute; top:0; left:0; width:1920px; height:1080px; }}
-    .sci {{ display:flex; flex-direction:column; width:100%; height:100%; padding:100px 140px; gap:14px; box-sizing:border-box; position:relative; }}
+    .sci {{ display:flex; flex-direction:column; width:100%; height:100%; padding:60px 100px; gap:12px; box-sizing:border-box; position:relative; }}
 
     .badge {{ display:inline-block; align-self:flex-start; background:color-mix(in srgb,var(--accent)12%,transparent); color:var(--accent); border-radius:6px; padding:3px 14px; font-size:13px; font-weight:600; letter-spacing:0.3px; }}
     .h-xl {{ font-size:90px; font-weight:700; color:var(--ink); line-height:1.05; }}
@@ -102,15 +102,15 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .p-sm {{ font-size:14px; font-weight:400; color:var(--muted); line-height:1.5; }}
     .accent-line {{ width:60px; height:3px; background:var(--accent); border-radius:2px; }}
 
-    .card-row {{ display:flex; gap:14px; flex:1; min-height:0; }}
-    .card-row-h {{ display:flex; flex-direction:row; gap:14px; flex:1; min-height:0; }}
+    .card-row {{ display:flex; gap:12px; flex:1; min-height:0; }}
+    .card-row-h {{ display:flex; flex-direction:row; gap:12px; flex-wrap:wrap; align-content:flex-start; }}
     .card-row-v {{ flex-direction:column; justify-content:center; }}
-    .card {{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 22px; flex:0 1 auto; display:flex; flex-direction:column; gap:6px; justify-content:center; }}
-    .card-row-h > .card {{ flex:1; min-width:180px; max-width:400px; }}
+    .card {{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; display:flex; flex-direction:column; gap:6px; }}
+    .card-row-h > .card {{ flex:1 1 200px; max-width:400px; }}
     .card-row-v > .card {{ flex:1; }}
-    .card .ci {{ font-size:26px; }}
-    .card .ct {{ font-family:var(--hf); font-size:20px; font-weight:600; color:var(--ink); }}
-    .card .cb {{ font-size:15px; color:var(--body); line-height:1.5; }}
+    .card .ci {{ font-size:22px; }}
+    .card .ct {{ font-family:var(--hf); font-size:18px; font-weight:600; color:var(--ink); }}
+    .card .cb {{ font-size:14px; color:var(--body); line-height:1.45; }}
 
     .card-alt {{ border-left:3px solid var(--accent); border-radius:12px; background:var(--card); padding:18px 22px; display:flex; align-items:center; gap:16px; }}
     .card-alt .ci {{ font-size:24px; flex-shrink:0; }}
@@ -122,10 +122,10 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
     .grid-2x2 > .card:last-child:nth-child(3) {{ grid-column:1 / -1; }}
     .grid-2x2:empty {{ display:none; }}
 
-    .split {{ display:flex; flex-direction:row; gap:24px; flex:1; min-height:0; }}
+    .split {{ display:flex; flex-direction:row; gap:18px; flex:1; min-height:0; }}
     .split-l,.split-r {{ display:flex; flex-direction:column; gap:14px; min-width:0; }}
-    .split-l {{ flex:1; }}
-    .split-r {{ flex:0 1 auto; max-width:50%; }}
+    .split-l {{ flex:1; justify-content:center; }}
+    .split-r {{ flex:0 1 auto; max-width:50%; justify-content:center; }}
 
     .img-wrap {{ display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:12px; background:transparent; border:none; }}
     .img-wrap img {{ width:100%; height:auto; max-height:100%; object-fit:contain; padding:4px; }}
