@@ -92,7 +92,7 @@ make-learning-easy/
 │       ├── images/              # 配图
 │       ├── compositions/        # HTML 场景
 │       └── 成品/                # final.mp4
-└── skills/                  # Codex agent 技能
+└── skills/                  # Codex agent 技能 · 详见 [Project Skills](#project-skills)
 ```
 
 ### 双轴风格控制
@@ -222,3 +222,15 @@ T2/T4 的 `step-prompt.json` 含 `validation_rules` 字段，明确告诉 Agent 
 每一步跑完手动检查：
 - T3 → `timeline.json` 各页时长合理吗？
 - T6 → 打开 `index.html` 预览，Scene 标题/正文正确吗？
+
+---
+
+## Project Skills
+
+项目内预置的 Skill 文档，所有 agent 均可加载使用：
+
+| Skill | 文件 | 用途 |
+|-------|------|------|
+| **口播话风** | `skills/narration-style.md` | B站科技UP主口播稿风格指南。半佛式技法（社会类比/节奏控制/callback/弹幕诱饵）。 |
+| **精灵动画** | `skills/sprite-animation.md` | 9 帧精灵图生成方法论。如何将任意动作拆解为 9 帧循环 + 写 prompt + 质量规则。 |
+| **精灵调试** | `skills/sprite-debug.html` | 精灵图 9 帧调试页（浏览器打开，对比 boy/dino/cat 预设）。 |

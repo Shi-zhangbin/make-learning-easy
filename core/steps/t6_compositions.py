@@ -104,10 +104,10 @@ def _render(design, slides, audio_path="", html_path="", sprite_style="dino"):
 
     .card-row {{ display:flex; gap:12px; }}
     .card-row-h {{ display:flex; flex-direction:row; gap:12px; flex-wrap:wrap; align-content:flex-start; }}
-    .card-row-v {{ flex-direction:column; justify-content:center; }}
+    .card-row-v {{ flex-direction:column; gap:10px; }}
     .card {{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px; display:flex; flex-direction:column; gap:6px; }}
     .card-row-h > .card {{ flex:1 1 200px; max-width:400px; }}
-    .card-row-v > .card {{ flex:1; }}
+    .card-row-v > .card {{ }}
     .card .ci {{ font-size:22px; }}
     .card .ct {{ font-family:var(--hf); font-size:18px; font-weight:600; color:var(--ink); }}
     .card .cb {{ font-size:14px; color:var(--body); line-height:1.45; }}
@@ -570,28 +570,30 @@ def _page_spec_to_elements(spec):
             for c in s.cards:
                 cards.append({"icon": c.icon, "title": c.title, "body": c.body})
 
+        # Auto-detect card direction based on content
+        card_dir = _auto_card_direction(cards)
+
         # image_position from PageSpec (set by page-plans or heuristic)
         img_pos = getattr(spec, "image_position", "right") or "right"
 
         if img_pos == "left":
             left = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
-            alt_cards = [{"icon": c["icon"], "title": c["title"], "desc": c["body"], "tag": ""} for c in cards]
-            right = [{"type": "card-alt-row", "cards": alt_cards}] if alt_cards else []
+            right = [{"type": "card-row", "cards": cards, "direction": card_dir}] if cards else []
         elif img_pos == "bottom":
             if cards:
-                elements.append({"type": "card-row", "cards": cards[:3], "direction": "row"})
+                elements.append({"type": "card-row", "cards": cards, "direction": card_dir})
             if spec.image_slot:
                 elements.append({"type": "image", "src": spec.image_slot, "size": "medium"})
             left, right = None, None
         elif img_pos == "background":
             if cards:
-                elements.append({"type": "card-row", "cards": cards[:3], "direction": "row"})
+                elements.append({"type": "card-row", "cards": cards, "direction": "row"})
             if spec.image_slot:
                 elements.append({"type": "image", "src": spec.image_slot, "size": "fill"})
             left, right = None, None
         else:
-            # Default (right): cards sit horizontally side-by-side
-            left = [{"type": "card-row", "cards": cards[:3], "direction": "row"}] if cards else []
+            # Default (right): cards auto-laid out
+            left = [{"type": "card-row", "cards": cards, "direction": card_dir}] if cards else []
             right = [{"type": "image", "src": spec.image_slot, "size": "medium"}] if spec.image_slot else []
 
         if left is not None and right is not None and (left or right):
@@ -639,7 +641,7 @@ def _page_spec_to_elements(spec):
             if s.cards:
                 elements.append({
                     "type": "card-row", "direction": "row",
-                    "cards": [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards[:3]]
+                    "cards": [{"icon": c.icon, "title": c.title, "body": c.body} for c in s.cards]
                 })
         elements.append({"type": "speech-bubble", "text": "我们下期见！"})
 
@@ -779,6 +781,25 @@ def _try_load_page_plans(episode_dir, slides, images):
         specs.append(spec)
 
     return specs
+
+
+def _auto_card_direction(cards):
+    """Auto-detect horizontal or vertical card layout based on content.
+    Horizontal: equal width, no wasted horizontal space, height adapts to content.
+    Vertical: equal column width, each card fits its content height."""
+    if not cards:
+        return "row"
+    n = len(cards)
+    total_chars = sum(len(c.get("title", "") + c.get("body", "")) for c in cards)
+    avg_text = total_chars / n if n else 0
+    # 2 cards with short text → horizontal (side by side looks natural)
+    if n <= 2 and avg_text <= 60:
+        return "row"
+    # 3 cards with very short text → horizontal (fits in one row)
+    if n == 3 and avg_text <= 40:
+        return "row"
+    # Otherwise → vertical (more cards or longer text stack better)
+    return "v"
 
 
 def _match_image(page_num, images):
