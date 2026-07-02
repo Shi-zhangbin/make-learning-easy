@@ -21,7 +21,7 @@ except ImportError:
 # Tier 1: wuyinkeji (AI async generation)
 # ══════════════════════════════════════════════════════════════════
 
-def _wuyinkeji_generate(prompt: str, size: str = "16:9", timeout: int = 180, urls: list = None) -> bytes:
+def _wuyinkeji_generate(prompt: str, size: str = "16:9", timeout: int = 300, urls: list = None) -> bytes:
     """Generate image via wuyinkeji async API. Returns image bytes."""
     if not requests:
         raise RuntimeError("requests not installed")
@@ -71,7 +71,8 @@ def _pexels_search(prompt: str, orient: str = "landscape") -> bytes:
     """Search Pexels for a matching image, download first result."""
     if not requests:
         raise RuntimeError("requests not installed")
-    keywords = re.sub(r"\([^)]*\)", "", prompt).strip()[:100]
+    # Strip style prefixes [...], parenthesized content (...), keep scene description
+    keywords = re.sub(r'\[.*?\]|\(.*?\)', '', prompt).strip()[:100]
     r = requests.get("https://api.pexels.com/v1/search", params={
         "query": keywords, "per_page": 5, "orientation": orient,
     }, headers={"Authorization": PEXELS_KEY}, timeout=15)
@@ -102,7 +103,8 @@ def _pixabay_search(prompt: str, orient: str = "horizontal") -> bytes:
     """Search Pixabay for a matching image, download first result."""
     if not requests:
         raise RuntimeError("requests not installed")
-    keywords = re.sub(r"\([^)]*\)", "", prompt).strip()[:100]
+    # Strip style prefixes [...], parenthesized content (...), keep scene description
+    keywords = re.sub(r'\[.*?\]|\(.*?\)', '', prompt).strip()[:100]
     r = requests.get("https://pixabay.com/api/", params={
         "key": PIXABAY_KEY, "q": keywords,
         "image_type": "photo", "orientation": orient,
@@ -146,7 +148,8 @@ def _svg_fallback(prompt: str, accent: str = "#cc785c",
 def generate_image(prompt: str, accent_color: str = "#cc785c",
                    canvas_color: str = "#faf9f5",
                    size: str = "16:9",
-                   fallback_chain: list[str] | None = None) -> tuple[bytes, str]:
+                   fallback_chain: list[str] | None = None,
+                   timeout: int = 300) -> tuple[bytes, str]:
     """
     Generate an image using the fallback chain.
     Returns (image_bytes, source_name).
@@ -158,7 +161,17 @@ def generate_image(prompt: str, accent_color: str = "#cc785c",
     for source in fallback_chain:
         try:
             if source == "wuyinkeji":
-                data = _wuyinkeji_generate(prompt, size)
+                # Retry wuyinkeji on timeout before falling through to photo search
+                _wyk_retries = 3
+                for _attempt in range(_wyk_retries):
+                    try:
+                        data = _wuyinkeji_generate(prompt, size, timeout=timeout)
+                        break
+                    except TimeoutError:
+                        if _attempt < _wyk_retries - 1:
+                            print(f"  ⏱ wuyinkeji timeout ({_attempt+2}/{_wyk_retries})...")
+                            continue
+                        raise
             elif source == "pexels":
                 data = _pexels_search(prompt)
             elif source == "pixabay":

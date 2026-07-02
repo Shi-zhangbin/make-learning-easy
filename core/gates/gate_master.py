@@ -380,6 +380,10 @@ def check_t4(episode_dir: str) -> GateResult:
             issues.append(f"Slot[{i}] (AI源): prompt为空")
         if not slot.get("filename", "").strip():
             issues.append(f"Slot[{i}]: filename为空")
+        # filename format check
+        fn = slot.get("filename", "")
+        if fn and not re.match(r"^img_\d{2}_\d+\.(jpg|jpeg|png)$", fn):
+            issues.append(f"Slot[{i}] (page {slot.get('page','?')}): filename '{fn}' not in img_NN_M.jpg format")
 
     # 2E: 默认风格门禁 — 检查 accent 颜色是否匹配预设
     _accent_issue = _check_accent_color(episode_dir, _load_state(episode_dir))

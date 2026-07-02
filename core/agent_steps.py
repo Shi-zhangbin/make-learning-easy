@@ -210,6 +210,7 @@ class StoryboardHandler(StepHandler):
             "visual_style_guide": visual_style_guide,
             "validation_rules": {
                 "image_slots_required_fields": ["filename", "prompt", "page", "slot_index"],
+                "filename_format": "img_{NN}_{M}.jpg（如 img_01_0.jpg — NN=页码两位数，M=该页内的slot序号）",
                 "minimum_slots": 5,
                 "must_not_contain": [
                     "占位符（TKTK TODO 图片 此处插入）"
@@ -228,7 +229,11 @@ class StoryboardHandler(StepHandler):
                 "一个好的 prompt 应该包含：主体、动作、环境、风格、色调。\n"
                 "例：\n"
                 "  概念: → 程序A通过API网关向程序B发请求\n"
-                "  写出的 prompt: → 两个程序模块中间有一个标记着API的网关，通过箭头连接，直观清晰"
+                "  写出的 prompt: → 两个程序模块中间有一个标记着API的网关，通过箭头连接，直观清晰\n\n"
+                "filename 命名规范：使用 img_{NN}_{M}.jpg 格式。\n"
+                "  - NN = 页码（两位数，如 01/02/.../29）\n"
+                "  - M = 该页内的 slot 序号（从 0 开始）\n"
+                "  - 例：第 3 页第一个 slot → img_03_0.jpg，第 3 页第二个 slot → img_03_1.jpg"
             ),
 
         }

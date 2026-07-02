@@ -783,9 +783,10 @@ def _try_load_page_plans(episode_dir, slides, images):
 
 def _match_image(page_num, images):
     """Match an image filename to a page number, or return empty string.
-    Supports both naming conventions:
+    Supports naming conventions:
       - Zero-padded: p01_xxx.png, P01_xxx.png  (from legacy heuristic)
       - Page-plans:  page1_hero.png, page3_concept.png, p1_xxx.png
+      - Slot naming: img_01_0.jpg, img_02_0.jpg (from image-slots)
     """
     padded = f"p{page_num:02d}"
     for fn in images:
@@ -798,6 +799,11 @@ def _match_image(page_num, images):
         for pat in patterns:
             if pat in fn_lower:
                 return fn
+    # Fallback: match img_{page_num:02d}_ format (from T4 image-slots)
+    img_pattern = f"img_{page_num:02d}_"
+    for fn in images:
+        if img_pattern in fn.lower():
+            return fn
     return ""
 
 class CompositionHandler(StepHandler):
@@ -904,8 +910,16 @@ class CompositionHandler(StepHandler):
             if dst_sprite.exists():
                 print(f"  ✅ Sprite {sprite_style} already exists, skipping generation")
             else:
-                print(f"  🎨 Generating sprite style: {sprite_style}")
-                make_preset_runner(sprite_style, str(dst_sprite), timeout=300)
+                # Try pre-made asset first, fall back to AI generation
+                preset_asset = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                    "core", "assets", "sprites", f"{sprite_style}.png")
+                if os.path.exists(preset_asset):
+                    shutil.copy2(preset_asset, dst_sprite)
+                    print(f"  🏃 Sprite {sprite_style} from pre-made asset")
+                else:
+                    print(f"  🎨 Generating sprite style: {sprite_style}")
+                    make_preset_runner(sprite_style, str(dst_sprite), timeout=300)
         else:
             # Use existing sprite (from asset or previous generation)
             src_sprite = get_runner_path(str(self.episode_dir), sprite_style)

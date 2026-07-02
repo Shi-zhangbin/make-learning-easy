@@ -124,6 +124,11 @@ def run_step(episode_dir: str, step: str, design: dict | None = None,
     print(f"  {step}: {STEP_LABELS.get(step, step)}")
     print(f"{'='*60}")
 
+    # Clean old gate feedback before re-run (so handler reads fresh state)
+    _old_fb = os.path.join(episode_dir, "gate-feedback.json")
+    if os.path.exists(_old_fb):
+        os.remove(_old_fb)
+
     # Run
     result = handler.run()
 
