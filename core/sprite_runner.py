@@ -387,6 +387,8 @@ def make_preset_runner(
     result = process_grid_sprite(grid_path, output_path, frame_size=frame_size)
     if os.path.exists(grid_path):
         os.remove(grid_path)
+    # Generate sprite preview HTML alongside the strip
+    generate_sprite_preview(result)
     return result
 
 
@@ -394,6 +396,77 @@ def get_runner_path(episode_dir: str) -> str:
     """Resolve sprite path: episode-local > default asset."""
     local = Path(episode_dir) / SPRITES_DIR_NAME / SPRITE_FILE_NAME
     return str(local) if local.exists() else str(ASSET_PATH)
+
+
+def generate_sprite_preview(strip_path: str) -> str:
+    """Generate a standalone HTML preview of the 9-frame sprite animation.
+    Saved alongside the strip as 'sprite-preview.html'."""
+    import base64
+    strip = Path(strip_path)
+    if not strip.exists():
+        return ""
+    b64 = base64.b64encode(strip.read_bytes()).decode("ascii")
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>精灵预览</title>
+<style>
+*{{margin:0;padding:0;box-sizing:border-box;}}
+body{{font-family:sans-serif;background:#1a1a2e;color:#fff;padding:40px;}}
+h1{{font-size:24px;margin-bottom:8px;}}
+p{{color:rgba(255,255,255,.4);margin-bottom:24px;}}
+.grid{{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;}}
+.f{{text-align:center;}}
+.f canvas{{width:80px;height:80px;image-rendering:pixelated;background:#333;border-radius:4px;}}
+.f .n{{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;font-family:monospace;}}
+.demo{{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap;}}
+.demo canvas{{image-rendering:pixelated;background:#333;border-radius:8px;}}
+.ctrl{{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap;}}
+.ctrl button{{padding:6px 16px;border:none;border-radius:4px;cursor:pointer;background:#FB7299;color:#fff;font-size:13px;}}
+.ctrl span{{color:rgba(255,255,255,.5);font-size:13px;}}
+</style>
+</head><body>
+<h1>🔍 精灵预览</h1>
+<p>9帧网格 + 动画循环</p>
+<div class="grid" id="grid"></div>
+<div class="demo">
+<canvas id="anim" width="200" height="200"></canvas>
+<div class="ctrl">
+<button onclick="{'' if 1 else ''}(function(){{let p=document.getElementById('playBtn');p.textContent=p.textContent=='⏸'?'▶':'⏸';window._ap=!window._ap;}})()" id="playBtn">⏸</button>
+<span id="fps">1.2s 周期</span>
+</div>
+</div>
+<script>
+(function(){{
+var src='data:image/png;base64,{b64}',FW=60,FH=60,N=9;
+var img=new Image();img.onload=function(){{
+var frames=[];
+for(var i=0;i<N;i++){{var c=document.createElement('canvas');c.width=FW;c.height=FH;
+c.getContext('2d').drawImage(img,i*FW,0,FW,FH,0,0,FW,FH);frames.push(c);
+var d=document.createElement('div');d.className='f';
+var cc=document.createElement('canvas');cc.width=FW;cc.height=FH;
+cc.getContext('2d').drawImage(frames[i],0,0);
+var lb=document.createElement('div');lb.className='n';
+lb.textContent='#'+(i+1);
+d.appendChild(cc);d.appendChild(lb);
+document.getElementById('grid').appendChild(d);
+}}
+var ac=document.getElementById('anim').getContext('2d');
+var cur=0;window._ap=true;
+var cycle=1.2,frameDur=cycle/9,accum=0,last=0;
+function draw(f){{ac.fillStyle='#333';ac.fillRect(0,0,200,200);
+ac.save();ac.translate(100,100);var s=200/FW*0.85;ac.scale(s,s);
+ac.drawImage(frames[Math.floor(f)%9],-FW/2,-FH/2);ac.restore();}}
+function anim(t){{var dt=last?(t-last)/1000:0;last=t;
+if(window._ap&&dt<0.1){{accum+=dt;if(accum>=frameDur){{cur=(cur+1)%9;accum-=frameDur;}}}}
+draw(cur);requestAnimationFrame(anim);}}
+requestAnimationFrame(anim);
+}};img.src=src;
+}})();
+</script></body></html>"""
+    preview_path = str(strip.with_name("sprite-preview.html"))
+    with open(preview_path, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"  🔗 Sprite preview: {preview_path}")
+    return preview_path
 
 
 # ══════════════════════════════════════════════════════════════════
