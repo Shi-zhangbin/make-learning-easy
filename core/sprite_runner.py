@@ -142,6 +142,32 @@ ANIMATION_CYCLES = {
         "Cell 8: stepping left, arms out.\n"
         "Cell 9: back to start pose — seamless to cell 1."
     ),
+    "run-dino": (
+        "9-frame dinosaur running cycle. Each cell is a DISTINCT pose — "
+        "full body in motion: short legs take quick steps, "
+        "large head bobs up and down with each stride, "
+        "long tail bounces opposite to the legs for balance, "
+        "tiny arms held out and slightly up for stability.\n"
+        "Cell 9 → cell 1 loop is a continuous cycle.\n"
+        "Cell 1: left foot stepping forward landing, right foot trailing, "
+        "head up, tail lifted behind, tiny arms spread.\n"
+        "Cell 2: left foot flat on ground, body shifts forward over it, "
+        "tail starts lowering, head centers.\n"
+        "Cell 3: both feet passing under round body, "
+        "head bobbing down slightly, tail at lowest point.\n"
+        "Cell 4: right foot reaching forward landing, left foot behind, "
+        "tail starting to lift again, head up.\n"
+        "Cell 5: right foot flat, body forward, "
+        "tail lifted behind, arms out for balance.\n"
+        "Cell 6: both feet passing again under body, "
+        "head dips, tail lowers.\n"
+        "Cell 7: left foot starting forward, right foot pushing, "
+        "tail lifts, head rises.\n"
+        "Cell 8: left foot reaching forward, tail at highest point, "
+        "head fully up.\n"
+        "Cell 9: left foot about to land, tail starting to drop — "
+        "DIFFERENT from cell 1. Loop: cell 9 → cell 1 is seamless."
+    ),
     "fly": (
         "9-frame superhero flying forward cycle loop:\n"
         "Cell 1: both arms forward, diving slightly.\n"
@@ -180,7 +206,7 @@ def _build_grid_prompt(character_desc: str, anim_type: str) -> str:
 # ── Sprite Presets (each just specifies character + animation type) ──
 SPRITE_PRESETS = {
     "boy":    {"name": "小男孩",  "desc": "Cute chibi boy running",        "anim_type": "run",        "char": "cute chibi boy"},
-    "dino":   {"name": "小恐龙",  "desc": "Cute blue dinosaur running",    "anim_type": "run",        "char": "cute baby blue dinosaur with tiny arms, big head, and long tail that bounces with each stride"},
+    "dino":   {"name": "小恐龙",  "desc": "Cute blue dinosaur running",    "anim_type": "run-dino",   "char": "baby blue dinosaur with round body, tiny arms, very big head, long bouncy tail, short legs"},
     "walk":   {"name": "散步",    "desc": "Cute chibi boy walking casually","anim_type": "walk",       "char": "cute chibi boy"},
     "cycle":  {"name": "骑车",    "desc": "Cute chibi boy riding bicycle", "anim_type": "cycle",      "char": "cute chibi boy with small bicycle"},
     "skateboard": {"name": "滑板", "desc": "Cool chibi boy skateboarding", "anim_type": "skateboard", "char": "cool chibi boy with skateboard"},
